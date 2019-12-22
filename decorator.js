@@ -48,7 +48,7 @@ class Decorator {
       }
       if (test.skipped) {
         list.push('* ⚠️ *Skipped* [' + escapeSpecial(test.name) + ']' + `(${fileLink}/${test.file}#L${test.line})`);
-        return;  
+        continue;  
       }
       list.push('* [' + escapeSpecial(test.name) + ']' + `(${fileLink}/${test.file}#L${test.line})`);
     }

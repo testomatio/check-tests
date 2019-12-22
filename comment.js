@@ -31,7 +31,7 @@ class Comment {
   writeSkippedDiff(diff) {
     
     if (diff.added.length) {
-      this.body += `\n\n#### ⚠️ Skipped ${tests.length} tests\n`;
+      this.body += `\n\n#### ⚠️ Skipped ${diff.added.length} tests\n`;
       diff.added.forEach(test => this.body +=`\n* ${Object.values(test)[0]}`);        
     }
 
