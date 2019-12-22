@@ -16,7 +16,7 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 async function run() {
   try {
     
-    const headRepoPath = path.join(process.env.GITHUB_WORKSPACE, core.getInput('head-path') || 'gh-head');
+    const headRepoPath = path.join(process.env.GITHUB_WORKSPACE, core.getInput('head') || 'gh-head');
     const pattern = core.getInput('tests', { required: true });
 
     if (!mainRepoPath) {
@@ -80,7 +80,7 @@ async function run() {
 
 run()
 
-async function calculateStats(frameworkParser, pattern, cb) {
+function calculateStats(frameworkParser, pattern, cb) {
     
   const stats = {
     tests: [],
@@ -88,7 +88,9 @@ async function calculateStats(frameworkParser, pattern, cb) {
     files: [],
   };
 
-  const files = glob.sync(pattern)
+  const files = glob.sync(pattern);
+
+  console.log('Files', files);
 
   for (const file of files) {
     const source = fs.readFileSync(file).toString();
