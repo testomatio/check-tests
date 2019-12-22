@@ -3,6 +3,7 @@ const parser = require('@babel/parser');
 const fs = require('fs');
 const path = require('path');
 const glob = require("glob");
+const exec = require('@actions/exec');
 const arrayCompare = require("array-compare")
 
 const Comment = require('./comment');
@@ -16,21 +17,12 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 async function run() {
   try {
     
-    const baseRepoPath = path.join(process.env.GITHUB_WORKSPACE, core.getInput('basePath') || 'gh-base');
     const pattern = core.getInput('tests', { required: true });
 
     if (!mainRepoPath) {
       throw new Error('Repository was not fetched, please enable add `actions/checkout` step before');
     }
   
-    if (!fs.existsSync(baseRepoPath)) {
-      throw new Error(`Base ref for repository was not fetched, please add additional 'actions/checkout' step before to fetch head:
-      - uses: actions/checkout@v2
-        with:
-          ref: \${{ github.event.pull_request.base.sha }}    
-      `);
-    }
-
     let frameworkParser;
     
     const framework = core.getInput('framework', {required: true});
@@ -51,7 +43,6 @@ async function run() {
     
     const allTests = new Decorator([]);
     
-    const baseStats = calculateStats(frameworkParser, path.join(baseRepoPath, pattern));
     const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (file, testsData) => {
       testsData = testsData.map(t => {
         t.file = file.replace(mainRepoPath + path.sep, '');
@@ -59,6 +50,10 @@ async function run() {
       });
       allTests.append(testsData);
     });
+
+    exec.exec('git checkout HEAD^', { cwd: mainRepoPath });
+
+    const baseStats = calculateStats(frameworkParser, path.join(baseRepoPath, pattern));
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     console.log('base',baseStats.skipped, 'skipped', stats.skipped);
