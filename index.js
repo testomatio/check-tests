@@ -54,7 +54,7 @@ async function run() {
     
     const baseStats = calculateStats(frameworkParser, path.join(headRepoPath, pattern));
     const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (testsData) => {
-      testsData = frameworkParser(ast).map(t => {
+      testsData = testsData.map(t => {
         t.file = file.replace(mainRepoPath + path.sep, '');
         return t;
       });
@@ -95,11 +95,7 @@ async function calculateStats(frameworkParser, pattern, cb) {
     const ast = parser.parse(source);
 
     // append file name to each test
-    const testsData = frameworkParser(ast).map(t => {
-      t.file = file.replace(process.env.GITHUB_WORKSPACE + path.sep, '');
-      return t;
-    });
-
+    const testsData = frameworkParser(ast);
     
     const tests = new Decorator(testsData);
     stats.tests = stats.tests.concat(tests.getFullNames());
