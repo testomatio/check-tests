@@ -31,17 +31,22 @@ class Decorator {
 
     const list = [];
     for (const test of this.tests) {
-      const suiteName = test.suites.join(': ');
+      let suiteName = test.suites.join(': ');
       const numTests = this.getTestsInSuite(suiteName);
-      const suiteLine = `\n<summary> 📎 ${suiteName} (${numTests})</summary> \n📂 [${test.file}](${fileLink}/${test.file})`;
+      const suiteLine = `\n<summary> 📎 ${escapeSpecial(suiteName, '<code>','</code>')} (<b>${numTests}</b> tests)</summary> \n\n📂 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(suiteLine) < 0) {
         if (list.length) list.push('</details>\n');
         list.push('<details>')
         list.push(suiteLine);
       }
-      list.push('* [`' + test.name + '`]' + `(${fileLink}/${test.file}#L${test.line})`);
+      list.push('* [' + escapeSpecial(test.name) + ']' + `(${fileLink}/${test.file}#L${test.line})`);
     }
-    list.push('</details>\n')
+    list.push('</details>\n');
+
+    function escapeSpecial(text, open = '`', close = '`') {
+      return text.replace(/(@\w+)/, `${open}$1${close}`);
+    }
+
     return list.join('\n');
   }
 
