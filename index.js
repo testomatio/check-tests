@@ -90,8 +90,6 @@ function calculateStats(frameworkParser, pattern, cb) {
 
   const files = glob.sync(pattern);
 
-  console.log('Files', files);
-
   for (const file of files) {
     const source = fs.readFileSync(file).toString();
     const ast = parser.parse(source);

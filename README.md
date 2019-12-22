@@ -79,11 +79,17 @@ Add this action to your workflow and configure:
 Mocha tests located in `tests/` directory:
 
 ```yml
-uses: testomatio/check-tests
-with:
-  framework: mocha
-  tests: tests/**_test.js
-  token: ${{ secrets.GITHUB_TOKEN }}
+steps:
+  - uses: actions/checkout@v2
+  - uses: actions/checkout@v2
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}    
+      path: gh-head
+  - uses: testomatio/check-tests
+    with:
+      framework: mocha
+      tests: tests/**_test.js
+      token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 #### Cypress.io
@@ -91,11 +97,17 @@ with:
 Cypress.io tests located in `cypress/integration` directory:
 
 ```yml
-uses: testomatio/check-tests
-with:
-  framework: cypress.io
-  tests: cypress/integration/**.js
-  token: ${{ secrets.GITHUB_TOKEN }}
+steps:
+  - uses: actions/checkout@v2
+  - uses: actions/checkout@v2
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}    
+      path: gh-head
+  - uses: testomatio/check-tests
+    with:
+      framework: cypress.io
+      tests: cypress/integration/**.js
+      token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 
@@ -104,11 +116,17 @@ with:
 CodeceptJS tests located in `tests` directory:
 
 ```yml
-uses: testomatio/check-tests
-with:
-  framework: codeceptjs
-  tests: tests/**_test.js
-  token: ${{ secrets.GITHUB_TOKEN }}
+steps:
+  - uses: actions/checkout@v2
+  - uses: actions/checkout@v2
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}    
+      path: gh-head
+  - uses: testomatio/check-tests
+    with:
+      framework: codeceptjs
+      tests: tests/**_test.js
+      token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Inputs
