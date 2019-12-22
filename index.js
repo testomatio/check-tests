@@ -11,16 +11,27 @@ const Decorator = require('./decorator');
 
 // command
 // RUNNER_TOOL_CACHE="/tmp" GITHUB_REF=refs/heads/master INPUT_FRAMEWORK=mocha INPUT_TESTS="example/mocha/**.js" node index.js
+const mainRepoPath = process.env.GITHUB_WORKSPACE;
+const headRepoPath = path.join(process.env.GITHUB_WORKSPACE, core.getInput('head-path') || 'gh-head');
 
 // most @actions toolkit packages have async methods
 async function run() {
-  if (!process.env.GITHUB_WORKSPACE) {
-    throw new Error('Repository was not fetched, please enable add `actions/checkout` step before');
-  }
-
   try {
 
-    const prevStats = await loadStats();
+    const pattern = core.getInput('tests', { required: true });
+
+    if (!mainRepoPath) {
+      throw new Error('Repository was not fetched, please enable add `actions/checkout` step before');
+    }
+  
+    if (!fs.existsSync(headRepoPath)) {
+      throw new Error(`HEAD ref for repository was not fetched, please add additional 'actions/checkout' step before to fetch head:
+      - uses: actions/checkout@v2
+        with:
+          ref: \${{ github.event.pull_request.head.sha }}    
+          path: head        
+      `);
+    }
 
     let frameworkParser;
     
@@ -39,55 +50,28 @@ async function run() {
         frameworkParser = require('./lib/mocha');
         break;
     }
-
-
-    const pattern = path.join(process.env.GITHUB_WORKSPACE, core.getInput('tests', { required: true }));
-
-    const stats = {
-      tests: [],
-      suites: [],
-      files: [],
-    };
-
-    glob(pattern, (err, files) => {
-      if (err) {
-        core.setFailed(error.message);
-        return;
-      };
-      const allTests = new Decorator([]);
-
-      for (const file of files) {
-        const source = fs.readFileSync(file).toString();
-        const ast = parser.parse(source);
-
-        // append file name to each test
-        const testsData = frameworkParser(ast).map(t => {
-          t.file = file.replace(process.env.GITHUB_WORKSPACE + path.sep, '');
-          return t;
-        });
-
-        allTests.append(testsData);
-        
-        const tests = new Decorator(testsData);
-        core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);
-        stats.tests = stats.tests.concat(tests.getFullNames());
-        stats.suites = stats.suites.concat(tests.getSuiteNames());
-        stats.files.push(file);
-      }
-
-      const diff = arrayCompare(prevStats.tests, stats.tests);
-
-      const comment = new Comment();
-      comment.writeSummary(stats.tests.length, stats.files.length, framework);
-      comment.writeDiff(diff);
-      comment.writeTests(allTests.getMarkdownList());
-      comment.post();
-
-      console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
-      console.log(`Total ${stats.tests.length} tests`);
-
-      saveStats(stats);
+    
+    const allTests = new Decorator([]);
+    
+    const baseStats = calculateStats(path.join(headRepoPath, pattern));
+    const stats = calculateStats(path.join(mainRepoPath, pattern), (testsData) => {
+      testsData = frameworkParser(ast).map(t => {
+        t.file = file.replace(mainRepoPath + path.sep, '');
+        return t;
+      });
+      allTests.append(testsData);
     });
+
+    const diff = arrayCompare(baseStats.tests, stats.tests);
+
+    const comment = new Comment();
+    comment.writeSummary(stats.tests.length, stats.files.length, framework);
+    comment.writeDiff(diff);
+    comment.writeTests(allTests.getMarkdownList());
+    comment.post();
+
+    console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
+    console.log(`Total ${stats.tests.length} tests`);
     
   } 
   catch (error) {
@@ -97,28 +81,35 @@ async function run() {
 
 run()
 
-async function loadStats() {
-  const versionOrBranch = 'refs/heads/' + (core.getInput('branch') || 'master');
-  const testStatsDir = await tc.find('tests.json', versionOrBranch);
-  const testStatsFile = path.join(testStatsDir, 'tests.json');
-  let stats = {
+async function calculateStats(pattern, cb) {
+    
+  const stats = {
+    tests: [],
     suites: [],
     files: [],
-    tests: [],
   };
-  if (fs.existsSync(testStatsFile)) {
-    stats = JSON.parse(fs.readFileSync(path.join(testStatsDir, 'tests.json')));
+
+  const files = glob.sync(pattern)
+
+  for (const file of files) {
+    const source = fs.readFileSync(file).toString();
+    const ast = parser.parse(source);
+
+    // append file name to each test
+    const testsData = frameworkParser(ast).map(t => {
+      t.file = file.replace(process.env.GITHUB_WORKSPACE + path.sep, '');
+      return t;
+    });
+
+    core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);
+    
+    const tests = new Decorator(testsData);
+    stats.tests = stats.tests.concat(tests.getFullNames());
+    stats.suites = stats.suites.concat(tests.getSuiteNames());
+    stats.files.push(file);
+
+    if (cb) cb(testsData);
   }
+
   return stats;
-}
-
-async function saveStats(stats) {
-  const versionOrBranch = 'refs/heads/' + (core.getInput('branch') || 'master');
-  // do not save stats if we are not in base branch
-  if (process.env.GITHUB_REF !== versionOrBranch) return;
-
-  // write file and cache contents
-  fs.writeFileSync('tests.json', JSON.stringify(stats)); 
-  await tc.cacheFile('tests.json', 'tests.json', 'tests.json', versionOrBranch);    
-  
 }

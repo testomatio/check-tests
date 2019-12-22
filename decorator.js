@@ -28,7 +28,7 @@ class Decorator {
     const list = [];
     for (const test of this.tests) {
       const suiteName = test.suites.join(': ');
-      const suiteLine = `\n##### 📎 ${suiteName} \n*[${test.file}](${fileLink}/${test.file})*`;
+      const suiteLine = `\n##### 📎 ${suiteName} \n*${test.file}*`;
       if (list.indexOf(suiteLine) < 0) {
         list.push(suiteLine);
       }
