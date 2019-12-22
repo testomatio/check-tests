@@ -51,7 +51,7 @@ async function run() {
       allTests.append(testsData);
     });
 
-    await exec.exec('git checkout HEAD^', [], { cwd: mainRepoPath });
+    await exec.exec('git checkout HEAD~2', [], { cwd: mainRepoPath });
 
     const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
 
