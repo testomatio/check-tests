@@ -23,7 +23,7 @@ class Decorator {
   }
 
   getMarkdownList() {
-    const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}/`;
+    const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
 
     const list = [];
     for (const test of this.tests) {
@@ -32,7 +32,7 @@ class Decorator {
       if (list.indexOf(suiteLine) < 0) {
         list.push(suiteLine);
       }
-      list.push('* `' + test.name + '`');
+      list.push('* [`' + test.name + '`]' + `(${fileLink}/${test.file}#L${test.line})`);
     }
     return list.join('\n');
   }

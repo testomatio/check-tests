@@ -62,7 +62,7 @@ async function run() {
 
         // append file name to each test
         const testsData = frameworkParser(ast).map(t => {
-          t.file = file.replace(process.env.GITHUB_WORKSPACE, '');
+          t.file = file.replace(process.env.GITHUB_WORKSPACE + path.sep, '');
           return t;
         });
 
