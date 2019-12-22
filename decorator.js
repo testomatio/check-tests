@@ -35,13 +35,13 @@ class Decorator {
       const numTests = this.getTestsInSuite(suiteName);
       const suiteLine = `\n<summary> 📎 ${suiteName} (${numTests})</summary> \n📂 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(suiteLine) < 0) {
-        if (list.length) list.push('</detail>\n');
-        list.push('<detail>\n')
+        if (list.length) list.push('</details>\n');
+        list.push('<details>')
         list.push(suiteLine);
       }
       list.push('* [`' + test.name + '`]' + `(${fileLink}/${test.file}#L${test.line})`);
     }
-    list.push('</detail>\n')
+    list.push('</details>\n')
     return list.join('\n');
   }
 
