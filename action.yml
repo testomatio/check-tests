@@ -1,0 +1,19 @@
+name: 'AutoCheck tests by Testomatio'
+description: 'Check new or removed tests on each pull requests. List all tests before running them'
+inputs:
+  framework:  # id of input
+    description: 'Test framework to be used. Supported: mocha, codeceptjs'
+    required: true
+  tests:  # id of input
+    description: 'Glob pattern to match tests in a project, example: tests/**_test.js'
+    required: true
+  branch:
+    description: Main branch to compare tests with. master - by default
+    required: true
+    default: master
+  token:
+    description: GitHub token to post comment with summary to current pull request
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'
