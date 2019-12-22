@@ -1,5 +1,4 @@
 const core = require('@actions/core');
-const tc = require('@actions/tool-cache');
 const parser = require('@babel/parser');
 const fs = require('fs');
 const path = require('path');
@@ -53,8 +52,8 @@ async function run() {
     
     const allTests = new Decorator([]);
     
-    const baseStats = calculateStats(path.join(headRepoPath, pattern));
-    const stats = calculateStats(path.join(mainRepoPath, pattern), (testsData) => {
+    const baseStats = calculateStats(frameworkParser, path.join(headRepoPath, pattern));
+    const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (testsData) => {
       testsData = frameworkParser(ast).map(t => {
         t.file = file.replace(mainRepoPath + path.sep, '');
         return t;
@@ -81,7 +80,7 @@ async function run() {
 
 run()
 
-async function calculateStats(pattern, cb) {
+async function calculateStats(frameworkParser, pattern, cb) {
     
   const stats = {
     tests: [],
