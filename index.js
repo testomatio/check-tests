@@ -62,7 +62,7 @@ async function run() {
     });
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
-    console.log('base',baseStats.tests, 'skipped', stats.skipped);
+    console.log('base',baseStats.skipped, 'skipped', stats.skipped);
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
     
     const comment = new Comment();

@@ -47,6 +47,8 @@ class Comment {
 `\n\n<details>
   <summary>📑 List all tests</summary>
 
+---
+
 ${list}
 
 </details>
