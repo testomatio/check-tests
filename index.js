@@ -16,19 +16,18 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 async function run() {
   try {
     
-    const headRepoPath = path.join(process.env.GITHUB_WORKSPACE, core.getInput('head') || 'gh-head');
+    const baseRepoPath = path.join(process.env.GITHUB_WORKSPACE, core.getInput('basePath') || 'gh-base');
     const pattern = core.getInput('tests', { required: true });
 
     if (!mainRepoPath) {
       throw new Error('Repository was not fetched, please enable add `actions/checkout` step before');
     }
   
-    if (!fs.existsSync(headRepoPath)) {
-      throw new Error(`HEAD ref for repository was not fetched, please add additional 'actions/checkout' step before to fetch head:
+    if (!fs.existsSync(baseRepoPath)) {
+      throw new Error(`Base ref for repository was not fetched, please add additional 'actions/checkout' step before to fetch head:
       - uses: actions/checkout@v2
         with:
-          ref: \${{ github.event.pull_request.head.sha }}    
-          path: head        
+          ref: \${{ github.event.pull_request.base.sha }}    
       `);
     }
 
@@ -52,7 +51,7 @@ async function run() {
     
     const allTests = new Decorator([]);
     
-    const baseStats = calculateStats(frameworkParser, path.join(headRepoPath, pattern));
+    const baseStats = calculateStats(frameworkParser, path.join(baseRepoPath, pattern));
     const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (file, testsData) => {
       testsData = testsData.map(t => {
         t.file = file.replace(mainRepoPath + path.sep, '');
