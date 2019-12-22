@@ -100,12 +100,13 @@ async function calculateStats(frameworkParser, pattern, cb) {
       return t;
     });
 
-    core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);
     
     const tests = new Decorator(testsData);
     stats.tests = stats.tests.concat(tests.getFullNames());
     stats.suites = stats.suites.concat(tests.getSuiteNames());
     stats.files.push(file);
+
+    core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);
 
     if (cb) cb(testsData);
   }
