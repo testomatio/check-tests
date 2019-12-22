@@ -32,7 +32,7 @@ class Decorator {
     const list = [];
     for (const test of this.tests) {
       let suiteName = test.suites.join(': ');
-      const numTests = this.getTestsInSuite(suiteName);
+      const numTests = this.getTestsInSuite(suiteName).length;
       const suiteLine = `\n<summary> 📎 ${escapeSpecial(suiteName, '<code>','</code>')} (<b>${numTests}</b> tests)</summary> \n\n📂 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(suiteLine) < 0) {
         if (list.length) list.push('</details>\n');
@@ -44,7 +44,7 @@ class Decorator {
     list.push('</details>\n');
 
     function escapeSpecial(text, open = '`', close = '`') {
-      return text.replace(/(@\w+)/, `${open}$1${close}`);
+      return text.replace(/(@[\w:-]+)/g, `${open}$1${close}`);
     }
 
     return list.join('\n');
