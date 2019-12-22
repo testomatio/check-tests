@@ -53,7 +53,7 @@ async function run() {
     const allTests = new Decorator([]);
     
     const baseStats = calculateStats(frameworkParser, path.join(headRepoPath, pattern));
-    const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (testsData) => {
+    const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (file, testsData) => {
       testsData = testsData.map(t => {
         t.file = file.replace(mainRepoPath + path.sep, '');
         return t;
@@ -104,7 +104,7 @@ async function calculateStats(frameworkParser, pattern, cb) {
 
     core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);
 
-    if (cb) cb(testsData);
+    if (cb) cb(file, testsData);
   }
 
   return stats;
