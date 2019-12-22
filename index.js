@@ -53,7 +53,7 @@ async function run() {
 
     exec.exec('git checkout HEAD^', { cwd: mainRepoPath });
 
-    const baseStats = calculateStats(frameworkParser, path.join(baseRepoPath, pattern));
+    const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     console.log('base',baseStats.skipped, 'skipped', stats.skipped);
