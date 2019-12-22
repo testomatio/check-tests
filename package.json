@@ -10,6 +10,7 @@
     "@actions/core": "^1.2.0",
     "@actions/github": "^2.0.0",
     "@actions/io": "^1.0.1",
+    "@actions/tool-cache": "^1.1.2",
     "@babel/parser": "^7.7.7",
     "array-compare": "^2.0.0",
     "babel-traverse": "^6.26.0",
