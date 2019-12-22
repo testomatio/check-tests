@@ -32,7 +32,7 @@ class Decorator {
     const list = [];
     for (const test of this.tests) {
       const suiteName = test.suites.join(': ');
-      const numTests = getTestsInSuite(suiteName);
+      const numTests = this.getTestsInSuite(suiteName);
       const suiteLine = `\n<summary> 📎 ${suiteName} (${numTests})</summary> \n📂 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(suiteLine) < 0) {
         if (list.length) list.push('</detail>\n');
