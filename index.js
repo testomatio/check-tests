@@ -62,10 +62,14 @@ async function run() {
     });
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
-
+    const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
+    
     const comment = new Comment();
     comment.writeSummary(stats.tests.length, stats.files.length, framework);
     comment.writeDiff(diff);
+    comment.writeSkippedDiff(skippedDiff);
+    
+
     comment.writeTests(allTests.getMarkdownList());
     comment.post();
 
@@ -86,6 +90,7 @@ function calculateStats(frameworkParser, pattern, cb) {
     tests: [],
     suites: [],
     files: [],
+    skipped: [],
   };
 
   const files = glob.sync(pattern);
@@ -99,7 +104,7 @@ function calculateStats(frameworkParser, pattern, cb) {
     
     const tests = new Decorator(testsData);
     stats.tests = stats.tests.concat(tests.getFullNames());
-    stats.suites = stats.suites.concat(tests.getSuiteNames());
+    stats.skipped = stats.skipped.concat(tests.getSkippedTestFullNames());
     stats.files.push(file);
 
     core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);

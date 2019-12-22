@@ -26,15 +26,29 @@ class Decorator {
     return this.tests.filter(t => t.suites.join(': ') === suite);
   }
 
+  getSkippedTests() {
+    return this.tests.filter(t => t.skipped);
+  }
+
+  getSkippedTestFullNames() {
+    return this.getSkippedTests().map(t => {
+      return t.suites.join(': ') + ': ' + t.name;
+    });
+  }
+
   getMarkdownList() {
     const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
 
     const list = [];
     for (const test of this.tests) {
       let suiteName = test.suites.join(': ');
-      const suiteLine = `\n📎 **${escapeSpecial(suiteName)}**\n📂 [${test.file}](${fileLink}/${test.file})`;
+      const suiteLine = `\n📎 **${escapeSpecial(suiteName)}**\n📝 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(suiteLine) < 0) {
         list.push(suiteLine);
+      }
+      if (test.skipped) {
+        list.push('* ⚠️ *Skipped* [' + escapeSpecial(test.name) + ']' + `(${fileLink}/${test.file}#L${test.line})`);
+        return;  
       }
       list.push('* [' + escapeSpecial(test.name) + ']' + `(${fileLink}/${test.file}#L${test.line})`);
     }

@@ -17,9 +17,11 @@
     "glob": "^7.1.6"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "dotenv": "^8.2.0"
   },
   "scripts": {
-    "run": "node -r dotenv/config index.js"
+    "run": "node -r dotenv/config index.js",
+    "test": "mocha tests/**_test.js"
   }
 }

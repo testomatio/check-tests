@@ -11,13 +11,17 @@ describe('Math', function() {
   //   // Our actual test: (3-4)*8 SHOULD EQUAL -8
   //   assert.equal(-8, (3-4)*8);
   // });
-  it('should be clone', function(){
+  xit('should be clone', function(){
     // Our actual test: 3*3 SHOULD EQUAL 9
     assert.equal(9, 3*3);
   });
 
-  it('should be second clone', function(){
+  it.skip('should be second clone', function(){
     // Our actual test: 3*3 SHOULD EQUAL 9
     assert.equal(9, 3*3);
+  });
+
+  describe.skip('NoMath', function() {
+    it('should be disabled', () => {});
   });
 });

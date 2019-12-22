@@ -11,7 +11,7 @@ class Comment {
 
     if (diff.added.length || diff.missing.length) {
       this.body += '\n\n```diff\n';
-      
+
       if (diff.added.length) {
         this.body += `Added ${diff.added.length} tests\n===========`;
         diff.added.forEach(test => this.body +=`\n+ ${Object.values(test)[0]}`);        
@@ -26,6 +26,20 @@ class Comment {
     } else {
       this.body += '\nNo new tests added or removed';
     }
+  }
+
+  writeSkippedDiff(diff) {
+    
+    if (diff.added.length) {
+      this.body += `\n\n#### ⚠️ Skipped ${tests.length} tests\n`;
+      diff.added.forEach(test => this.body +=`\n* ${Object.values(test)[0]}`);        
+    }
+
+    if (diff.missing.length) {
+      this.body += `\n\n#### ♻ Unskipped ${diff.missing.length} tests\n`;
+      diff.missing.forEach(test => this.body += `\n* ${Object.values(test)[0]}`);        
+    }
+
   }
 
   writeTests(list) {

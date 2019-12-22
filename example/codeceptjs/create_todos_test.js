@@ -7,7 +7,7 @@ Before(async (I, TodosPage) => {
 /**
  * Happy Path tests
  */
-Scenario('Create a new todo item', async (I, TodosPage) => {
+xScenario('Create a new todo item', async (I, TodosPage) => {
   I.say('Given I have an empty todo list')
 
   I.say('When I create a todo "foo"')
