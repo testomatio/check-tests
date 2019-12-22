@@ -14,7 +14,12 @@ const Decorator = require('./decorator');
 
 // most @actions toolkit packages have async methods
 async function run() {
+  if (!process.env.GITHUB_WORKSPACE) {
+    throw new Error('Repository was not fetched, please enable add `actions/checkout` step before');
+  }
+
   try {
+
     const prevStats = await loadStats();
 
     let frameworkParser;
@@ -34,7 +39,9 @@ async function run() {
         frameworkParser = require('./lib/mocha');
         break;
     }
-    const pattern = core.getInput('tests', { required: true });
+
+
+    const pattern = path.join(process.env.GITHUB_WORKSPACE, core.getInput('tests', { required: true }));
 
     const stats = {
       tests: [],
