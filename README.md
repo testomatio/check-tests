@@ -1,6 +1,6 @@
-## AutoCheck Tests by Testomatio
+# 🌀 AutoCheck Tests by Testomatio
 
-This action show you list of changed tests on each pull request with overview of all tests in this project.
+This action shows changed tests on each pull request with a complete list of all tests in this project.
 
 
 ### Sample Report
@@ -54,7 +54,7 @@ Added tests
 
 Once this action is enabled GitHub a bot will create a comment for each Pull Request with a list of all changed tests. 
 
-This inforamtion is useful to:
+This inforamation is useful to:
 
 * track addition and removal of your tests
 * see overview of all tests in a project
@@ -106,7 +106,7 @@ CodeceptJS tests located in `tests` directory:
 ```yml
 uses: testomatio/check-tests
 with:
-  framework: mocha
+  framework: codeceptjs
   tests: tests/**_test.js
   token: ${{ secrets.GITHUB_TOKEN }}
 ```
