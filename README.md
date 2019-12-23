@@ -100,7 +100,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - uses: testomatio/check-tests@master
+    - uses: testomatio/check-tests@v1
       with:
         framework: # REQUIRED - testing framework
         tests: # REQUIRED - glob pattern to match test files
@@ -128,7 +128,7 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests@master
+  - uses: testomatio/check-tests@v1
     with:
       framework: mocha
       tests: tests/**_test.js
@@ -145,7 +145,7 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests@master
+  - uses: testomatio/check-tests@v1
     with:
       framework: jest
       tests: tests/**.spec.js
@@ -162,7 +162,7 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests@master
+  - uses: testomatio/check-tests@v1
     with:
       framework: cypress.io
       tests: cypress/integration/**.js
@@ -180,7 +180,7 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests@master
+  - uses: testomatio/check-tests@v1
     with:
       framework: codeceptjs
       tests: tests/**_test.js
