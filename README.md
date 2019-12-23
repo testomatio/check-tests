@@ -85,6 +85,7 @@ Check that your project uses one of the following testing frameworks (this list 
 * mocha
 * codeceptjs
 * cypress.io
+* jest
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
@@ -127,12 +128,29 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests
+  - uses: testomatio/check-tests@master
     with:
       framework: mocha
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
       no-tests-labels: Tests Needed
+```
+
+#### Jest 
+
+Jest tests located in `tests/` directory:
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@master
+    with:
+      framework: jest
+      tests: tests/**.spec.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      has-tests-label: true
 ```
 
 #### Cypress.io
@@ -144,7 +162,7 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests
+  - uses: testomatio/check-tests@master
     with:
       framework: cypress.io
       tests: cypress/integration/**.js
@@ -162,7 +180,7 @@ steps:
   - uses: actions/checkout@v2
     with:
       fetch-depth: 0
-  - uses: testomatio/check-tests
+  - uses: testomatio/check-tests@master
     with:
       framework: codeceptjs
       tests: tests/**_test.js

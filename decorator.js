@@ -3,7 +3,10 @@ const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${pro
 class Decorator {
 
   constructor(tests) {
-    this.tests = tests;
+    this.tests = tests.map(t => {
+      if (!t.suites) t.suites = [];
+      return t;
+    });
   }
 
   count() {
@@ -59,7 +62,7 @@ class Decorator {
 
       const count = this.getTestsInSuite(suite).length;
 
-      const fileLine = `* **${suite} (${count})** [${test.file}](${fileLink}/${test.file})`;
+      const fileLine = `* **${suite} (${count} tests)** [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(fileLine) < 0) {
         list.push(fileLine);
       }

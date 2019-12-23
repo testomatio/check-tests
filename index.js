@@ -30,6 +30,10 @@ async function run() {
     const framework = core.getInput('framework', {required: true});
 
     switch (framework) {
+      case 'jest':
+      case 'jestio':
+        frameworkParser = require('./lib/jest');
+        break;   
       case 'codecept':
       case 'codeceptjs':
         frameworkParser = require('./lib/codeceptjs');
@@ -54,9 +58,11 @@ async function run() {
     let baseStats;
 
     try {
+      if (core.getInput('nodiff')) throw new Error('Diff is disabled');
       console.log('Comparing with', pr.base.sha);
       await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
       baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
+      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
     } catch (err) {
       console.error("Can't calculate base test files");
       console.error(err);
@@ -71,7 +77,6 @@ async function run() {
     const diff = arrayCompare(baseStats.tests, stats.tests);
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
         
-    await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
 
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
