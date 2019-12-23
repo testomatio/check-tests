@@ -75,6 +75,8 @@ async function run() {
     }
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
+    diff.missing = diff.missing.filter(t => !stats.skipped.includes(t)) // remove skipped tests from missing
+
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
         
 

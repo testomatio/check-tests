@@ -1,6 +1,6 @@
 # 🌀 AutoCheck Tests by Testomatio
 
-> Static Analysis for your JavaScript tests.
+> GitHub Action with Static Analysis for your JavaScript tests.
 
 This action shows changed tests on each pull request with a complete list of all tests in this project.
 
@@ -66,7 +66,7 @@ Found **7** codeceptjs tests in 1 files
 
 ## Usage
 
-Once this action is enabled GitHub a bot will create a comment for each Pull Request with a list of all changed tests. 
+Once this action is enabled, bot will create a comment for each Pull Request with a list of all changed tests. 
 
 This information is useful to:
 
