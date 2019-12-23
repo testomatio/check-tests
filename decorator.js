@@ -55,11 +55,11 @@ class Decorator {
       for (let i = 0; i < testSuites.length; i++) {
         if (suites[i] === testSuites[i]) continue;
         if (!suites[i]) {
-          suites[i] = testSuites[i];
           list.push(indent(`* 📎 **${escapeSpecial(testSuites[i])}**`));
+          suites[i] = testSuites[i];
           continue;
         }
-        delete suites[i];
+        suites = suites.slice(0, i);
         list.push(indent(`* 📎 **${escapeSpecial(testSuites[i])}**`));
         suites[i] = testSuites[i];
       }
@@ -71,15 +71,16 @@ class Decorator {
       const fileLine = `\n📝 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(fileLine) < 0) {
         list.push(fileLine);
+        suites = [];
       }
       
       buildSuites(test);
 
       if (test.skipped) {
-        list.push(indent('  * [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}) ⚠️ *skipped*`));
+        list.push(indent('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}) ⚠️ *skipped*`));
         continue;  
       }
-      list.push(indent('  * ' + escapeSpecial(test.name)));
+      list.push(indent('* ' + escapeSpecial(test.name)));
     }
 
 
@@ -90,7 +91,7 @@ class Decorator {
     function escapeSpecial(text, open = '`', close = '`') {
       return text.replace(/(@[\w:-]+)/g, `${open}$1${close}`);
     }
-
+    
     return list;
   }
 

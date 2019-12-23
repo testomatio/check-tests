@@ -13,22 +13,22 @@ describe('Decorator', () => {
       { name: 'test6', suites: ['Puppeteer', 'first', 'second', 'third'] },
     ]);
     expect(decorator.getMarkdownList()).to.include.members([
-      '  * 📎 **Appium**',
-      '    * 📎 **first**',
-      '      * 📎 **second**',
-      '        * test1',
-      '        * test2',
-      '    * test3',
-      '    * 📎 **third**',
-      '      * 📎 **fourth**',
-      '        * test4',
-      '  * 📎 **WebDriverIO**',
-      '    * test5',
-      '  * 📎 **Puppeteer**',
-      '    * 📎 **first**',
-      '      * 📎 **second**',
-      '        * 📎 **third**',
-      '          * test6',    
+      '* 📎 **Appium**',
+      '  * 📎 **first**',
+      '    * 📎 **second**',
+      '      * test1',
+      '      * test2',
+      '  * test3',
+      '  * 📎 **third**',
+      '    * 📎 **fourth**',
+      '      * test4',
+      '* 📎 **WebDriverIO**',
+      '  * test5',
+      '* 📎 **Puppeteer**',
+      '  * 📎 **first**',
+      '    * 📎 **second**',
+      '      * 📎 **third**',
+      '        * test6'      
     ]);
   });
 
