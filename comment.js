@@ -53,6 +53,8 @@ class Comment {
   }
 
   writeTests(list) {
+    // too big list of tests
+    if (list.length > 55000) return;
     this.body += 
 `\n\n<details>
   <summary>📑 List all tests</summary>
