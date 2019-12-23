@@ -55,12 +55,19 @@ async function run() {
       allTests.append(testsData);
     });
 
-    const pr = await pullRequest.fetch();
+    let nodiff = core.getInput('nodiff');
+    let pr;
+
+    try {
+      pr = await pullRequest.fetch();
+    } catch (err) {
+      nodiff = true;
+    }
 
     let baseStats;
 
     try {
-      if (core.getInput('nodiff')) throw new Error('Diff is disabled');
+      if (nodiff) throw new Error('Diff is disabled');
       console.log('Comparing with', pr.base.sha);
       await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
       baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
@@ -96,6 +103,8 @@ async function run() {
     } else {
       comment.writeSuites(allTests.getSuitesMarkdownList());
     }
+
+    if (!pr) return;
 
     await pullRequest.addComment(comment);
 
