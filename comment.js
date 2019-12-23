@@ -2,10 +2,12 @@ const github = require('@actions/github');
 const core = require('@actions/core');
 const pullRequest = require('./pullRequest');
 
+const attribution = '🌀 Tests overview by [Testomatio](https://testomat.io)';
+
 class Comment {
 
   constructor() {
-    this.body = '🌀 Tests overview by [Testomatio](https://testomat.io)\n';
+    this.body = attribution + '\n';
   }
 
   writeDiff(diff) {
@@ -80,7 +82,27 @@ ${list}
     const pr = await pullRequest();
 
     const { number } = pr;
+
   
+    // delete previous comments
+
+    const comments = await octokit.issues.listComments({
+      owner,
+      repo,
+      issue_number: number
+    }).filter(c => {
+      return (c.user.login === 'github-actions[bot]') && (c.body.indexOf(attribution) === 0);
+    });
+
+    console.log('Deleting comments ', comments.length);
+
+    await Promise.all(
+      comments.map(c => octokit.issues.deleteComment({
+        owner,
+        repo,
+        comment_id: c.id
+      }))
+    );
     
     return octokit.issues.createComment({
       owner,
