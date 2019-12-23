@@ -6,7 +6,7 @@ const glob = require("glob");
 const exec = require('@actions/exec');
 const arrayCompare = require("array-compare")
 
-const pullRequest = require('./pullRequest');
+const PullRequest = require('./pullRequest');
 const Comment = require('./comment');
 const Decorator = require('./decorator');
 
