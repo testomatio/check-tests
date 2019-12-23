@@ -71,12 +71,17 @@ class PullRequest {
     const pr = await this.fetch();
     const { number: issue_number } = pr;
 
-    await this.octokit.issues.removeLabel({
-      owner,
-      repo,
-      issue_number,
-      name: label
-    });
+    try {
+      await this.octokit.issues.removeLabel({
+        owner,
+        repo,
+        issue_number,
+        name: label
+      });
+    } catch (err) {
+      // if label doesn't exists we dont care
+    }
+
   }
 
 }
