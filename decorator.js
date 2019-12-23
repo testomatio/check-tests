@@ -3,6 +3,10 @@ class Decorator {
   constructor(tests) {
     this.tests = tests;
   }
+
+  count() {
+    return this.tests.length;
+  }
   
   append(tests) {
     this.tests = this.tests.concat(tests);
