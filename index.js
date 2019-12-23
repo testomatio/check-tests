@@ -46,10 +46,6 @@ async function run() {
     const allTests = new Decorator([]);
     
     const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (file, testsData) => {
-      testsData = testsData.map(t => {
-        t.file = file.replace(mainRepoPath + path.sep, '');
-        return t;
-      });
       allTests.append(testsData);
     });
 
@@ -128,7 +124,8 @@ function calculateStats(frameworkParser, pattern, cb) {
     const ast = parser.parse(source);
 
     // append file name to each test
-    const testsData = frameworkParser(ast);
+    const fileName = file.replace(mainRepoPath + path.sep, '');
+    const testsData = frameworkParser(ast, fileName);
     
     const tests = new Decorator(testsData);
     stats.tests = stats.tests.concat(tests.getFullNames());
