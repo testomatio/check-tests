@@ -1,7 +1,8 @@
 name: 'AutoCheck JavaScript tests by Testomatio'
 description: 'Check new or removed tests on each pull requests. List all tests before running them'
-icon: check-circle
-color: blue
+branding:
+  icon: check-circle
+  color: blue
 inputs:
   framework:  # id of input
     description: 'Test framework to be used. Supported: mocha, codeceptjs'
