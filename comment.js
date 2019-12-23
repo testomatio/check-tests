@@ -54,7 +54,10 @@ class Comment {
 
   writeTests(list) {
     // too big list of tests
-    if (list.length > 55000) return;
+    if (list.length > 60000) {
+      console.log('Too many tests, ignoring them in comment. String length: ', list.length)
+      return;
+    }
     this.body += 
 `\n\n<details>
   <summary>📑 List all tests</summary>
