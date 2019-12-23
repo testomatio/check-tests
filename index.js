@@ -81,11 +81,11 @@ async function run() {
     comment.writeSummary(stats.tests.length, stats.files.length, framework);
     comment.writeDiff(diff);
     comment.writeSkippedDiff(skippedDiff);
-    comment.writeSkipped(allTests.getSkippedList());
+    comment.writeSkipped(allTests.getSkippedMarkdownList());
     if (allTests.count() < 900) {
       comment.writeTests(allTests.getMarkdownList());
     } else {
-      comment.writeSuites(allTests.getSuitesList());
+      comment.writeSuites(allTests.getSkippedMarkdownList());
     }
 
     await pullRequest.addComment(comment);

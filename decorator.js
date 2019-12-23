@@ -42,16 +42,17 @@ class Decorator {
     });
   }
 
-  getSkippedList() {
+  getSkippedMarkdownList() {
     const list = []
     const tests = this.tests.getSkippedList();
 
     for (const test of tests) {
       list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}`);
     }
+    return list;
   }
 
-  getSuitesList() {
+  getSuitesMarkdownList() {
     const list = [];
     for (const test of this.tests) {
       const suite = test.suites[0] || '';
