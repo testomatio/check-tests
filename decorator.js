@@ -19,7 +19,7 @@ class Decorator {
   }
 
   getFullNames() {
-    return this.tests.map(t => {
+    return this.tests.filter(t => !t.skipped).map(t => {
       return t.suites.join(': ') + ': ' + t.name;
     });
   }
