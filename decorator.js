@@ -112,10 +112,6 @@ class Decorator {
     function indent(line) {
       return ''.padStart(suites.length * 2, ' ') + line;
     }
-
-    function escapeSpecial(text, open = '`', close = '`') {
-      return text.replace(/(@[\w:-]+)/g, `${open}$1${close}`);
-    }
     
     return list;
   }
@@ -123,3 +119,7 @@ class Decorator {
 }
 
 module.exports = Decorator;
+
+function escapeSpecial(text, open = '`', close = '`') {
+  return text.replace(/(@[\w:-]+)/g, `${open}$1${close}`);
+}
