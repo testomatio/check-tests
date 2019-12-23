@@ -91,7 +91,7 @@ class Decorator {
       return text.replace(/(@[\w:-]+)/g, `${open}$1${close}`);
     }
 
-    return list.join('\n');
+    return list;
   }
 
 }

@@ -12,7 +12,7 @@ describe('Decorator', () => {
       { name: 'test5', suites: ['WebDriverIO'] },
       { name: 'test6', suites: ['Puppeteer', 'first', 'second', 'third'] },
     ]);
-    expect(decorator.getMarkdownList().split('\n')).to.include.members([
+    expect(decorator.getMarkdownList()).to.include.members([
       '  * 📎 **Appium**',
       '    * 📎 **first**',
       '      * 📎 **second**',

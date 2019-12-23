@@ -54,9 +54,12 @@ class Comment {
 
   writeTests(list) {
     // too big list of tests
-    if (list.length > 60000) {
-      console.log('Too many tests, ignoring them in comment. String length: ', list.length)
-      return;
+    const body = list.join('\n');
+
+    if (body.length > 60000) {
+      console.log('Too many tests, ignoring them in comment. String length: ', body.length)
+
+      body = body.substring(0, 60000) + '\n...(more than possible to display)...'
     }
     this.body += 
 `\n\n<details>
@@ -64,7 +67,7 @@ class Comment {
 
 ---
 
-${list}
+${body}
 
 </details>
 
