@@ -1,0 +1,11 @@
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Check Tests
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup Node.js for use with actions
+        uses: actions/setup-node@v1.1.0
+      - run: npm test

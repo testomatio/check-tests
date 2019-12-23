@@ -32,6 +32,22 @@ describe('Decorator', () => {
     ]);
   });
 
+  it('should print markdown2', () => {
+    const decorator = new Decorator([
+      { name: 'should send basic', suites: ['GraphQL', 'basic queries'] },
+      { name: 'should send mut 1', suites: ['GraphQL', 'basic mutations'] },
+      { name: 'should send mut 2', suites: ['GraphQL', 'basic mutations'] },
+    ]);
+
+    expect(decorator.getMarkdownList()).to.include.members([
+      '* 📎 **GraphQL**',
+      '  * 📎 **basic queries**',
+      '    * should send basic',
+      '  * 📎 **basic mutations**',
+      '    * should send mut 1',
+      '    * should send mut 2'       
+    ]);
+  });  
 
 
 });

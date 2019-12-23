@@ -47,7 +47,24 @@ describe('mocha parser', () => {
       expect(actualTests).to.include('.check() - check a checkbox or radio element');
       // assert.equal(tests.length, 3);
     });
+  });
 
+
+  context('graphql tests', () => {
+
+    before(() => {
+      source = fs.readFileSync('./example/mocha/graphql_test.js').toString();
+      ast = parser.parse(source);
+    });
+
+    it('should parse codeceptjs internal test', () => {
+      const tests = mochaParser(ast);
+
+      expect(tests[0].name).to.eql('should send a query: read');
+      expect(tests[0].suites).to.eql(['GraphQL', 'basic queries']);
+      expect(tests[1].suites).to.eql(['GraphQL', 'basic mutations']);
+      // assert.equal(tests.length, 3);
+    });
   });
 
 });
