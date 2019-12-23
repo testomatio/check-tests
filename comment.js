@@ -92,6 +92,7 @@ ${list}
       issue_number: number
     });
 
+    console.log(comments);
     console.log('Deleting comments ', comments.length);
 
     await Promise.all(
