@@ -50,7 +50,7 @@ class Decorator {
         list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}) ⚠️ *skipped*`);
         continue;  
       }
-      list.push('* [' + escapeSpecial(test.name) + ']' + `(${fileLink}/${test.file}#L${test.line})`);
+      list.push('* ' + escapeSpecial(test.name));
     }
 
     function escapeSpecial(text, open = '`', close = '`') {
