@@ -16,6 +16,7 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 // most @actions toolkit packages have async methods
 async function run() {
   try {
+    const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH).toString());
     
     const pattern = core.getInput('tests', { required: true });
 
@@ -51,7 +52,10 @@ async function run() {
       allTests.append(testsData);
     });
 
-    await exec.exec('git', ['checkout', core.getInput('compare')], { cwd: mainRepoPath });
+    console.log(event);
+    console.log('switching to ', event.base.sha);
+
+    await exec.exec('git', ['checkout', event.base.sha], { cwd: mainRepoPath });
 
     const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
 
