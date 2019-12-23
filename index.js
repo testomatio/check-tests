@@ -85,7 +85,7 @@ async function run() {
     if (allTests.count() < 900) {
       comment.writeTests(allTests.getMarkdownList());
     } else {
-      comment.writeSuites(allTests.getSkippedMarkdownList());
+      comment.writeSuites(allTests.getSuitesMarkdownList());
     }
 
     await pullRequest.addComment(comment);
