@@ -47,7 +47,7 @@ class Decorator {
     const tests = this.getSkippedTests();
 
     for (const test of tests) {
-      list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}`);
+      list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line})`);
     }
     return list;
   }
