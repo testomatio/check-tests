@@ -52,10 +52,9 @@ async function run() {
       allTests.append(testsData);
     });
 
-    console.log(event);
-    console.log('switching to ', event.base.sha);
+    console.log('switching to ', event.before);
 
-    await exec.exec('git', ['checkout', event.base.sha], { cwd: mainRepoPath });
+    await exec.exec('git', ['checkout', event.before], { cwd: mainRepoPath });
 
     const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
 
@@ -71,6 +70,9 @@ async function run() {
 
     comment.writeTests(allTests.getMarkdownList());
     comment.post();
+
+
+    await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
 
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
