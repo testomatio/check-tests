@@ -13,7 +13,7 @@ class Comment {
     if (diff.added.length || diff.missing.length) {
       
       if (diff.added.length) {
-        this.body += `\n#### heavy_check_mark ✔️ Added ${diff.added.length} tests\n`;
+        this.body += `\n#### ✔️ Added ${diff.added.length} tests\n`;
         this.body += '\n\n```diff\n';
         diff.added.forEach(test => this.body +=`\n+ ${Object.values(test)[0]}`);        
         this.body += '\n```\n\n';
@@ -37,14 +37,14 @@ class Comment {
       this.body += `\n\n#### ⚠️ Skipped ${diff.added.length} tests\n`;
       this.body += '```diff\n'
       diff.added.forEach(test => this.body +=`\n- ${Object.values(test)[0]}`);        
-      this.body += '```\n'
+      this.body += '\n```\n\n'
     }
 
     if (diff.missing.length) {
       this.body += `\n\n#### ♻ Restored ${diff.missing.length} tests\n`;
       this.body += '```diff\n';
       diff.missing.forEach(test => this.body += `\n+ ${Object.values(test)[0]}`);        
-      this.body += '```\n';
+      this.body += '\n```\n\n';
     }
 
   }
