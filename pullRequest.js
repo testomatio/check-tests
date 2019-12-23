@@ -71,7 +71,7 @@ class PullRequest {
     const pr = await this.fetch();
     const { number: issue_number } = pr;
 
-    await octokit.issues.removeLabel({
+    await this.octokit.issues.removeLabel({
       owner,
       repo,
       issue_number,
