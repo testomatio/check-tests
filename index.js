@@ -6,6 +6,7 @@ const glob = require("glob");
 const exec = require('@actions/exec');
 const arrayCompare = require("array-compare")
 
+const pullRequest = require('./pullRequest');
 const Comment = require('./comment');
 const Decorator = require('./decorator');
 
@@ -16,7 +17,6 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 // most @actions toolkit packages have async methods
 async function run() {
   try {
-    const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH).toString());
     
     const pattern = core.getInput('tests', { required: true });
 
@@ -52,9 +52,11 @@ async function run() {
       allTests.append(testsData);
     });
 
-    console.log('switching to ', event.before);
+    const pr = await pullRequest();
 
-    await exec.exec('git', ['checkout', event.before], { cwd: mainRepoPath });
+    console.log('Comparing with', pr.base.sha);
+
+    await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
 
     const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
 

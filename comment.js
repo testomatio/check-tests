@@ -1,5 +1,6 @@
 const github = require('@actions/github');
 const core = require('@actions/core');
+const pullRequest = require('./pullRequest');
 
 class Comment {
 
@@ -70,16 +71,8 @@ ${list}
     
     const [ owner, repo ] = repoUrl.split('/');
     
-    const { data: pullRequests } = await octokit.pulls.list({
-      owner,
-      repo,
-      state: 'open'
-    });
-  
-    const pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
-  
-    if (!pr) return;
-    
+    const pr = await pullRequest();
+
     const { number } = pr;
   
     
