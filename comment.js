@@ -90,14 +90,14 @@ ${list}
       owner,
       repo,
       issue_number: number
-    }).filter(c => {
-      return (c.user.login === 'github-actions[bot]') && (c.body.indexOf(attribution) === 0);
     });
 
     console.log('Deleting comments ', comments.length);
 
     await Promise.all(
-      comments.map(c => octokit.issues.deleteComment({
+      comments.filter(c => {
+        return (c.user.login === 'github-actions[bot]') && (c.body.indexOf(attribution) === 0);
+      }).map(c => octokit.issues.deleteComment({
         owner,
         repo,
         comment_id: c.id

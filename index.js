@@ -71,7 +71,7 @@ async function run() {
 
 
     comment.writeTests(allTests.getMarkdownList());
-    comment.post();
+    await comment.post();
 
 
     await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
