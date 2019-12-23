@@ -52,7 +52,7 @@ async function run() {
       allTests.append(testsData);
     });
 
-    const pullRequest = new PullRequest(core.getInput('tests', { required: true }));
+    const pullRequest = new PullRequest(core.getInput('token', { required: true }));
 
     const pr = await pullRequest.fetch();
 
