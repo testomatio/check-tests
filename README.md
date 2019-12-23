@@ -86,6 +86,8 @@ Check that your project uses one of the following testing frameworks (this list 
 * codeceptjs
 * cypress.io
 * jest
+* protractor
+* jasmine
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
@@ -119,22 +121,6 @@ jobs:
 
 ### Examples
 
-#### Mocha 
-
-Mocha tests located in `tests/` directory:
-
-```yml
-steps:
-  - uses: actions/checkout@v2
-    with:
-      fetch-depth: 0
-  - uses: testomatio/check-tests@stable
-    with:
-      framework: mocha
-      tests: tests/**_test.js
-      token: ${{ secrets.GITHUB_TOKEN }}
-      no-tests-labels: Tests Needed
-```
 
 #### Jest 
 
@@ -187,6 +173,41 @@ steps:
       token: ${{ secrets.GITHUB_TOKEN }}
       has-tests-labels: true      
 ```
+
+#### Protractor
+
+Protractor tests located in `spec` directory:
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: protractor
+      tests: spec/**_spec.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      has-tests-labels: true      
+```
+
+#### Mocha 
+
+Mocha tests located in `tests/` directory:
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: mocha
+      tests: tests/**_test.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      no-tests-labels: Tests Needed
+```
+
 
 ## Limitations
 

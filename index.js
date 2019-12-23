@@ -32,6 +32,10 @@ async function run() {
     const framework = core.getInput('framework', {required: true});
 
     switch (framework) {
+      case 'jasmine':
+      case 'protractor':
+        frameworkParser = require('./lib/jasmine');
+        break;        
       case 'jest':
       case 'jestio':
         frameworkParser = require('./lib/jest');
@@ -92,6 +96,7 @@ async function run() {
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
 
+    if (!pr) return;
 
     const comment = new Comment();
     comment.writeSummary(stats.tests.length, stats.files.length, framework);
@@ -103,8 +108,6 @@ async function run() {
     } else {
       comment.writeSuites(allTests.getSuitesMarkdownList());
     }
-
-    if (!pr) return;
 
     await pullRequest.addComment(comment);
 
