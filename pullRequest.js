@@ -27,7 +27,6 @@ class PullRequest {
 
   async addComment(comment) {
     const pr = await this.fetch();
-
     const { number: issue_number } = pr;
 
     // delete previous comments
@@ -57,6 +56,9 @@ class PullRequest {
   }
 
   async addLabel(label) {
+    const pr = await this.fetch();
+    const { number: issue_number } = pr;
+
     this.octokit.issues.addLabels({
       owner,
       repo,
