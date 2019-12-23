@@ -1,12 +1,8 @@
-const github = require('@actions/github');
-const core = require('@actions/core');
-const pullRequest = require('./pullRequest');
-
 class Comment {
 
   constructor() {
     this.attribution = '🌀 Tests overview by [Testomatio](https://testomat.io)';
-    this.body = attribution + '\n';
+    this.body = this.attribution + '\n';
   }
 
   writeDiff(diff) {
