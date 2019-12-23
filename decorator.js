@@ -1,3 +1,5 @@
+const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
+
 class Decorator {
 
   constructor(tests) {
@@ -40,9 +42,31 @@ class Decorator {
     });
   }
 
-  getMarkdownList() {
-    const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
+  getSkippedList() {
+    const list = []
+    const tests = this.tests.getSkippedList();
 
+    for (const test of tests) {
+      list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}`);
+    }
+  }
+
+  getSuitesList() {
+    const list = [];
+    for (const test of this.tests) {
+      const suite = test.suites[0] || '';
+
+      const count = this.getTestsInSuite(suite).length;
+
+      const fileLine = `\n* **${suite} (${count})** [${test.file}](${fileLink}/${test.file})`;
+      if (list.indexOf(fileLine) < 0) {
+        list.push(fileLine);
+      }
+    }
+    return list; 
+  }
+
+  getMarkdownList() {
     const list = [];
     let suites = [];
 

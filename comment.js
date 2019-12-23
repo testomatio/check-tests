@@ -52,6 +52,41 @@ class Comment {
 
   }
 
+  writeSkipped(list) {
+    if (!list.length) return;
+    let body = list.join('\n');
+
+    this.body += 
+`\n\n<details>
+  <summary>⚠️ List all skipped tests (${list.length})</summary>
+
+---
+
+${body}
+
+</details>
+
+`;  
+
+  } 
+
+  writeSuites(list) {
+    let body = list.join('\n');
+
+    this.body += 
+`\n\n<details>
+  <summary>📎 List all suites (${list.length})</summary>
+
+---
+
+${body}
+
+</details>
+
+`;  
+  }
+
+
   writeTests(list) {
     // too big list of tests
     let body = list.join('\n');
