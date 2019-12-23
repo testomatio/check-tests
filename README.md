@@ -1,22 +1,38 @@
 # 🌀 AutoCheck Tests by Testomatio
 
+> Static Analysis for your JavaScript tests.
+
 This action shows changed tests on each pull request with a complete list of all tests in this project.
 
+### Features
+
+* Analyzes JavaScript test files in Pull Request 
+* Uses AST parser to analyze tests
+* Detects added, removed, skipped tests
+* Fails when finds `.only` exclusive tests
+* Adds labels for PR with or witout tests
+* Shows expressive report for each PR
 
 ### Sample Report
 
 ---
 
-🌀 Tests overview from [Testomatio](https://testomat.io)
+🌀 Tests overview by [Testomatio](https://testomat.io)
 
 
-Found **17** mocha tests in 2 files 
+Found **7** codeceptjs tests in 1 files 
+#### ✔️ Added 1 test
+
 
 ```diff
-Added tests
-===========
-+ Math: should test if 3*3 = 9
-+ Math: should be clone
++ @first Create Todos @step:06 @smoke @story:12345: Another test
+```
+
+
+
+#### ⚠️ Skipped 1 test
+```diff
+- @first Create Todos @step:06 @smoke @story:12345: Create multiple todo items
 ```
 
 
@@ -24,27 +40,25 @@ Added tests
 <details>
   <summary>📑 List all tests</summary>
 
+---
 
-##### Actions 📎 *example/mocha/cypress_spec.js*
-* `.type() - type into a DOM element`
-* `.focus() - focus on a DOM element`
-* `.blur() - blur off a DOM element`
-* `.clear() - clears an input or textarea element`
-* `.submit() - submit a form`
-* `.click() - click on a DOM element`
-* `.dblclick() - double click on a DOM element`
-* `.rightclick() - right click on a DOM element`
-* `.check() - check a checkbox or radio element`
-* `.uncheck() - uncheck a checkbox element`
-* `.select() - select an option in a <select> element`
-* `.scrollIntoView() - scroll an element into view`
-* `.trigger() - trigger an event on a DOM element`
-* `cy.scrollTo() - scroll the window or element to a position`
 
-##### Math 📎 *example/mocha/index_test.js*
-* `should test if 3*3 = 9`
-* `should test (3-4)*8 SHOULD EQUAL -8`
-* `should be clone`
+📎 **`@first` Create Todos `@step:06` `@smoke` `@story:12345`**
+
+📝 [todomvc-tests/create-todos_test.js](#)
+
+* [Create a new todo item](#)
+* [Another test](#)
+* [~~Create multiple todo items~~](#) ⚠️ *skipped*
+* [Text input field should be cleared after each item](#)
+* [Text input should be trimmed](#)
+* [New todos should be added to the bottom of the list](#)
+* [Footer should be visible when adding TODOs](#)
+
+
+</details>
+
+
 
 </details>
 
@@ -54,11 +68,13 @@ Added tests
 
 Once this action is enabled GitHub a bot will create a comment for each Pull Request with a list of all changed tests. 
 
-This inforamation is useful to:
+This information is useful to:
 
-* track addition and removal of your tests
-* see overview of all tests in a project
-* manage tests within GitHub
+* track addition and removal of tests
+* protect from skipping tests
+* protect from using `.only` exclusive tests
+* automatically mark PR with `has tests` or `no tests` labels
+* review tests on GitHub
 
 ## Installation
 
@@ -70,9 +86,37 @@ Check that your project uses one of the following testing frameworks (this list 
 * codeceptjs
 * cypress.io
 
-Add this action to your workflow and configure:
+Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
-### Example usage
+```yml
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Check Tests
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: testomatio/check-tests@master
+      with:
+        framework: # REQUIRED - testing framework
+        tests: # REQUIRED - glob pattern to match test files
+        token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+> It is important to enable `actions/checkout@v2` step with `fetch-depth: 0` to allow testomatio to compare tests in pull requests with tests in base.
+
+#### Inputs (Configuration) 
+
+* `framework` - *(required)* Test framework to be used. Supported: mocha, codeceptjs'
+* `tests` - *(required)* Glob pattern to match tests in a project, example: `tests/**_test.js'`
+* `token` - *(should be: `${{ secrets.GITHUB_TOKEN }}`)* GitHub token to post comment with summary to current pull request
+* `has-tests-label` - add a label when PR contains new tests. Set `true` or a label name to enable.
+* `no-tests-label` - add a label when PR contains no new tests. Set `true` or a label name to enable.
+
+### Examples
 
 #### Mocha 
 
@@ -81,15 +125,14 @@ Mocha tests located in `tests/` directory:
 ```yml
 steps:
   - uses: actions/checkout@v2
-  - uses: actions/checkout@v2
     with:
-      ref: ${{ github.event.pull_request.head.sha }}    
-      path: gh-head
+      fetch-depth: 0
   - uses: testomatio/check-tests
     with:
       framework: mocha
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
+      no-tests-labels: Tests Needed
 ```
 
 #### Cypress.io
@@ -99,15 +142,14 @@ Cypress.io tests located in `cypress/integration` directory:
 ```yml
 steps:
   - uses: actions/checkout@v2
-  - uses: actions/checkout@v2
     with:
-      ref: ${{ github.event.pull_request.head.sha }}    
-      path: gh-head
+      fetch-depth: 0
   - uses: testomatio/check-tests
     with:
       framework: cypress.io
       tests: cypress/integration/**.js
       token: ${{ secrets.GITHUB_TOKEN }}
+      has-tests-labels: true
 ```
 
 
@@ -118,26 +160,15 @@ CodeceptJS tests located in `tests` directory:
 ```yml
 steps:
   - uses: actions/checkout@v2
-  - uses: actions/checkout@v2
     with:
-      ref: ${{ github.event.pull_request.head.sha }}    
-      path: gh-head
+      fetch-depth: 0
   - uses: testomatio/check-tests
     with:
       framework: codeceptjs
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
+      has-tests-labels: true      
 ```
-
-### Inputs
-
-* `framework` - *(required)* Test framework to be used. Supported: mocha, codeceptjs'
-* `tests` - *(required)* Glob pattern to match tests in a project, example: `tests/**_test.js'`
-* `branch` - *(default: master)* Main branch to compare tests with. 
-* `token` - *(should be: `${{ secrets.GITHUB_TOKEN }}`)* GitHub token to post comment with summary to current pull request
-    required: false
-
-
 
 ## License MIT
 

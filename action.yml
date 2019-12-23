@@ -7,13 +7,15 @@ inputs:
   tests:  # id of input
     description: 'Glob pattern to match tests in a project, example: tests/**_test.js'
     required: true
-  branch:
-    description: Main branch to compare tests with. master - by default
-    required: true
-    default: master
   token:
     description: GitHub token to post comment with summary to current pull request
     required: false
+  has-tests-label:
+    description: Add 'has tests' label to PR when it contains new tests
+    required: false
+  no-tests-label:
+    description: Add 'no tests' label to PR when it doesn't contain new tests
+    required: false    
 runs:
   using: 'node12'
   main: 'index.js'
