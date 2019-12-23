@@ -52,7 +52,9 @@ async function run() {
       allTests.append(testsData);
     });
 
-    const pr = await pullRequest();
+    const pullRequest = new PullRequest(core.getInput('tests', { required: true }));
+
+    const pr = await pullRequest.fetch();
 
     console.log('Comparing with', pr.base.sha);
 
@@ -61,23 +63,37 @@ async function run() {
     const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
-    console.log('base',baseStats.skipped, 'skipped', stats.skipped);
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
-    
-    const comment = new Comment();
-    comment.writeSummary(stats.tests.length, stats.files.length, framework);
-    comment.writeDiff(diff);
-    comment.writeSkippedDiff(skippedDiff);
-
-
-    comment.writeTests(allTests.getMarkdownList());
-    await comment.post();
-
-
+        
     await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
 
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
+
+
+    const comment = new Comment();
+    comment.writeSummary(stats.tests.length, stats.files.length, framework);
+    comment.writeDiff(diff);
+    comment.writeSkippedDiff(skippedDiff);
+    comment.writeTests(allTests.getMarkdownList());
+
+    await pullRequest.addComment(comment);
+
+    if (diff.added.length) {
+      if (core.getInput('has-tests-label')) {
+        const title = core.getInput('has-tests-label');
+        await pullRequest.addLabel(typeof title === 'boolean' ? 'has tests' : title);
+      }
+      if (core.getInput('no-tests-label')) {
+        const title = core.getInput('no-tests-label');
+        await pullRequest.removeLabel(typeof title === 'boolean' ? 'has tests' : title);  
+      }
+    }
+
+    if (!diff.added.length && core.getInput('no-tests-label')) {
+      const title = core.getInput('no-tests-label');
+      await pullRequest.addLabel(typeof title === 'boolean' ? 'has tests' : title);
+    }    
     
   } catch (error) {
     core.setFailed(error.message);

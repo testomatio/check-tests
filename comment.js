@@ -2,11 +2,10 @@ const github = require('@actions/github');
 const core = require('@actions/core');
 const pullRequest = require('./pullRequest');
 
-const attribution = '🌀 Tests overview by [Testomatio](https://testomat.io)';
-
 class Comment {
 
   constructor() {
+    this.attribution = '🌀 Tests overview by [Testomatio](https://testomat.io)';
     this.body = attribution + '\n';
   }
 
@@ -69,48 +68,6 @@ ${list}
     this.body += `\n\nFound **${tests}** ${framework} tests in ${files} files `;
   }
 
-  async post() {  
-    const githubToken = core.getInput('token');
-    if (!githubToken) return;
-    
-    const octokit = new github.GitHub(githubToken);  
-    
-    const repoUrl = process.env.GITHUB_REPOSITORY;
-    
-    const [ owner, repo ] = repoUrl.split('/');
-    
-    const pr = await pullRequest();
-
-    const { number } = pr;
-
-  
-    // delete previous comments
-
-    const comments = await octokit.issues.listComments({
-      owner,
-      repo,
-      issue_number: number
-    });
-
-    console.log('Deleting comments ', comments.data.length);
-
-    await Promise.all(
-      comments.data.filter(c => {
-        return (c.user.login === 'github-actions[bot]') && (c.body.indexOf(attribution) === 0);
-      }).map(c => octokit.issues.deleteComment({
-        owner,
-        repo,
-        comment_id: c.id
-      }))
-    );
-    
-    return octokit.issues.createComment({
-      owner,
-      repo,
-      issue_number: number,
-      body: this.body,
-    });
-  }
 }
 
 module.exports = Comment;
