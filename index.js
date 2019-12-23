@@ -56,6 +56,7 @@ async function run() {
 
     console.log('Comparing with', pr.base.sha);
 
+    await exec.exec('git', ['pull', pr.base.ref], { cwd: mainRepoPath });
     await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
 
     const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
