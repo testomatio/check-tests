@@ -44,7 +44,7 @@ class Decorator {
 
   getSkippedMarkdownList() {
     const list = []
-    const tests = this.tests.getSkippedList();
+    const tests = this.tests.getSkippedTests();
 
     for (const test of tests) {
       list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}`);
