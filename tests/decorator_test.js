@@ -16,19 +16,19 @@ describe('Decorator', () => {
       '* 📎 **Appium**',
       '  * 📎 **first**',
       '    * 📎 **second**',
-      '      * test1',
-      '      * test2',
-      '  * test3',
+      '      * `test1`',
+      '      * `test2`',
+      '  * `test3`',
       '  * 📎 **third**',
       '    * 📎 **fourth**',
-      '      * test4',
+      '      * `test4`',
       '* 📎 **WebDriverIO**',
-      '  * test5',
+      '  * `test5`',
       '* 📎 **Puppeteer**',
       '  * 📎 **first**',
       '    * 📎 **second**',
       '      * 📎 **third**',
-      '        * test6'      
+      '        * `test6`'      
     ]);
   });
 
@@ -42,10 +42,10 @@ describe('Decorator', () => {
     expect(decorator.getMarkdownList()).to.include.members([
       '* 📎 **GraphQL**',
       '  * 📎 **basic queries**',
-      '    * should send basic',
+      '    * `should send basic`',
       '  * 📎 **basic mutations**',
-      '    * should send mut 1',
-      '    * should send mut 2'       
+      '    * `should send mut 1`',
+      '    * `should send mut 2`'       
     ]);
   });  
 

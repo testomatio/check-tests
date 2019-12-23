@@ -60,8 +60,6 @@ class Comment {
 `\n\n<details>
   <summary>⚠️ List all skipped tests (${list.length})</summary>
 
----
-
 ${body}
 
 </details>
@@ -77,7 +75,6 @@ ${body}
 `\n\n<details>
   <summary>📎 List all suites (${list.length})</summary>
 
----
 
 ${body}
 

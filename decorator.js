@@ -59,7 +59,7 @@ class Decorator {
 
       const count = this.getTestsInSuite(suite).length;
 
-      const fileLine = `* **${suite} (${count})** 📝 [${test.file}](${fileLink}/${test.file})`;
+      const fileLine = `* **${suite} (${count})** [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(fileLine) < 0) {
         list.push(fileLine);
       }
