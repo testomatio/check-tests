@@ -16,6 +16,7 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 
 // most @actions toolkit packages have async methods
 async function run() {
+  const pullRequest = new PullRequest(core.getInput('token', { required: true }));
   try {
     
     const pattern = core.getInput('tests', { required: true });
@@ -51,8 +52,6 @@ async function run() {
       });
       allTests.append(testsData);
     });
-
-    const pullRequest = new PullRequest(core.getInput('token', { required: true }));
 
     const pr = await pullRequest.fetch();
 
