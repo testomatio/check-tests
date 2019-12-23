@@ -29,7 +29,7 @@ class Decorator {
   }
 
   getTestsInSuite(suite) {
-    return this.tests.filter(t => t.suites.join(': ') === suite);
+    return this.tests.filter(t => t.suites.join(': ').startsWith(suite));
   }
 
   getSkippedTests() {
@@ -59,7 +59,7 @@ class Decorator {
 
       const count = this.getTestsInSuite(suite).length;
 
-      const fileLine = `\n* **${suite} (${count})** [${test.file}](${fileLink}/${test.file})`;
+      const fileLine = `* **${suite} (${count})** 📝 [${test.file}](${fileLink}/${test.file})`;
       if (list.indexOf(fileLine) < 0) {
         list.push(fileLine);
       }

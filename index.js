@@ -96,7 +96,7 @@ async function run() {
 
     if (core.getInput('has-tests-label')) {
       let title = core.getInput('has-tests-label');
-      title = title === 'true' ? ' ✔️ has tests' : title
+      title = title === 'true' ? '✔️ has tests' : title
       if (diff.added.length) {
         await pullRequest.addLabel(title);
       } else {

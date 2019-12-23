@@ -170,6 +170,12 @@ steps:
       has-tests-labels: true      
 ```
 
+## Limitations
+
+* Can't analyze included tests from external files
+* Can't analyze dynamically created tests
+
+
 ## License MIT
 
 Part of [Testomat.io](https://testomat.io)
