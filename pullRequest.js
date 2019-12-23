@@ -59,7 +59,7 @@ class PullRequest {
     const pr = await this.fetch();
     const { number: issue_number } = pr;
 
-    this.octokit.issues.addLabels({
+    await this.octokit.issues.addLabels({
       owner,
       repo,
       issue_number,
@@ -67,8 +67,16 @@ class PullRequest {
     });
   }
 
-  async removeLabel() {
+  async removeLabel(label) {
+    const pr = await this.fetch();
+    const { number: issue_number } = pr;
 
+    await octokit.issues.removeLabel({
+      owner,
+      repo,
+      issue_number,
+      name: label
+    });
   }
 
 }

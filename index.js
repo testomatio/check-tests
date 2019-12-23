@@ -79,22 +79,29 @@ async function run() {
 
     await pullRequest.addComment(comment);
 
-    if (diff.added.length) {
-      if (core.getInput('has-tests-label')) {
-        const title = core.getInput('has-tests-label');
-        await pullRequest.addLabel(typeof title === 'boolean' ? 'has tests' : title);
-      }
-      if (core.getInput('no-tests-label')) {
-        const title = core.getInput('no-tests-label');
-        await pullRequest.removeLabel(typeof title === 'boolean' ? 'has tests' : title);  
+    if (!core.getInput('no-tests-label') && !core.getInput('has-tests-label')) return;
+
+    // add label
+
+    if (core.getInput('has-tests-label')) {
+      let title = core.getInput('has-tests-label');
+      title = typeof title === 'boolean' ? ' ✔️ has tests' : title
+      if (diff.added.length) {
+        await pullRequest.addLabel(title);
+      } else {
+        await pullRequest.removeLabel(title);
       }
     }
-
-    if (!diff.added.length && core.getInput('no-tests-label')) {
-      const title = core.getInput('no-tests-label');
-      await pullRequest.addLabel(typeof title === 'boolean' ? 'has tests' : title);
-    }    
     
+    if (core.getInput('no-tests-label')) {
+      let title = core.getInput('no-tests-label');
+      title = typeof title === 'boolean' ? '❌ no tests' : title
+      if (diff.added.length) {
+        await pullRequest.removeLabel(title);  
+      } else {
+        await pullRequest.addLabel(title);  
+      }
+    }
   } catch (error) {
     core.setFailed(error.message);
     console.error(error);
