@@ -144,7 +144,7 @@ function calculateStats(frameworkParser, pattern, cb) {
 
   for (const file of files) {
     const source = fs.readFileSync(file).toString();
-    const ast = parser.parse(source);
+    const ast = parser.parse(source, { sourceType: `unambiguous` });
 
     // append file name to each test
     const fileName = file.replace(mainRepoPath + path.sep, '');
