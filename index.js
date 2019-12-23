@@ -85,7 +85,7 @@ async function run() {
 
     if (core.getInput('has-tests-label')) {
       let title = core.getInput('has-tests-label');
-      title = typeof title === 'boolean' ? ' ✔️ has tests' : title
+      title = title === 'true' ? ' ✔️ has tests' : title
       if (diff.added.length) {
         await pullRequest.addLabel(title);
       } else {
@@ -95,7 +95,7 @@ async function run() {
     
     if (core.getInput('no-tests-label')) {
       let title = core.getInput('no-tests-label');
-      title = typeof title === 'boolean' ? '❌ no tests' : title
+      title = title === 'true' ? '❌ no tests' : title
       if (diff.added.length) {
         await pullRequest.removeLabel(title);  
       } else {
