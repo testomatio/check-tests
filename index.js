@@ -51,11 +51,22 @@ async function run() {
 
     const pr = await pullRequest.fetch();
 
-    console.log('Comparing with', pr.base.sha);
+    let baseStats;
 
-    await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
-
-    const baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
+    try {
+      console.log('Comparing with', pr.base.sha);
+      await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
+      baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
+    } catch (err) {
+      console.error("Can't calculate base test files");
+      console.error(err);
+      baseStats = {
+        tests: [],
+        suites: [],
+        files: [],
+        skipped: [],
+      };
+    }
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
