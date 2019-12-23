@@ -54,7 +54,7 @@ class Comment {
 
   writeTests(list) {
     // too big list of tests
-    const body = list.join('\n');
+    let body = list.join('\n');
 
     if (body.length > 60000) {
       console.log('Too many tests, ignoring them in comment. String length: ', body.length)
