@@ -14,15 +14,6 @@ const Decorator = require('./decorator');
 // RUNNER_TOOL_CACHE="/tmp" GITHUB_REF=refs/heads/master INPUT_FRAMEWORK=mocha INPUT_TESTS="example/mocha/**.js" node index.js
 const mainRepoPath = process.env.GITHUB_WORKSPACE;
 
-
-const babelPlugins = [
-  '@babel/plugin-proposal-function-bind',
-  '@babel/plugin-proposal-class-properties',
-  '@babel/plugin-proposal-optional-catch-binding'      
-];
-// const babelPlugins = core.getInput('babel-plugins').split(',') || [];
-
-
 // most @actions toolkit packages have async methods
 async function run() {
 
@@ -155,7 +146,7 @@ function calculateStats(frameworkParser, pattern, cb) {
 
   for (const file of files) {
     const source = fs.readFileSync(file).toString();  
-    const ast = parser.parse(source, { sourceType: 'unambiguous', plugins: babelPlugins });
+    const ast = parser.parse(source, { sourceType: 'unambiguous' });
 
     // append file name to each test
     const fileName = file.replace(mainRepoPath + path.sep, '');
