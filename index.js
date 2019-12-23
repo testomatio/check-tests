@@ -82,7 +82,7 @@ async function run() {
     comment.writeDiff(diff);
     comment.writeSkippedDiff(skippedDiff);
     comment.writeSkipped(allTests.getSkippedMarkdownList());
-    if (allTests.count() < 900) {
+    if (allTests.count() < 300) {
       comment.writeTests(allTests.getMarkdownList());
     } else {
       comment.writeSuites(allTests.getSuitesMarkdownList());

@@ -105,7 +105,7 @@ class Decorator {
         list.push(indent('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}) ⚠️ *skipped*`));
         continue;  
       }
-      list.push(indent('* ' + escapeSpecial(test.name)));
+      list.push(indent('* `' + test.name + '`'));
     }
 
 
