@@ -103,6 +103,9 @@ async function run() {
       }
     }
   } catch (error) {
+    if (error instanceof Comment.Error) {
+      pullRequest.addComment(error.getComment());
+    }
     core.setFailed(error.message);
     console.error(error);
   }
