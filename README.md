@@ -153,7 +153,7 @@ steps:
       framework: cypress.io
       tests: cypress/integration/**.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      has-tests-labels: true
+      has-tests-label: true
 ```
 
 
@@ -171,7 +171,7 @@ steps:
       framework: codeceptjs
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      has-tests-labels: true      
+      has-tests-label: true      
 ```
 
 #### Protractor
@@ -188,7 +188,7 @@ steps:
       framework: protractor
       tests: spec/**_spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      has-tests-labels: true      
+      has-tests-label: true      
 ```
 
 #### Mocha 
@@ -205,7 +205,7 @@ steps:
       framework: mocha
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      no-tests-labels: Tests Needed
+      no-tests-label: Tests Needed
 ```
 
 
