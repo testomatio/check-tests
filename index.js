@@ -46,9 +46,9 @@ async function run() {
     const baseStats = await analyzeBase(pr);
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
-    diff.missing = diff.missing.filter(t => !stats.skipped.includes(t)) // remove skipped tests from missing
-
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
+    
+    diff.missing = diff.missing.filter(t => !skippedDiff.added.includes(t)) // remove skipped tests from missing
         
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
