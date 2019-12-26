@@ -93,15 +93,7 @@ class Analyzer {
     };
 
   }
-
-
 }
 
-function compileTypeScript(source) {
-  const ts = require("typescript");
-  console.log(ts);
-
-  return ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS }});
-}
 
 module.exports = Analyzer;
