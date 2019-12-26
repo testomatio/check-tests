@@ -4,6 +4,11 @@
 
 This action shows changed tests on each pull request with a complete list of all tests in this project.
 
+Use this checker as 
+
+* [GitHub Action](#github-action)
+* [CLI tool](#cli)
+
 ### Features
 
 * Analyzes JavaScript test files in Pull Request 
@@ -12,6 +17,8 @@ This action shows changed tests on each pull request with a complete list of all
 * Fails when finds `.only` exclusive tests
 * Adds labels for PR with or witout tests
 * Shows expressive report for each PR
+
+## GitHub Action
 
 ### Sample Report
 
@@ -59,7 +66,7 @@ Found **7** codeceptjs tests in 1 files
 </details>
 
 
-
+tests
 </details>
 
 ---
@@ -118,6 +125,11 @@ jobs:
 * `token` - *(should be: `${{ secrets.GITHUB_TOKEN }}`)* GitHub token to post comment with summary to current pull request
 * `has-tests-label` - add a label when PR contains new tests. Set `true` or a label name to enable.
 * `no-tests-label` - add a label when PR contains no new tests. Set `true` or a label name to enable.
+* `comment-on-empty` - post a comment to PR when no tests added. Can be either boolean (for neutral message) or a custom message within a comment (markdown supported)
+* `close-on-empty` - close PR when no tests added. Use with `comment-on-empty` to clarify this action
+* `comment-on-skipped` - add custom message when new tests are skipped (markdown supported).
+* `close-on-skipped` - close PR when introduced skipped tests. Use with `comment-on-skipped` to clarify this action
+
 
 ### Examples
 
@@ -136,8 +148,12 @@ steps:
       framework: jest
       tests: tests/**.spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
+      comment-on-empty: true       
       has-tests-label: true
 ```
+
+* list all tests even no tests were added
+* add label if tests were added
 
 #### Cypress.io
 
@@ -153,9 +169,12 @@ steps:
       framework: cypress.io
       tests: cypress/integration/**.js
       token: ${{ secrets.GITHUB_TOKEN }}
+      comment-on-empty: true 
       has-tests-labels: true
 ```
 
+* list all tests even no tests were added
+* add label if tests were added
 
 #### CodeceptJS
 
@@ -171,8 +190,12 @@ steps:
       framework: codeceptjs
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
+      comment-on-empty: true       
       has-tests-labels: true      
 ```
+
+* list all tests even no tests were added
+* add label if tests were added
 
 #### Protractor
 
@@ -188,8 +211,13 @@ steps:
       framework: protractor
       tests: spec/**_spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      has-tests-labels: true      
+      comment-on-empty: true       
+      has-tests-labels: true  
 ```
+
+* list all tests even no tests were added
+* add label if tests were added
+
 
 #### Mocha 
 
@@ -208,12 +236,89 @@ steps:
       no-tests-labels: Tests Needed
 ```
 
+#### Close PRs without tests
+
+When PR doesn't contain tests - close it and write a message
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: protractor
+      tests: spec/**_spec.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      comment-on-empty: "## PRs without tests not allowed"
+      close-on-empty: true
+```
+
+
+#### Close PRs without tests
+
+When PR doesn't contain tests - close it and write a message
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: protractor
+      tests: spec/**_spec.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      comment-on-empty: "## PRs without tests not allowed"
+      close-on-empty: true
+```
+
+
+#### Notify on skipped tests
+
+When PR doesn't contain tests - close it and write a message
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: protractor
+      tests: spec/**_spec.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      comment-on-empty: "## PRs without tests not allowed"
+      close-on-empty: true
+```
+
+## CLI
+
+Use this checker as CLI tool with any Continuous Integration service.
+
+Run `check-tests` via npx:
+
+```sh
+npx check-tests <framework> "<tests>" --no-skipped
+```
+
+> This checker will fail a build if exclusive tests (with `.only` or `fit` or `fdescribe` found)
+
+### Arguments:
+
+* test framework
+* glob pattern to match tests in a project, example: `tests/**_test.js'`
+
+### CLI Options:
+
+* `--no-skipped` - fail when skipped tests found
 
 ## Limitations
 
 * Can't analyze included tests from external files
 * Can't analyze dynamically created tests
-
+* TypeScript not supported (yet)
+* Babel Plugins not supported (yet)
 
 ## License MIT
 

@@ -84,6 +84,10 @@ ${body}
   }
 
 
+  write(text) {
+    this.body += `\n${text}\n`;
+  }
+
   writeTests(list) {
     // too big list of tests
     let body = list.join('\n');

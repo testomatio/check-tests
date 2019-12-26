@@ -70,6 +70,55 @@ class Decorator {
     return list; 
   }
 
+  getTextList() {
+    const list = [];
+    let suites = [];
+
+    const buildSuites = (test) => {
+      const testSuites = test.suites;
+      if (suites.length > testSuites.length) {
+        suites = suites.slice(0, testSuites.length);
+      }
+      for (let i = 0; i < testSuites.length; i++) {
+        if (suites[i] === testSuites[i]) continue;
+        if (!suites[i]) {
+          list.push(indent(`= ${testSuites[i]}`));
+          suites[i] = testSuites[i];
+          continue;
+        }
+        suites = suites.slice(0, i);
+        list.push(indent(`= ${testSuites[i]}:`));
+        suites[i] = testSuites[i];
+      }
+    }
+    
+    
+    for (const test of this.tests) {
+      
+      const fileLine = `File: ${test.file}\n`;
+      if (list.indexOf(fileLine) < 0) {
+        list.push('-----');
+        list.push(fileLine);
+        suites = [];
+      }
+      
+      buildSuites(test);
+
+      if (test.skipped) {
+        list.push(indent('- (skipped) ' + test.name));
+        continue;  
+      }
+      list.push(indent('- ' + test.name));
+    }
+
+
+    function indent(line) {
+      return ''.padStart(suites.length * 2, ' ') + line;
+    }
+    
+    return list;
+  }  
+
   getMarkdownList() {
     const list = [];
     let suites = [];

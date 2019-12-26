@@ -79,9 +79,26 @@ class PullRequest {
         name: label
       });
     } catch (err) {
+      console.log(`Label ${label} not found, can't remove`);
       // if label doesn't exists we dont care
     }
 
+  }
+
+  async close() {
+    const pr = await this.fetch();
+    const { number: issue_number } = pr;
+
+    try {
+      await this.octokit.issues.update({
+        owner,
+        repo,
+        issue_number,
+        state: 'closed'
+      });
+    } catch (err) {
+      console.log(`Can't close issue, ${err}`);
+    }
   }
 
 }

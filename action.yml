@@ -18,7 +18,20 @@ inputs:
     required: false
   no-tests-label:
     description: Add 'no tests' label to PR when it doesn't contain new tests
-    required: false    
+    required: false 
+  comment-on-empty:
+    description: 'Post a comment to PR when no tests added. Can be either boolean (for neutral message) or a custom message within a comment';
+    required: false
+  close-on-empty:
+    description: 'Close PR when no tests added. Use with comment-on-empty to clarify this action';
+    required: false 
+  comment-on-skipped:
+    description: 'Post a comment to PR when tests were skipped. Can be either boolean (for neutral message) or a custom message within a comment';    
+    required: false 
+  close-on-skipped:
+    description: 'Close PR when no tests added. Use with comment-on-skipped to clarify this action';
+    required: false 
+    
 runs:
   using: 'node12'
   main: 'index.js'

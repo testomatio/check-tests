@@ -1,11 +1,28 @@
 {
-  "name": "testomatio-check",
-  "version": "1.0.0",
-  "description": "",
+  "name": "check-tests",
+  "version": "0.1.0",
+  "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "testing",
+    "static analysis",
+    "cypress.io",
+    "codeceptjs",
+    "protractor",
+    "mocha",
+    "jest"
+  ],
+  "homepage": "https://testomat.io",
+  "license": "MIT",
+  "repository": "https://github.com/testomatio/check-tests",
+  "author": {
+    "name": "DavertMik",
+    "email": "davert@codegyre.com",
+    "url": "https://testomat.io"
+  },
+  "bin": {
+    "check-tests": "./bin/check.js"
+  },
   "dependencies": {
     "@actions/core": "^1.2.0",
     "@actions/exec": "^1.0.2",
@@ -15,6 +32,7 @@
     "@babel/parser": "^7.7.7",
     "array-compare": "^2.0.0",
     "babel-traverse": "^6.26.0",
+    "chalk": "^3.0.0",
     "glob": "^7.1.6"
   },
   "devDependencies": {

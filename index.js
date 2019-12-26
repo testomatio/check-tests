@@ -1,14 +1,10 @@
 const core = require('@actions/core');
-const parser = require('@babel/parser');
-const fs = require('fs');
-const path = require('path');
-const glob = require("glob");
 const exec = require('@actions/exec');
 const arrayCompare = require("array-compare")
 
 const PullRequest = require('./pullRequest');
 const Comment = require('./comment');
-const Decorator = require('./decorator');
+const Analyzer = require('./analyzer');
 
 // command
 // RUNNER_TOOL_CACHE="/tmp" GITHUB_REF=refs/heads/master INPUT_FRAMEWORK=mocha INPUT_TESTS="example/mocha/**.js" node index.js
@@ -17,49 +13,25 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 // most @actions toolkit packages have async methods
 async function run() {
 
+  let nodiff = core.getInput('nodiff');
+  const framework = core.getInput('framework', {required: true});
+  const pattern = core.getInput('tests', { required: true });
 
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
-  try {
-    
-    const pattern = core.getInput('tests', { required: true });
+  const analyzer = new Analyzer(framework, mainRepoPath);
+
+  try {    
 
     if (!mainRepoPath) {
       throw new Error('Repository was not fetched, please enable add `actions/checkout` step before');
     }
   
-    let frameworkParser;
-    
-    const framework = core.getInput('framework', {required: true});
+    analyzer.analyze(pattern);
 
-    switch (framework) {
-      case 'jasmine':
-      case 'protractor':
-        frameworkParser = require('./lib/jasmine');
-        break;        
-      case 'jest':
-      case 'jestio':
-        frameworkParser = require('./lib/jest');
-        break;   
-      case 'codecept':
-      case 'codeceptjs':
-        frameworkParser = require('./lib/codeceptjs');
-      break;
-      case 'mocha':
-      case 'cypress':
-      case 'cypress.io': 
-      case 'cypressio': 
-      default:
-        frameworkParser = require('./lib/mocha');
-        break;
-    }
-    
-    const allTests = new Decorator([]);
-    
-    const stats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern), (file, testsData) => {
-      allTests.append(testsData);
-    });
+    const allTests = analyzer.getDecorator();    
+    const stats = analyzer.getStats();
 
-    let nodiff = core.getInput('nodiff');
+
     let pr;
 
     try {
@@ -68,31 +40,13 @@ async function run() {
       nodiff = true;
     }
 
-    let baseStats;
-
-    try {
-      if (nodiff) throw new Error('Diff is disabled');
-      console.log('Comparing with', pr.base.sha);
-      await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
-      baseStats = calculateStats(frameworkParser, path.join(mainRepoPath, pattern));
-      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
-    } catch (err) {
-      console.error("Can't calculate base test files");
-      console.error(err);
-      baseStats = {
-        tests: [],
-        suites: [],
-        files: [],
-        skipped: [],
-      };
-    }
+    const baseStats = await analyzeBase(nodiff);
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     diff.missing = diff.missing.filter(t => !stats.skipped.includes(t)) // remove skipped tests from missing
 
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
         
-
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
 
@@ -100,21 +54,46 @@ async function run() {
 
     const comment = new Comment();
     comment.writeSummary(stats.tests.length, stats.files.length, framework);
+
+    const commentOnEmpty = core.getInput('comment-on-empty');
+    const commentOnSkipped = core.getInput('comment-on-skipped');
+    const closeOnEmpty = core.getInput('close-on-empty');
+    const closeOnSkipped = core.getInput('close-on-skipped');
+
+    const isEmpty = !diff.added.length && !diff.missing.length && !skippedDiff.added.length && !skippedDiff.missing.length;
+
+    if (commentOnEmpty && commentOnEmpty !== 'true' && isEmpty) {
+      comment.write(commentOnEmpty);
+    }
+    
+    if (commentOnSkipped && commentOnSkipped !== 'true' && skippedDiff.added.length) {
+      comment.write(commentOnSkipped);
+    }
+
     comment.writeDiff(diff);
     comment.writeSkippedDiff(skippedDiff);
     comment.writeSkipped(allTests.getSkippedMarkdownList());
+
     if (allTests.count() < 300) {
       comment.writeTests(allTests.getMarkdownList());
     } else {
       comment.writeSuites(allTests.getSuitesMarkdownList());
     }
 
-    await pullRequest.addComment(comment);
+    if (isEmpty && !commentOnEmpty) {
+      console.log('No tests changed, comment not shown');
+    } else {
+      await pullRequest.addComment(comment);
+    }
 
-    if (!core.getInput('no-tests-label') && !core.getInput('has-tests-label')) return;
+    if (isEmpty && closeOnEmpty) {
+      await pullRequest.close();
+    }
+    if (skippedDiff.added.length && closeOnSkipped) {
+      await pullRequest.close();
+    }
 
     // add label
-
     if (core.getInput('has-tests-label')) {
       let title = core.getInput('has-tests-label');
       title = title === 'true' ? '✔️ has tests' : title
@@ -141,38 +120,28 @@ async function run() {
     core.setFailed(error.message);
     console.error(error);
   }
+
+  async function analyzeBase(nodiff = false) {
+    if (nodiff) {
+      return analyzer.getEmptyStats();
+    }
+
+    try {
+      console.log('Comparing with', pr.base.sha);
+      await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
+
+      analyzer.analyze(pattern);
+
+      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
+      return analyzer.getStats();
+
+    } catch (err) {
+      console.error("Can't calculate base test files");
+      console.error(err);
+      return analyzer.getEmptyStats();
+    }
+    
+  }
 }
 
 run()
-
-function calculateStats(frameworkParser, pattern, cb) {
-    
-  const stats = {
-    tests: [],
-    suites: [],
-    files: [],
-    skipped: [],
-  };
-
-  const files = glob.sync(pattern);
-
-  for (const file of files) {
-    const source = fs.readFileSync(file).toString();  
-    const ast = parser.parse(source, { sourceType: 'unambiguous' });
-
-    // append file name to each test
-    const fileName = file.replace(mainRepoPath + path.sep, '');
-    const testsData = frameworkParser(ast, fileName);
-    
-    const tests = new Decorator(testsData);
-    stats.tests = stats.tests.concat(tests.getFullNames());
-    stats.skipped = stats.skipped.concat(tests.getSkippedTestFullNames());
-    stats.files.push(file);
-
-    core.debug(`Tests in ${file}: ${tests.getTestNames().join(', ')}`);
-
-    if (cb) cb(file, testsData);
-  }
-
-  return stats;
-}
