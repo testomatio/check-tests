@@ -33,16 +33,17 @@ async function run() {
     const allTests = analyzer.getDecorator();    
     const stats = analyzer.getStats();
 
-
     let pr;
 
     try {
-      pr = await pullRequest.fetch();
+      if (!nodiff) {
+        pr = await pullRequest.fetch();
+      }
     } catch (err) {
-      nodiff = true;
+      pr = null;
     }
 
-    const baseStats = await analyzeBase(nodiff);
+    const baseStats = await analyzeBase(pr);
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     diff.missing = diff.missing.filter(t => !stats.skipped.includes(t)) // remove skipped tests from missing
@@ -123,8 +124,8 @@ async function run() {
     console.error(error);
   }
 
-  async function analyzeBase(nodiff = false) {
-    if (nodiff) {
+  async function analyzeBase(pr) {
+    if (!pr) {
       return analyzer.getEmptyStats();
     }
 
