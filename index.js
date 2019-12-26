@@ -47,11 +47,16 @@ async function run() {
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     const skippedDiff = arrayCompare(baseStats.skipped, stats.skipped);
-    
+
+    console.log('missing', diff.missing);
+    console.log('skipped', skippedDiff.added);
+
     diff.missing = diff.missing.filter(t => !skippedDiff.added.includes(t)) // remove skipped tests from missing
         
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
+
+    process.exit(1);
 
     if (!pr) return;
 
