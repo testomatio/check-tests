@@ -59,7 +59,7 @@ class Analyzer {
       
       if (this.plugins) {
         source = require("@babel/core").transform(source, {
-          plugins: ["@babel/plugin-transform-runtime", ...this.plugins],
+          plugins: [ ...this.plugins],
         }).code;   
       }
       const ast = parser.parse(source, { sourceType: 'unambiguous' });

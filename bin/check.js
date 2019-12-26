@@ -38,11 +38,6 @@ program
   });  
  
   
-  program.on('command:*', (cmd) => {
-    console.log(`\nUnknown command ${cmd}\n`);
-  program.outputHelp();
-});
-
 
 if (process.argv.length <= 2) {
   program.outputHelp();
