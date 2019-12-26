@@ -40,7 +40,6 @@ class Analyzer {
 
   withTypeScript() {
     this.addPlugin("@babel/plugin-transform-typescript")
-    this.addPlugin("@babel/plugin-syntax-typescript")
   }
 
   analyze(pattern) {

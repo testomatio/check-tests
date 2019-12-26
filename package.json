@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "main": "index.js",
   "keywords": [
@@ -33,7 +33,7 @@
     "@actions/tool-cache": "^1.1.2",
     "@babel/core": "^7.7.7",
     "@babel/parser": "^7.7.7",
-    "@babel/plugin-syntax-typescript": "^7.7.4",
+    "@babel/plugin-transform-runtime": "^7.7.6",
     "@babel/plugin-transform-typescript": "^7.7.4",
     "array-compare": "^2.0.0",
     "babel-traverse": "^6.26.0",
