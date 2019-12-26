@@ -170,7 +170,7 @@ steps:
       tests: cypress/integration/**.js
       token: ${{ secrets.GITHUB_TOKEN }}
       comment-on-empty: true 
-      has-tests-labels: true
+      has-tests-label: true
 ```
 
 * list all tests even no tests were added
@@ -190,8 +190,8 @@ steps:
       framework: codeceptjs
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: true       
-      has-tests-labels: true      
+      comment-on-empty: true          
+      has-tests-label: true      
 ```
 
 * list all tests even no tests were added
@@ -212,7 +212,7 @@ steps:
       tests: spec/**_spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
       comment-on-empty: true       
-      has-tests-labels: true  
+      has-tests-label: true      
 ```
 
 * list all tests even no tests were added
@@ -233,7 +233,7 @@ steps:
       framework: mocha
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      no-tests-labels: Tests Needed
+      no-tests-label: Tests Needed
 ```
 
 #### Close PRs without tests
