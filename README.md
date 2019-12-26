@@ -17,6 +17,7 @@ Use this checker as
 * Fails when finds `.only` exclusive tests
 * Adds labels for PR with or witout tests
 * Shows expressive report for each PR
+* TypeScript supported
 
 ## GitHub Action
 
@@ -123,6 +124,7 @@ jobs:
 * `framework` - *(required)* Test framework to be used. Supported: mocha, codeceptjs'
 * `tests` - *(required)* Glob pattern to match tests in a project, example: `tests/**_test.js'`
 * `token` - *(should be: `${{ secrets.GITHUB_TOKEN }}`)* GitHub token to post comment with summary to current pull request
+* `typescript` - enable TypeScript support
 * `has-tests-label` - add a label when PR contains new tests. Set `true` or a label name to enable.
 * `no-tests-label` - add a label when PR contains no new tests. Set `true` or a label name to enable.
 * `comment-on-empty` - post a comment to PR when no tests added. Can be either boolean (for neutral message) or a custom message within a comment (markdown supported)
@@ -209,7 +211,7 @@ steps:
   - uses: testomatio/check-tests@stable
     with:
       framework: protractor
-      tests: spec/**_spec.js
+      tests: spec/**.spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
       comment-on-empty: true       
       has-tests-label: true      
@@ -217,6 +219,23 @@ steps:
 
 * list all tests even no tests were added
 * add label if tests were added
+
+#### Protractor with TypeScript
+
+Protractor tests located in `spec` directory:
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: protractor
+      tests: spec/**.spec.ts
+      token: ${{ secrets.GITHUB_TOKEN }}
+      typescript: true
+```
 
 
 #### Mocha 
@@ -354,8 +373,6 @@ Remove `.only` to restore test checks
 
 * Can't analyze included tests from external files
 * Can't analyze dynamically created tests
-* TypeScript not supported (yet)
-* Babel Plugins not supported (yet)
 
 ## License MIT
 

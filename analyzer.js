@@ -8,6 +8,8 @@ class Analyzer {
 
   constructor(framework, workDir = '.') {
     this.workDir = workDir;
+    this.typeScript = false;
+    this.plugins = [];
 
     switch (framework) {
       case 'jasmine':
@@ -29,8 +31,16 @@ class Analyzer {
       default:
         this.frameworkParser = require('./lib/mocha');
         break;
-    }
-        
+    }        
+  }
+
+  addPlugin(plugin) {
+    this.plugins.push(plugin);
+  }
+
+  withTypeScript() {
+    this.addPlugin("@babel/plugin-transform-typescript")
+    this.addPlugin("@babel/plugin-syntax-typescript")
   }
 
   analyze(pattern) {
@@ -44,11 +54,16 @@ class Analyzer {
 
     const files = glob.sync(pattern);
 
-  
+
     for (const file of files) {
-      const source = fs.readFileSync(file).toString();  
+      let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
+      
+      if (this.plugins) {
+        source = require("@babel/core").transform(source, {
+          plugins: ["@babel/plugin-transform-runtime", ...this.plugins],
+        }).code;   
+      }
       const ast = parser.parse(source, { sourceType: 'unambiguous' });
-  
       // append file name to each test
       const fileName = file.replace(this.workDir + path.sep, '');
       const testsData = this.frameworkParser(ast, fileName);
@@ -81,6 +96,13 @@ class Analyzer {
   }
 
 
+}
+
+function compileTypeScript(source) {
+  const ts = require("typescript");
+  console.log(ts);
+
+  return ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS }});
 }
 
 module.exports = Analyzer;

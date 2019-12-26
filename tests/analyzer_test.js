@@ -6,11 +6,8 @@ let analyzer;
 
 describe('analyzer', () => {
 
-  before(() => {
+  it('should parse all mocha files', () => {
     analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
-  });
-  
-  it('should parse all files', () => {
     analyzer.analyze('./example/mocha/**_test.js');
 
     const stats = analyzer.getStats();
@@ -27,6 +24,14 @@ describe('analyzer', () => {
     expect(skippedTests, 'it.skip').to.include('Math: should be second clone');
     expect(skippedTests, 'describe.skip').to.include('Math: NoMath: should be disabled');
     // assert.equal(tests.length, 3);
+  });
+
+  it('should parse all typescript files', () => {
+    analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
+    analyzer.withTypeScript();
+    analyzer.analyze('./example/protractor/**.ts');
+    const decorator = analyzer.getDecorator();
+    expect(decorator.getSuiteNames()).to.include('Login - Global Header: Institutional Sign In Modal');
   });
 
 

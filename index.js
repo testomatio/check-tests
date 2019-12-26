@@ -19,6 +19,8 @@ async function run() {
 
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
   const analyzer = new Analyzer(framework, mainRepoPath);
+  
+  if (core.getInput('typescript')) analyzer.withTypeScript();
 
   try {    
 
@@ -128,11 +130,11 @@ async function run() {
 
     try {
       console.log('Comparing with', pr.base.sha);
-      await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath });
+      await exec.exec('git', ['checkout', pr.base.sha], { cwd: mainRepoPath, stdio: 'inherit'});
 
       analyzer.analyze(pattern);
 
-      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath });
+      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath, stdio: 'inherit' });
       return analyzer.getStats();
 
     } catch (err) {

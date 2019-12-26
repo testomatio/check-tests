@@ -2,17 +2,20 @@
 const Analyzer = require('../analyzer');
 const chalk = require('chalk');
 
+console.log(chalk.cyan.bold('[[ Tests checker by testomat.io ]]'));
+
 const program = require('commander');
  
 program
   .arguments('<framework> <files>')
   .option('-d, --dir <dir>', 'test directory')
   .option('--no-skipped', 'throw error if skipped tests found')
+  .option('--typescript', 'enable typescript support')
   .action((framework, files, opts) => {
     
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
-      console.log(chalk.cyan.bold('\n[[ Tests checker by testomat.io ]]'));
+      if (opts.typescript) analyzer.withTypeScript();
       analyzer.analyze(files);
       const decorator = analyzer.getDecorator();
       const skipped = decorator.getSkippedTests();
@@ -34,5 +37,16 @@ program
     }
   });  
  
+  
+  program.on('command:*', (cmd) => {
+    console.log(`\nUnknown command ${cmd}\n`);
+  program.outputHelp();
+});
+
+
+if (process.argv.length <= 2) {
+  program.outputHelp();
+}
+
 program.parse(process.argv);
 
