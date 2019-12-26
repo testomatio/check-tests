@@ -307,11 +307,32 @@ npx check-tests <framework> "<tests>" --no-skipped
 ### Arguments:
 
 * test framework
-* glob pattern to match tests in a project, example: `tests/**_test.js'`
+* glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.   
 
 ### CLI Options:
 
 * `--no-skipped` - fail when skipped tests found
+
+### Example
+
+Check tests for CodeceptJS
+
+```
+npx check-tests codeceptjs "tests/**_test.js"
+```
+
+Check tests for Protractor
+
+```
+npx check-tests protractor "spec/**.spec.js"
+```
+
+Check tests for Cypress.io
+
+```
+npx check-tests cypress "cypress/integration/**.js"
+```
+
 
 ## Limitations
 
