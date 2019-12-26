@@ -331,6 +331,7 @@ npx check-tests <framework> "<tests>" --no-skipped
 ### CLI Options:
 
 * `--no-skipped` - fail when skipped tests found
+* `--typescript` - enable typescript support
 
 ### Example
 
@@ -344,6 +345,12 @@ Check tests for Protractor
 
 ```
 npx check-tests protractor "spec/**.spec.js"
+```
+
+Check tests for Protractor with TypeScript
+
+```
+npx check-tests protractor "spec/**.spec.ts" --typescript
 ```
 
 Check tests for Cypress.io
