@@ -12,6 +12,7 @@ program
     
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
+      console.log(chalk.cyan.bold('\n[[ Tests checker by testomat.io ]]'));
       analyzer.analyze(files);
       const decorator = analyzer.getDecorator();
       const skipped = decorator.getSkippedTests();
