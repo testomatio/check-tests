@@ -333,6 +333,54 @@ Check tests for Cypress.io
 npx check-tests cypress "cypress/integration/**.js"
 ```
 
+### Sample Output
+
+List CodeceptJS tests
+
+```
+✗ npx check-tests codeceptjs "examples/**_test.js"
+
+[[ Tests checker by testomat.io ]]
+
+SHOWING CODECEPTJS TESTS FROM examples/**_test.js:
+_______________________
+File: examples/checkout_test.js
+
+= Checkout
+  - It should fill in checkout page
+_______________________
+File: examples/github_test.js
+
+= GitHub
+  - Visit Home Page @retry
+  - search @grop
+  - signin
+  - signin2
+  - register
+_______________________
+File: examples/react_test.js
+
+= React Apps
+  - try react app
+_______________________
+File: examples/yahoo_test.js
+
+= Yahoo test
+  - Nightmare basic test
+
+TOTAL 8 TESTS FOUND
+```
+
+When found `.only` test:
+
+```
+✗ npx check-tests mocha "test/**/**_test.js"
+
+[[ Tests checker by testomat.io ]]
+Error: Exclusive tests detected. `.only` call found in test/checkout/important_test.js:290
+Remove `.only` to restore test checks
+
+```
 
 ## Limitations
 

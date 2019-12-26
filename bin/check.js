@@ -20,8 +20,10 @@ program
       list = list.map(l => l === '-----' ? chalk.bold('_______________________') : l).join('\n');
       console.log(chalk.bold.white(`\nSHOWING ${framework.toUpperCase()} TESTS FROM ${files}:`));
       console.log(list);
-      console.log(chalk.bold.yellow(`\n\nSKIPPED ${skipped.length} TESTS:\n\n`));
-      skipped.forEach(t => console.log(`- ${chalk.bold(t.name)} ${chalk.grey(`${t.file}:${t.line}`)}`));
+      if (skipped.length) {
+        console.log(chalk.bold.yellow(`\nSKIPPED ${skipped.length} TESTS:\n`));
+        skipped.forEach(t => console.log(`- ${chalk.bold(t.name)} ${chalk.grey(`${t.file}:${t.line}`)}`));
+      }
       console.log(chalk.bold.green(`\n\nTOTAL ${decorator.count()} TESTS FOUND\n`));
       if (!opts.skipped && skipped.length) {
         throw new Error('Skipped tests found, failing...');
