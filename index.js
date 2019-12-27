@@ -46,7 +46,7 @@ async function run() {
     const baseStats = await analyzeBase(pr);
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
-    diff.missing = diff.missing.filter(t => !stats.skipped.includes(t)) // remove skipped tests from missing
+    diff.missing = diff.missing.filter(t => !stats.skipped.includes(Object.values(t)[0])) // remove skipped tests from missing
     
     console.log('missing', diff.missing);
     console.log('skipped', stats.skipped);
