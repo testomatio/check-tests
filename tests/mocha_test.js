@@ -1,5 +1,5 @@
 const parser = require('@babel/parser');
-const mochaParser = require('../lib/mocha');
+const mochaParser = require('../lib/frameworks/mocha');
 const fs = require('fs');
 const { expect } = require('chai');
 
@@ -47,6 +47,13 @@ describe('mocha parser', () => {
       expect(actualTests).to.include('.check() - check a checkbox or radio element');
       // assert.equal(tests.length, 3);
     });
+
+    it('should include code', () => {
+      const tests = mochaParser(ast, '', source);
+      expect(tests[0]).to.include.key('code');
+      expect(tests[0].code).to.include("it('.type() - type into a DOM element', () => {");
+    });
+
   });
 
 

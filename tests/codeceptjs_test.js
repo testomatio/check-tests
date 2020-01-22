@@ -1,5 +1,5 @@
 const parser = require('@babel/parser');
-const mochaParser = require('../lib/codeceptjs');
+const codeceptParser = require('../lib/frameworks/codeceptjs');
 const fs = require('fs');
 const { expect } = require('chai');
 
@@ -15,8 +15,8 @@ describe('codeceptjs parser', () => {
       ast = parser.parse(source);
     });
 
-    it('should parse mocha file', () => {
-      const tests = mochaParser(ast);
+    it('should parse codecept file', () => {
+      const tests = codeceptParser(ast, '', source);
 
       const actualTests = tests.filter(t => !t.skipped).map(t => t.name);
       const skippedTests = tests.filter(t => t.skipped).map(t => t.name);
@@ -25,6 +25,15 @@ describe('codeceptjs parser', () => {
       expect(skippedTests, 'xScenario').to.include('Create a new todo item');
       // assert.equal(tests.length, 3);
     });
+
+
+    it('should include code', () => {
+      const tests = codeceptParser(ast, '', source);
+      expect(tests[0]).to.include.key('code');
+      expect(tests[0].code).to.include('Scenario(');
+      expect(tests[0].code).to.include('I.say(');
+    });
+  
 
   });
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const Analyzer = require('../analyzer');
+const Reporter = require('../reporter');
 const chalk = require('chalk');
+const apiKey = process.env['INPUT_TESTOMATIO-KEY'];
 
 console.log(chalk.cyan.bold('[[ Tests checker by testomat.io ]]'));
 
@@ -28,6 +30,13 @@ program
         skipped.forEach(t => console.log(`- ${chalk.bold(t.name)} ${chalk.grey(`${t.file}:${t.line}`)}`));
       }
       console.log(chalk.bold.green(`\n\nTOTAL ${decorator.count()} TESTS FOUND\n`));
+
+      if (apiKey) {
+        const reporter = new Reporter(apiKey);
+        reporter.addTests(decorator.getTests());
+        reporter.send(); // async call
+      }
+
       if (!opts.skipped && skipped.length) {
         throw new Error('Skipped tests found, failing...');
       }

@@ -1,5 +1,5 @@
 const parser = require('@babel/parser');
-const jasmineParser = require('../lib/jasmine');
+const jasmineParser = require('../lib/frameworks/jasmine');
 const fs = require('fs');
 const { expect } = require('chai');
 
@@ -25,6 +25,12 @@ describe('jasmine parser', () => {
       expect(actualTests).to.include('should display actual count before saving new friend');
       expect(skippedTests).to.include('should display no rows when all friends deleted');
       // assert.equal(tests.length, 3);
+    });
+
+    it('should include code', () => {
+      const tests = jasmineParser(ast, '', source);
+      expect(tests[0]).to.include.key('code');
+      expect(tests[0].code).to.include("it('should add a new friend");
     });
 
   });

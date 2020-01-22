@@ -5,6 +5,7 @@ const arrayCompare = require("array-compare")
 const PullRequest = require('./pullRequest');
 const Comment = require('./comment');
 const Analyzer = require('./analyzer');
+const Reporter = require('./reporter');
 
 // command
 // RUNNER_TOOL_CACHE="/tmp" GITHUB_REF=refs/heads/master INPUT_FRAMEWORK=mocha INPUT_TESTS="example/mocha/**.js" node index.js
@@ -16,10 +17,11 @@ async function run() {
   let nodiff = core.getInput('nodiff');
   const framework = core.getInput('framework', {required: true});
   const pattern = core.getInput('tests', { required: true });
+  const apiKey = core.getInput('testomatio-key');
 
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
   const analyzer = new Analyzer(framework, mainRepoPath);
-  
+
   if (core.getInput('typescript')) analyzer.withTypeScript();
 
   try {    
@@ -32,6 +34,12 @@ async function run() {
 
     const allTests = analyzer.getDecorator();    
     const stats = analyzer.getStats();
+    
+    if (apiKey) {
+      const reporter = new Reporter(apiKey);
+      reporter.addTests(allTests.getDecorator().getTests());
+      reporter.send(); // async call
+    }
 
     let pr;
 

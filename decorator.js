@@ -9,6 +9,10 @@ class Decorator {
     });
   }
 
+  getTests() {
+    return this.tests;
+  }
+
   count() {
     return this.tests.length;
   }

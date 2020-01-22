@@ -14,22 +14,22 @@ class Analyzer {
     switch (framework) {
       case 'jasmine':
       case 'protractor':
-        this.frameworkParser = require('./lib/jasmine');
+        this.frameworkParser = require('./lib/frameworks/jasmine');
         break;        
       case 'jest':
       case 'jestio':
-        this.frameworkParser = require('./lib/jest');
+        this.frameworkParser = require('./lib/frameworks/jest');
         break;   
       case 'codecept':
       case 'codeceptjs':
-        this.frameworkParser = require('./lib/codeceptjs');
+        this.frameworkParser = require('./lib/frameworks/codeceptjs');
       break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io': 
       case 'cypressio': 
       default:
-        this.frameworkParser = require('./lib/mocha');
+        this.frameworkParser = require('./lib/frameworks/mocha');
         break;
     }        
   }
@@ -53,7 +53,6 @@ class Analyzer {
 
     const files = glob.sync(pattern);
 
-
     for (const file of files) {
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
       
@@ -65,7 +64,7 @@ class Analyzer {
       const ast = parser.parse(source, { sourceType: 'unambiguous' });
       // append file name to each test
       const fileName = file.replace(this.workDir + path.sep, '');
-      const testsData = this.frameworkParser(ast, fileName);
+      const testsData = this.frameworkParser(ast, fileName, source);
       
       const tests = new Decorator(testsData);
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());

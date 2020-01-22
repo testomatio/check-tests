@@ -1,5 +1,5 @@
 const parser = require('@babel/parser');
-const jestParser = require('../lib/jest');
+const jestParser = require('../lib/frameworks/jest');
 const fs = require('fs');
 const { expect } = require('chai');
 
@@ -27,6 +27,13 @@ describe('jest parser', () => {
       // assert.equal(tests.length, 3);
     });
 
+    it('should include code', () => {
+      const tests = jestParser(ast, '', source);
+      expect(tests[0]).to.include.key('code');
+      expect(tests[0].code).to.include("test('base'");
+    });
   });
+
+
 
 });

@@ -46,6 +46,7 @@
     "mocha": "^6.2.2"
   },
   "scripts": {
+    "check": "node -r dotenv/config bin/check.js",
     "run": "node -r dotenv/config index.js",
     "test": "mocha tests/**_test.js"
   }
