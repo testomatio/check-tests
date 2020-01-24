@@ -47,15 +47,17 @@ class Analyzer {
     if (!this.frameworkParser) throw new Error('No test framework specified. Can\'t analyze');
 
     this.decorator = new Decorator([]);
-    this.stats = this.getEmptyStats();
 
     pattern = path.join(this.workDir, pattern);
+    this.stats = this.getEmptyStats();
+
     const files = glob.sync(pattern);
+
 
     for (const file of files) {
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
       
-      if (this.plugins.length > 0) {
+      if (this.plugins) {
         source = require("@babel/core").transform(source, {
           plugins: [ ...this.plugins],
         }).code;   

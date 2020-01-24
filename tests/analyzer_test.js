@@ -15,7 +15,6 @@ describe('analyzer', () => {
     const skippedTests = stats.skipped;
     const decorator = analyzer.getDecorator();
 
-    const skippedTestsLineNumbers = decorator.tests.filter(t => t.skipped).map(t => t.line);
     expect(decorator.getSuiteNames()).to.include('Math');
 
     expect(actualTests).to.include('Math: should test if 3*3 = 9');
@@ -24,9 +23,6 @@ describe('analyzer', () => {
     expect(skippedTests, 'xit').to.include('Math: should be clone');
     expect(skippedTests, 'it.skip').to.include('Math: should be second clone');
     expect(skippedTests, 'describe.skip').to.include('Math: NoMath: should be disabled');
-    expect(skippedTestsLineNumbers).to.include(14);
-    expect(skippedTestsLineNumbers).to.include(19);
-    expect(skippedTestsLineNumbers).to.include(25);
     // assert.equal(tests.length, 3);
   });
 
