@@ -273,29 +273,9 @@ steps:
       close-on-empty: true
 ```
 
-
-#### Close PRs without tests
-
-When PR has no tests - close it and write a message
-
-```yml
-steps:
-  - uses: actions/checkout@v2
-    with:
-      fetch-depth: 0
-  - uses: testomatio/check-tests@stable
-    with:
-      framework: protractor
-      tests: spec/**_spec.js
-      token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: "## PRs without tests not allowed"
-      close-on-empty: true
-```
-
-
 #### Notify on skipped tests
 
-When PR doesn't contain tests - close it and write a message
+When PR contains skipped tests - close it and write a message
 
 ```yml
 steps:
@@ -326,7 +306,7 @@ npx check-tests <framework> "<tests>" --no-skipped
 ### Arguments:
 
 * test framework
-* glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.   
+* glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.**   
 
 ### CLI Options:
 
