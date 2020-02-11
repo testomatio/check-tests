@@ -53,8 +53,7 @@ async function run() {
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
 
-    console.log(`This is ${pr}`)
-    if (!pr) return;
+    //if (!pr) return;
 
     const comment = new Comment();
     comment.writeSummary(stats.tests.length, stats.files.length, framework);
