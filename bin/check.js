@@ -2,7 +2,7 @@
 const Analyzer = require('../analyzer');
 const Reporter = require('../reporter');
 const chalk = require('chalk');
-const apiKey = process.env['INPUT_TESTOMATIO-KEY'];
+const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 
 console.log(chalk.cyan.bold('[[ Tests checker by testomat.io ]]'));
 
