@@ -99,7 +99,7 @@ class Decorator {
     
     for (const test of this.tests) {
       
-      const fileLine = `File: ${test.file}\n`;
+      const fileLine = ` 🗒️  File: ${test.file}\n`;
       if (list.indexOf(fileLine) < 0) {
         list.push('-----');
         list.push(fileLine);
