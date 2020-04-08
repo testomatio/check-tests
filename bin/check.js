@@ -4,7 +4,7 @@ const Reporter = require('../reporter');
 const chalk = require('chalk');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 
-console.log(chalk.cyan.bold('[[ Tests checker by testomat.io ]]'));
+console.log(chalk.cyan.bold(' 🤩 Tests checker by testomat.io'));
 
 const program = require('commander');
  
@@ -22,7 +22,7 @@ program
       const decorator = analyzer.getDecorator();
       const skipped = decorator.getSkippedTests();
       let list = analyzer.getDecorator().getTextList();
-      list = list.map(l => l === '-----' ? chalk.bold('_______________________') : l).join('\n');
+      list = list.map(l => l === '-----' ? chalk.bold('_______________________\n') : l).join('\n');
       console.log(chalk.bold.white(`\nSHOWING ${framework.toUpperCase()} TESTS FROM ${files}:`));
       console.log(list);
       if (skipped.length) {
@@ -35,6 +35,8 @@ program
         const reporter = new Reporter(apiKey);
         reporter.addTests(decorator.getTests());
         reporter.send(); // async call
+      } else {
+        console.log(' ✖️  API key not provided');
       }
 
       if (!opts.skipped && skipped.length) {
