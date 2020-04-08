@@ -363,7 +363,7 @@ npx check-tests cypress "cypress/integration/**.js"
 
 List CodeceptJS tests
 
-![](https://user-images.githubusercontent.com/220264/71489974-1fc90e00-2831-11ea-8f38-1a2c2a92400e.png)
+![](https://user-images.githubusercontent.com/24666922/78563263-505d1280-7838-11ea-8fbc-18e942d48485.png)
 
 When found `.only` test:
 
