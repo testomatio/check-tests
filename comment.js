@@ -10,7 +10,7 @@ class Comment {
     if (diff.added.length || diff.missing.length) {
       
       if (diff.added.length) {
-        this.body += `\n#### ✔️ Added ${diff.added.length} tests\n`;
+        this.body += `\n#### ✔️ Added ${diff.added.length} ${properWordForNumberOfTests(diff.added.length)}\n`;
 
         if (diff.added.length < 300) { // 300 tests at once? not a useful diff
           this.body += '\n\n```diff\n';
@@ -20,7 +20,7 @@ class Comment {
       }
 
       if (diff.missing.length) {
-        this.body += `\n#### 🗑️ Removed ${diff.missing.length} tests\n`;
+        this.body += `\n#### 🗑️ Removed ${diff.missing.length} ${properWordForNumberOfTests(diff.missing.length)}\n`;
 
         if (diff.added.length < 300) {
           this.body += '\n\n```diff\n';
@@ -37,14 +37,14 @@ class Comment {
   writeSkippedDiff(diff) {
     
     if (diff.added.length) {
-      this.body += `\n\n#### ⚠️ Skipped ${diff.added.length} tests\n`;
+      this.body += `\n\n#### ⚠️ Skipped ${diff.added.length} ${properWordForNumberOfTests(diff.added.length)}\n`;
       this.body += '```diff\n'
       diff.added.forEach(test => this.body +=`\n- ${Object.values(test)[0]}`);        
       this.body += '\n```\n\n'
     }
 
     if (diff.missing.length) {
-      this.body += `\n\n#### ♻ Restored ${diff.missing.length} tests\n`;
+      this.body += `\n\n#### ♻ Restored ${diff.missing.length} ${properWordForNumberOfTests(diff.missing.length)}\n`;
       this.body += '```diff\n';
       diff.missing.forEach(test => this.body += `\n+ ${Object.values(test)[0]}`);        
       this.body += '\n```\n\n';
@@ -58,7 +58,7 @@ class Comment {
 
     this.body += 
 `\n\n<details>
-  <summary>⚠️ List all skipped tests (${list.length})</summary>
+  <summary>⚠️ List all skipped ${properWordForNumberOfTests(list.length)} (${list.length})</summary>
 
 ${body}
 
@@ -125,6 +125,9 @@ class CommentError extends Error {
   }
 }
 
+function properWordForNumberOfTests(numberOfTests) {
+  return numberOfTests === 1 ? 'test' : 'tests';
+}
 
 module.exports = Comment;
 module.exports.Error = CommentError;
