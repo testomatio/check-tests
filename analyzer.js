@@ -15,23 +15,23 @@ class Analyzer {
       case 'jasmine':
       case 'protractor':
         this.frameworkParser = require('./lib/frameworks/jasmine');
-        break;        
+        break;
       case 'jest':
       case 'jestio':
         this.frameworkParser = require('./lib/frameworks/jest');
-        break;   
+        break;
       case 'codecept':
       case 'codeceptjs':
         this.frameworkParser = require('./lib/frameworks/codeceptjs');
-      break;
+        break;
       case 'mocha':
       case 'cypress':
-      case 'cypress.io': 
-      case 'cypressio': 
+      case 'cypress.io':
+      case 'cypressio':
       default:
         this.frameworkParser = require('./lib/frameworks/mocha');
         break;
-    }        
+    }
   }
 
   addPlugin(plugin) {
@@ -54,36 +54,38 @@ class Analyzer {
 
     for (const file of files) {
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
-      
+
       if (this.plugins.length > 0) {
         source = require("@babel/core").transform(source, {
-          plugins: [ ...this.plugins],
-        }).code;   
+          plugins: [...this.plugins],
+        }).code;
       }
       const ast = parser.parse(source, { sourceType: 'unambiguous' });
       // append file name to each test
       const fileName = file.replace(this.workDir + path.sep, '');
-      const testsData = this.frameworkParser(ast, fileName, source);
-      
-      const tests = new Decorator(testsData);
-      this.stats.tests = this.stats.tests.concat(tests.getFullNames());
-      this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
-      this.stats.files.push(file);
-   
-      this.decorator.append(testsData);
+      if (!fileName.includes('node_modules')) {
+        const testsData = this.frameworkParser(ast, fileName, source);
+
+        const tests = new Decorator(testsData);
+        this.stats.tests = this.stats.tests.concat(tests.getFullNames());
+        this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
+        this.stats.files.push(file);
+
+        this.decorator.append(testsData);
+      }
     }
   }
 
   getDecorator() {
     return this.decorator;
   }
-  
+
   getStats() {
     return this.stats;
   }
 
   getEmptyStats() {
-    return  {
+    return {
       tests: [],
       suites: [],
       files: [],
