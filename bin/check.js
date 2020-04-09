@@ -30,13 +30,17 @@ program
         skipped.forEach(t => console.log(`- ${chalk.bold(t.name)} ${chalk.grey(`${t.file}:${t.line}`)}`));
       }
       console.log(chalk.bold.green(`\n\nTOTAL ${decorator.count()} TESTS FOUND\n`));
-
-      if (apiKey) {
-        const reporter = new Reporter(apiKey);
-        reporter.addTests(decorator.getTests());
-        reporter.send(); // async call
+      if (decorator.count()) {
+        if (apiKey) {
+          const reporter = new Reporter(apiKey);
+          reporter.addTests(decorator.getTests());
+          reporter.send(); // async call
+        } else {
+          console.log(' ✖️  API key not provided');
+        }
       } else {
-        console.log(' ✖️  API key not provided');
+        console.log('Can\'t find any tests in this folder');
+        console.log('Change file pattern or directory to scan to find test files:\n\nUsage: npx check-tests < pattern > -d[directory]');
       }
 
       if (!opts.skipped && skipped.length) {
@@ -47,7 +51,6 @@ program
       process.exit(1);
     }
   });  
- 
   
 
 if (process.argv.length <= 2) {
