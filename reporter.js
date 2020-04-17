@@ -4,11 +4,15 @@ const { request } = isHttps ? require('https') : require('http');
 
 class Reporter {
 
-  constructor(apiKey) {
+  constructor(apiKey, framework) {
+    if (!framework) {
+      console.error('Framework cannot be empty');
+    }
     if (!apiKey) {
       console.error('Cant send report, api key not set');
     }
     this.apiKey = apiKey;
+    this.framework = framework;
     this.tests = [];
   }
 
@@ -19,7 +23,7 @@ class Reporter {
   send() {
     console.log('\n 🚀 Sending data to testomat.io\n');
 
-    const data = JSON.stringify(this.tests);
+    const data = JSON.stringify({ tests: this.tests, framework: this.framework });
 
     const req = request(URL + '?api_key=' + this.apiKey, {
       method: 'POST',
