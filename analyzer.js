@@ -24,6 +24,9 @@ class Analyzer {
       case 'codeceptjs':
         this.frameworkParser = require('./lib/frameworks/codeceptjs');
         break;
+      case 'testcafe':
+        this.frameworkParser = require('./lib/frameworks/testcafe');
+        break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io':
