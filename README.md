@@ -96,6 +96,7 @@ Check that your project uses one of the following testing frameworks (this list 
 * jest
 * protractor
 * jasmine
+* testcafe
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
@@ -255,6 +256,22 @@ steps:
       no-tests-label: Tests Needed
 ```
 
+#### Testcafe 
+
+Testcafe tests located in `tests/` directory:
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: testcafe
+      tests: tests/**/*.js
+      token: ${{ secrets.GITHUB_TOKEN }}
+      no-tests-label: Tests Needed
+
 #### Close PRs without tests
 
 When PR doesn't contain tests - close it and write a message
@@ -337,6 +354,12 @@ Check tests for Cypress.io
 
 ```
 npx check-tests cypress "cypress/integration/**.js"
+```
+
+Check tests for Testcafe
+
+```
+npx check-tests testcafe "tests/**.js"
 ```
 
 ### Sample Output

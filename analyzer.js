@@ -11,7 +11,7 @@ class Analyzer {
     this.typeScript = false;
     this.plugins = [];
 
-    switch (framework) {
+    switch (framework.toLowerCase()) {
       case 'jasmine':
       case 'protractor':
         this.frameworkParser = require('./lib/frameworks/jasmine');
@@ -23,6 +23,9 @@ class Analyzer {
       case 'codecept':
       case 'codeceptjs':
         this.frameworkParser = require('./lib/frameworks/codeceptjs');
+        break;
+      case 'testcafe':
+        this.frameworkParser = require('./lib/frameworks/testcafe');
         break;
       case 'mocha':
       case 'cypress':
