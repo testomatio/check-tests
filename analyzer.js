@@ -11,7 +11,7 @@ class Analyzer {
     this.typeScript = false;
     this.plugins = [];
 
-    switch (framework) {
+    switch (framework.toLowerCase()) {
       case 'jasmine':
       case 'protractor':
         this.frameworkParser = require('./lib/frameworks/jasmine');
