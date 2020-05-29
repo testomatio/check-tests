@@ -14,11 +14,7 @@ program
   .option('--no-skipped', 'throw error if skipped tests found')
   .option('--typescript', 'enable typescript support')
   .action((framework, files, opts) => {
-    let dir = undefined
-    if (opts.dir) {
-      dir = opts.dir.endsWith('/') ? opts.dir : `${opts.dir}/`;
-    }
-    const analyzer = new Analyzer(framework, dir || process.cwd());
+    const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
       if (opts.typescript) analyzer.withTypeScript();
       analyzer.analyze(files);
