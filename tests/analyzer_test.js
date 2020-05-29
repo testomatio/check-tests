@@ -38,5 +38,14 @@ describe('analyzer', () => {
     expect(decorator.getSuiteNames()).to.include('Login - Global Header: Institutional Sign In Modal');
   });
 
+  it('should include "dir" in file name', () => {
+    analyzer = new Analyzer('mocha', 'example');
+    analyzer.analyze('mocha/**_test.js');
+
+    const tests = analyzer.getDecorator().getTests()
+    expect(tests.length).to.be.above(0);
+    expect(tests[0].file.startsWith('example/')).to.be.true
+  });
+
 
 });

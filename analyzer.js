@@ -65,7 +65,7 @@ class Analyzer {
       }
       const ast = parser.parse(source, { sourceType: 'unambiguous' });
       // append file name to each test
-      const fileName = file.replace(this.workDir + path.sep, '');
+      const fileName = path.relative(process.cwd(), file);
       if (!fileName.includes('node_modules')) {
         const testsData = this.frameworkParser(ast, fileName, source);
 

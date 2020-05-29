@@ -14,7 +14,6 @@ program
   .option('--no-skipped', 'throw error if skipped tests found')
   .option('--typescript', 'enable typescript support')
   .action((framework, files, opts) => {
-    
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
       if (opts.typescript) analyzer.withTypeScript();
