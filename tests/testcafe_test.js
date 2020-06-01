@@ -23,7 +23,8 @@ describe('testcafe parser', () => {
 
       expect(actualTests).to.include('Add dev name success');
       expect(skippedTests, 'skip').to.include('Skipped test');
-      // assert.equal(tests.length, 3);
+      expect(actualTests).to.include('Title with template literal');
+      expect(actualTests).to.include('Test with before hook');
     });
 
 
