@@ -4,7 +4,8 @@ const Reporter = require('../reporter');
 const chalk = require('chalk');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 
-console.log(chalk.cyan.bold(' 🤩 Tests checker by testomat.io'));
+const { version } = require('../package.json');
+console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
 const program = require('commander');
  
