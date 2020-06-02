@@ -52,10 +52,16 @@ class Analyzer {
     this.decorator = new Decorator([]);
     this.stats = this.getEmptyStats();
 
-    pattern = path.join(this.workDir, pattern);
+    pattern = path.join(path.resolve(this.workDir), pattern);
     const files = glob.sync(pattern);
 
     for (const file of files) {
+      if (fs.lstatSync(file).isDirectory()) continue;
+      const dirs = file.split(path.sep);
+
+      // skip node_modules
+      if (dirs.includes('node_modules')) continue;
+
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 
       if (this.plugins.length > 0) {
@@ -63,7 +69,12 @@ class Analyzer {
           plugins: [...this.plugins],
         }).code;
       }
-      const ast = parser.parse(source, { sourceType: 'unambiguous' });
+      let ast;
+      try {
+        ast = parser.parse(source, { sourceType: 'unambiguous' });
+      } catch (err) {
+        console.error(`Error parsing ${file}: ${err}`);
+      }
       // append file name to each test
       const fileName = path.relative(process.cwd(), file);
       if (!fileName.includes('node_modules')) {

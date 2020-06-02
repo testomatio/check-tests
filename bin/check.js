@@ -48,6 +48,7 @@ program
       }
     } catch (err) {
       console.error(chalk.red(err));
+      console.error(err.stack);
       process.exit(1);
     }
   });  
