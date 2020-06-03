@@ -40,7 +40,7 @@ class Reporter {
         if (resp.statusCode !== 200) {
           console.log(' ✖️ ', message);
         } else {
-          console.log(' 🎉 Data sent to Testomat.io');
+          console.log(' 🎉 Data received at Testomat.io');
         }
       });
 

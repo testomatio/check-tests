@@ -76,17 +76,15 @@ class Analyzer {
         console.error(`Error parsing ${file}: ${err}`);
       }
       // append file name to each test
-      const fileName = path.relative(process.cwd(), file);
-      if (!fileName.includes('node_modules')) {
-        const testsData = this.frameworkParser(ast, fileName, source);
+      const fileName = path.relative(this.workDir, file);
+      const testsData = this.frameworkParser(ast, fileName, source);
 
-        const tests = new Decorator(testsData);
-        this.stats.tests = this.stats.tests.concat(tests.getFullNames());
-        this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
-        this.stats.files.push(file);
+      const tests = new Decorator(testsData);
+      this.stats.tests = this.stats.tests.concat(tests.getFullNames());
+      this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
+      this.stats.files.push(file);
 
-        this.decorator.append(testsData);
-      }
+      this.decorator.append(testsData);
     }
   }
 

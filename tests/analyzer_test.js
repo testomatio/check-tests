@@ -38,13 +38,22 @@ describe('analyzer', () => {
     expect(decorator.getSuiteNames()).to.include('Login - Global Header: Institutional Sign In Modal');
   });
 
-  it('should include "dir" in file name', () => {
+  it('should exclude dir in file name if dir specified', () => {
     analyzer = new Analyzer('mocha', 'example');
     analyzer.analyze('mocha/**_test.js');
 
     const tests = analyzer.getDecorator().getTests()
     expect(tests.length).to.be.above(0);
-    expect(tests[0].file.startsWith('example/')).to.be.true
+    expect(tests[0].file.startsWith('mocha/')).to.be.true
+  });
+
+  it('should include full dir in file name', () => {
+    analyzer = new Analyzer('mocha');
+    analyzer.analyze('example/mocha/**_test.js');
+
+    const tests = analyzer.getDecorator().getTests()
+    expect(tests.length).to.be.above(0);
+    expect(tests[0].file.startsWith('example')).to.be.true
   });
 
   it('should avoid node_modules', () => {
@@ -78,5 +87,7 @@ describe('analyzer', () => {
     const skippedTestsLineNumbers = decorator.tests.filter(t => t.skipped).map(t => t.line);
     expect(decorator.getSuiteNames()).to.include('Math');
   });
+
+
 
 });
