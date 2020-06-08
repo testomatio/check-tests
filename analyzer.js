@@ -31,6 +31,7 @@ class Analyzer {
       case 'cypress':
       case 'cypress.io':
       case 'cypressio':
+      case 'webdriverio-mocha':
       default:
         this.frameworkParser = require('./lib/frameworks/mocha');
         break;
