@@ -1,4 +1,4 @@
-const URL = process.env.TESTOMATIO_URL || 'https://app.testomat.io/api/load';
+const URL = process.env.TESTOMATIO_URL || 'https://app.testomat.io';
 const isHttps = URL.startsWith('https');
 const { request } = isHttps ? require('https') : require('http');
 
@@ -25,7 +25,7 @@ class Reporter {
 
     const data = JSON.stringify({ tests: this.tests, framework: this.framework });
 
-    const req = request(URL + '?api_key=' + this.apiKey, {
+    const req = request(URL + '/api/load?api_key=' + this.apiKey, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

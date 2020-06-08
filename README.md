@@ -318,6 +318,13 @@ Run `check-tests` via npx:
 npx check-tests <framework> "<tests>" --no-skipped
 ```
 
+### Development
+
+To change host of endpoint for receiving data, and set it to other than app.testomat.io use TESTOMATIO_URL environment variable:
+
+TESTOMATIO_URL=http://beta.testomat.io
+
+
 > This checker will fail a build if exclusive tests (with `.only` or `fit` or `fdescribe` found)
 
 ### Arguments:
