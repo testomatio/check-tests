@@ -58,10 +58,9 @@ class Analyzer {
 
     for (const file of files) {
       if (fs.lstatSync(file).isDirectory()) continue;
-      const dirs = file.split(path.sep);
 
       // skip node_modules
-      if (dirs.includes('node_modules')) continue;
+      if (file.includes('node_modules')) continue;
 
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 
