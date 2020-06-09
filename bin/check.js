@@ -32,7 +32,7 @@ program
       if (decorator.count()) {
         console.log(chalk.bold.green(`\n\nTOTAL ${decorator.count()} TESTS FOUND\n`));
         if (apiKey) {
-          const reporter = new Reporter(apiKey, framework);
+          const reporter = new Reporter(apiKey.trim(), framework);
           reporter.addTests(decorator.getTests());
           reporter.send(); // async call
         } else {
