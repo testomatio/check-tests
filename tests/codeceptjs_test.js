@@ -22,6 +22,7 @@ describe('codeceptjs parser', () => {
       const skippedTests = tests.filter(t => t.skipped).map(t => t.name);
 
       expect(actualTests).to.include('Create multiple todo items');
+      expect(actualTests).to.include('Todos containing weird characters');
       expect(skippedTests, 'xScenario').to.include('Create a new todo item');
       // assert.equal(tests.length, 3);
     });
@@ -33,9 +34,29 @@ describe('codeceptjs parser', () => {
       expect(tests[0].code).to.include('Scenario(');
       expect(tests[0].code).to.include('I.say(');
     });
-  
-
   });
 
+  context('Parse Data table tests', () => {
 
+    before(() => {
+      source = fs.readFileSync('./example/codeceptjs/datatable_test.js').toString();
+      ast = parser.parse(source);
+    });
+
+    it('should parse codecept file with data tables', () => {
+      const tests = codeceptParser(ast, '', source);
+      const actualTests = tests.map(t => t.name);
+
+      expect(actualTests).to.include('Todos containing weird characters');
+    });
+
+
+    it('should include Data in code', () => {
+      const tests = codeceptParser(ast, '', source);
+      expect(tests[0]).to.include.key('code');
+      expect(tests[0].code).to.include('Scenario(');
+      expect(tests[0].code).to.include('I.say(');
+      expect(tests[0].code).to.include('Data(');
+    });
+  });
 });
