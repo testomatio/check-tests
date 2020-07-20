@@ -9,7 +9,8 @@ let pr;
 class PullRequest {
 
   constructor(githubToken) {
-    this.octokit = new github.GitHub(githubToken);          
+    this.octokit = new github.GitHub(githubToken);
+    console.log(`Github token : ${githubToken}`)      
   }
 
   async fetch() {

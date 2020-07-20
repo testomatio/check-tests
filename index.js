@@ -43,15 +43,20 @@ async function run() {
 
     let pr;
 
+    console.log('Ready to analyze')
     try {
+      console.log(`Is nodiff ${nodiff}`)
       if (!nodiff) {
         pr = await pullRequest.fetch();
+        console.log(`PR details : ${pr}`)
       }
     } catch (err) {
       pr = null;
     }
 
     const baseStats = await analyzeBase(pr);
+
+    console.log(`Basetests : ${baseStats}`);
 
     const diff = arrayCompare(baseStats.tests, stats.tests);
     diff.missing = diff.missing.filter(t => !stats.skipped.includes(Object.values(t)[0])) // remove skipped tests from missing
@@ -61,6 +66,7 @@ async function run() {
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
 
+    console.log(`Is PR ${pr}`)
     if (!pr) return;
 
     const comment = new Comment();
