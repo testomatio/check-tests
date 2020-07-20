@@ -22,11 +22,14 @@ class PullRequest {
       state: 'open'
     });
 
+    console.log(`Comming here`)
     console.log(`Fetching pull requests ${pullRequests}`);
 
     console.log(`Pull resuest length : ${pullRequests.length}` );
     pullRequests.forEach(value => console.log(value));
   
+    console.log(`But not comming here`)
+
     console.log(`PR SHA : ${pr.head.sha}`);
     console.log(`Current SHA : ${process.env.GITHUB_SHA}`);
     return pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
