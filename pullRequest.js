@@ -21,6 +21,11 @@ class PullRequest {
       repo,
       state: 'open'
     });
+
+    console.log(`Fetching pull requests ${pullRequests}`);
+
+    console.log(`Pull resuest length : ${pullRequests.length}` );
+    pullRequests.forEach(value => console.log(value));
   
     return pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
   
