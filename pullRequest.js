@@ -29,10 +29,15 @@ class PullRequest {
     pullRequests.forEach(value => console.log(value));
   
     console.log(`But not comming here`)
+    
+    pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
+
+    console.log(pullRequests[0].head.sha);
+    console.log(`Current SHA : ${process.env.GITHUB_SHA}`);
+    console.log(process.env.GITHUB_SHA);
 
     console.log(`PR SHA : ${pr.head.sha}`);
-    console.log(`Current SHA : ${process.env.GITHUB_SHA}`);
-    return pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
+    return pr;
   
   }
 
