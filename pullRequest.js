@@ -27,6 +27,8 @@ class PullRequest {
     console.log(`Pull resuest length : ${pullRequests.length}` );
     pullRequests.forEach(value => console.log(value));
   
+    console.log(`PR SHA : ${pr.head.sha}`);
+    console.log(`Current SHA : ${process.env.GITHUB_SHA}`);
     return pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
   
   }
