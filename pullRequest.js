@@ -30,9 +30,9 @@ class PullRequest {
   
     console.log(`But not comming here`)
     
-    pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
+    pr = pullRequests.filter(pr => pr.merge_commit_sha === process.env.GITHUB_SHA)[0];
 
-    console.log(pullRequests[0].head.sha);
+    console.log(pullRequests[0].merge_commit_sha);
     console.log(`Current SHA : ${process.env.GITHUB_SHA}`);
     console.log(process.env.GITHUB_SHA);
 
