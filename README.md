@@ -2,7 +2,7 @@
 
 > GitHub Action with Static Analysis for your JavaScript tests.
 
-This action shows changed tests on each pull request with a complete list of all tests in this project.
+This action shows changed tests on each pull request with a complete list of all tests in this project. You can create test document in wiki of the project.
 
 Use this checker as 
 
@@ -132,10 +132,39 @@ jobs:
 * `close-on-empty` - close PR when no tests added. Use with `comment-on-empty` to clarify this action
 * `comment-on-skipped` - add custom message when new tests are skipped (markdown supported).
 * `close-on-skipped` - close PR when introduced skipped tests. Use with `comment-on-skipped` to clarify this action
+* `enable-documentation` - If set to `true`, test document will be created in wiki.
+* `wiki-doc-name` - Name of the wiki document. By default it will use `Test Document`
+* `documentation-branch` - Branch to create document on push. Uses default branch if this field is empty
+* `github-pat` - Github Private access token to create document in wiki.
 
 
 ### Examples
 
+#### For creating test document
+
+This example uses jest as example. Tests are located in `tests/` directory. You can generate GH_PAT [here](https://github.com/settings/tokens/new) and add the generated token in secrets of your repo.
+
+If documentation branch is not provided, it will consider default branch of the repo.
+
+```yml
+steps:
+  - uses: actions/checkout@v2
+    with:
+      fetch-depth: 0
+  - uses: actions/setup-node@v1
+    with:
+      node-version: '12'
+  - run: npm install
+  - uses: testomatio/check-tests@stable
+    with:
+      framework: jest
+      tests: "tests/*.spec.js"
+      token: ${{ secrets.GITHUB_TOKEN }}
+      github-pat: ${{ secrets.GH_PAT }}
+      enable-documentation: true
+      wiki-doc-name: "Test-Document"
+      documentation-branch: "doc-branch"
+```
 
 #### Jest 
 
@@ -336,8 +365,15 @@ TESTOMATIO_URL=http://beta.testomat.io
 
 * `--no-skipped` - fail when skipped tests found
 * `--typescript` - enable typescript support
+* `-g, --generate-file <fileName>` - Export test details to document
+* `-u, --url <url>`, Github URL to get file link (URL/tree/master)
 
 ### Example
+
+To generate test document
+```
+check-tests mocha "tests/*_test.js" -g Test-doc.md -u https://github.com/testomatio/check-tests/tree/master
+```
 
 Check tests for CodeceptJS
 

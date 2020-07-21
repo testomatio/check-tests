@@ -38,7 +38,8 @@
     "babel-traverse": "^6.26.0",
     "chalk": "^3.0.0",
     "commander": "^4.0.1",
-    "glob": "^7.1.6"
+    "glob": "^7.1.6",
+    "object-hash": "^2.0.3"
   },
   "devDependencies": {
     "chai": "^4.2.0",

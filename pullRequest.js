@@ -9,19 +9,18 @@ let pr;
 class PullRequest {
 
   constructor(githubToken) {
-    this.octokit = new github.GitHub(githubToken);          
+    this.octokit = new github.GitHub(githubToken);
   }
 
   async fetch() {
     if (pr) return pr;
-         
     const { data: pullRequests } = await this.octokit.pulls.list({
       owner,
       repo,
       state: 'open'
     });
   
-    return pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
+    return pr = pullRequests.filter(pr => pr.merge_commit_sha === process.env.GITHUB_SHA)[0];
   
   }
 
@@ -100,7 +99,6 @@ class PullRequest {
       console.log(`Can't close issue, ${err}`);
     }
   }
-
 }
 
 module.exports = PullRequest;
