@@ -149,7 +149,7 @@ async function run() {
 
       analyzer.analyze(pattern);
 
-      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath, stdio: 'inherit' });
+      await exec.exec('git', ['switch', pr.head.ref], { cwd: mainRepoPath, stdio: 'inherit' });
       return analyzer.getStats();
 
     } catch (err) {
