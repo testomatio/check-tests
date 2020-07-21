@@ -21,7 +21,7 @@ class PullRequest {
       state: 'open'
     });
   
-    return pr = pullRequests.filter(pr => pr.head.sha === process.env.GITHUB_SHA)[0];
+    return pr = pullRequests.filter(pr => pr.merge_commit_sha === process.env.GITHUB_SHA)[0];
   
   }
 
