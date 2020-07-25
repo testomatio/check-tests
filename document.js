@@ -16,7 +16,7 @@ async function createTestDoc(filePath, decorator) {
     decorator.comments= util.parseComments(oldData);
   }
 
-  const body = decorator.getMarkdownList().join('\n');
+  const body = `Created by [Testomat.io](https://testomat.io/)\n${decorator.getMarkdownList().join('\n')}`;
   decorator.disableComment();
   if (hash(oldData) !== hash(body)) {
     fs.writeFileSync(filePath, body, 'utf8');
