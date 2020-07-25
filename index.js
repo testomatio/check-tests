@@ -30,7 +30,7 @@ async function run() {
   const apiKey = core.getInput('testomatio-key');
   const ghPat = core.getInput('github-pat');
   const enableDocumentation = core.getInput('enable-documentation');
-  const wikiFile = core.getInput('wiki-doc-name') || 'Test-Document.md';
+  const wikiFile = core.getInput('wiki-doc-name') || 'Tests';
   const docBranch = core.getInput('documentation-branch') || (await octokit.repos.get({ owner, repo })).data.default_branch;
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
   const analyzer = new Analyzer(framework, mainRepoPath);
