@@ -19,5 +19,4 @@ jobs:
           has-tests-label: true
           github-pat: ${{ secrets.GH_PAT }}
           enable-documentation: true
-          wiki-doc-name: "Test-Document"
           documentation-branch: "master"
