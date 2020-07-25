@@ -188,7 +188,7 @@ class Decorator {
   generateComment(name) {
     if (this.isCommentEnabled) {
       const id = hash(name);
-      const content = (this.comments[id] && this.comments[id] !== '') ? `\n${this.comments[id]}\n` : '\n';
+      const content = (this.comments[id] && this.comments[id].trim() !== '') ? `\n${this.comments[id]}\n` : '';
       return ` <!-- check-tests: Add test docs below id=${id} -->${content}`
     }
 
