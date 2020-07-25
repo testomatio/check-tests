@@ -1,11 +1,17 @@
 const core = require('@actions/core');
 const exec = require('@actions/exec');
+const github = require('@actions/github');
 const arrayCompare = require("array-compare")
+const fs = require('fs');
+const hash = require('object-hash');
 
 const PullRequest = require('./pullRequest');
 const Comment = require('./comment');
 const Analyzer = require('./analyzer');
 const Reporter = require('./reporter');
+const Decorator = require('./decorator');
+const util = require('./lib/utils');
+const document = require('./document');
 
 // command
 // RUNNER_TOOL_CACHE="/tmp" GITHUB_REF=refs/heads/master INPUT_FRAMEWORK=mocha INPUT_TESTS="example/mocha/**.js" node index.js
@@ -14,15 +20,26 @@ const mainRepoPath = process.env.GITHUB_WORKSPACE;
 // most @actions toolkit packages have async methods
 async function run() {
 
+  const repoUrl = process.env.GITHUB_REPOSITORY;
+  const [ owner, repo ] = repoUrl.split('/');
+  const octokit = new github.GitHub(core.getInput('token', { required: true }));
+
   let nodiff = core.getInput('nodiff');
   const framework = core.getInput('framework', {required: true});
   const pattern = core.getInput('tests', { required: true });
   const apiKey = core.getInput('testomatio-key');
-
+  const ghPat = core.getInput('github-pat');
+  const enableDocumentation = core.getInput('enable-documentation');
+  const wikiFile = core.getInput('wiki-doc-name') || 'Test-Document.md';
+  const docBranch = core.getInput('documentation-branch') || (await octokit.repos.get({ owner, repo })).data.default_branch;
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
   const analyzer = new Analyzer(framework, mainRepoPath);
 
   if (core.getInput('typescript')) analyzer.withTypeScript();
+
+  if (!core.getInput('documentation-branch')) {
+    console.log(`Using default branch ${docBranch}`);
+  }
 
   try {    
 
@@ -60,6 +77,11 @@ async function run() {
         
     console.log(`Added ${diff.added.length} tests, removed ${diff.missing.length} tests`);
     console.log(`Total ${stats.tests.length} tests`);
+
+    if (!pr && enableDocumentation && process.env.GITHUB_REF.endsWith(docBranch)) {
+      console.log('Documentation enabled, Going to create Wiki');
+      await createTestDocWikiPage(allTests);
+    }
 
     if (!pr) return;
 
@@ -143,7 +165,7 @@ async function run() {
 
       analyzer.analyze(pattern);
 
-      await exec.exec('git', ['switch', '-'], { cwd: mainRepoPath, stdio: 'inherit' });
+      await exec.exec('git', ['switch', pr.head.ref], { cwd: mainRepoPath, stdio: 'inherit' });
       return analyzer.getStats();
 
     } catch (err) {
@@ -152,6 +174,34 @@ async function run() {
       return analyzer.getEmptyStats();
     }
     
+  }
+
+  /**
+   * 
+   * @param {*} pr 
+   * @param {Decorator} decorator 
+   */
+  async function createTestDocWikiPage(decorator) {
+    try {
+      await exec.exec('git', ['clone', `https://${ghPat}@github.com/${process.env.GITHUB_REPOSITORY}.wiki.git`]);
+      
+
+      const isFileUpdated = document.createTestDoc(`${repo}.wiki/${wikiFile}.md`, decorator);
+      if (isFileUpdated) {
+        await setTestomatioUserInGit();
+        await exec.exec('git', ['add', '.'], { cwd: `${process.cwd()}/${repo}.wiki`});
+        await exec.exec('git', ['commit', '-am', 'Update test docs'], {cwd: `${process.cwd()}/${repo}.wiki`});
+        await exec.exec('git', ['push', 'origin', 'master'],{ cwd: `${process.cwd()}/${repo}.wiki`, stdio: 'inherit' })
+      }
+    } catch(err) {
+      console.error("Can't create test doc PR");
+      console.error(err);
+    }
+  }
+
+  async function setTestomatioUserInGit() {
+    await exec.exec('git', ['config', '--global', 'user.email', 'testomatio@sdclabs.com']);
+    await exec.exec('git', ['config', '--global', 'user.name', 'testomatio']);
   }
 }
 

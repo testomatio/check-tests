@@ -1,7 +1,11 @@
 #!/usr/bin/env node
+const fs = require('fs');
 const Analyzer = require('../analyzer');
 const Reporter = require('../reporter');
 const chalk = require('chalk');
+const util = require('../lib/utils');
+const document = require('../document');
+
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 
 const { version } = require('../package.json');
@@ -14,12 +18,17 @@ program
   .option('-d, --dir <dir>', 'test directory')
   .option('--no-skipped', 'throw error if skipped tests found')
   .option('--typescript', 'enable typescript support')
+  .option('-g, --generate-file <fileName>', 'Export test details to a document')
+  .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
   .action((framework, files, opts) => {
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
       if (opts.typescript) analyzer.withTypeScript();
       analyzer.analyze(files);
       const decorator = analyzer.getDecorator();
+      if (opts.url) {
+        decorator.fileLink = opts.url;
+      }
       const skipped = decorator.getSkippedTests();
       let list = analyzer.getDecorator().getTextList();
       list = list.map(l => l === '-----' ? chalk.bold('_______________________\n') : l).join('\n');
@@ -31,6 +40,13 @@ program
       }
       if (decorator.count()) {
         console.log(chalk.bold.green(`\n\nTOTAL ${decorator.count()} TESTS FOUND\n`));
+
+        if (opts.generateFile) {
+          console.log(opts.generateFile);
+          document.createTestDoc(opts.generateFile, decorator)
+          .then(() => console.log(`📝 Document saved to ${opts.generateFile}`))
+          .catch(err => console.log('Error in creating test document', err));
+        }
         if (apiKey) {
           const reporter = new Reporter(apiKey.trim(), framework);
           reporter.addTests(decorator.getTests());

@@ -95,7 +95,7 @@ ${body}
     if (body.length > 60000) {
       console.log('Too many tests, ignoring them in comment. String length: ', body.length)
 
-      body = body.substring(0, 60000) + '\n*...(more then possible to show)...*'
+      body = body.substring(0, 60000) + '\n*...(more than possible to show)...*'
     }
     this.body += 
 `\n\n<details>

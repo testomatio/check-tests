@@ -31,6 +31,19 @@ inputs:
   close-on-skipped:
     description: 'Close PR when no tests added. Use with comment-on-skipped to clarify this action'
     required: false 
+  enable-documentation:
+    description: 'If set true test document will be created in wiki'
+    required: false
+  wiki-doc-name:
+    description: 'Name of the wiki document. By default it will use "Test Document"'
+    required: false
+  github-pat:
+    description: 'Github Private access token to create document in wiki'
+    required: false
+  documentation-branch:
+    description: 'Branch to create document on push uses default branch if empty'
+    required: false
+  
     
 runs:
   using: 'node12'

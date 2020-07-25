@@ -1,4 +1,4 @@
-const fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
+const hash = require('object-hash');
 
 class Decorator {
 
@@ -7,6 +7,18 @@ class Decorator {
       if (!t.suites) t.suites = [];
       return t;
     });
+
+    this.fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
+    this.isCommentEnabled = false;
+    this.comments = {};
+  }
+
+  enableComment() {
+    this.isCommentEnabled = true;
+  }
+
+  disableComment() {
+    this.isCommentEnabled = false;
   }
 
   getTests() {
@@ -54,7 +66,7 @@ class Decorator {
     const tests = this.getSkippedTests();
 
     for (const test of tests) {
-      list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line})`);
+      list.push('* [~~' + escapeSpecial(test.name) + '~~]' + `(${this.fileLink}/${test.file}#L${test.line})`);
     }
     return list;
   }
@@ -66,7 +78,7 @@ class Decorator {
 
       const count = this.getTestsInSuite(suite).length;
 
-      const fileLine = `* **${suite} (${count} tests)** [${test.file}](${fileLink}/${test.file})`;
+      const fileLine = `* **${suite} (${count} tests)** [${test.file}](${this.fileLink}/${test.file})`;
       if (list.indexOf(fileLine) < 0) {
         list.push(fileLine);
       }
@@ -136,12 +148,12 @@ class Decorator {
       for (let i = 0; i < testSuites.length; i++) {
         if (suites[i] === testSuites[i]) continue;
         if (!suites[i]) {
-          list.push(indent(`* 📎 **${escapeSpecial(testSuites[i])}**`));
+          list.push(indent(`* 📎 **${escapeSpecial(testSuites[i])}**${this.generateComment(testSuites[i])}`));
           suites[i] = testSuites[i];
           continue;
         }
         suites = suites.slice(0, i);
-        list.push(indent(`* 📎 **${escapeSpecial(testSuites[i])}**`));
+        list.push(indent(`* 📎 **${escapeSpecial(testSuites[i])}**${this.generateComment(testSuites[i])}`));
         suites[i] = testSuites[i];
       }
     }
@@ -149,19 +161,20 @@ class Decorator {
     
     for (const test of this.tests) {
       
-      const fileLine = `\n📝 [${test.file}](${fileLink}/${test.file})`;
+      const fileLine = `\n📝 [${test.file}](${this.fileLink}/${test.file})${this.generateComment(test.file)}`;
       if (list.indexOf(fileLine) < 0) {
         list.push(fileLine);
         suites = [];
       }
       
       buildSuites(test);
+      const fullName = test.file + test.suites[0] + test.name;
 
       if (test.skipped) {
-        list.push(indent('* [~~' + escapeSpecial(test.name) + '~~]' + `(${fileLink}/${test.file}#L${test.line}) ⚠️ *skipped*`));
+        list.push(indent('* [~~' + escapeSpecial(test.name) + '~~]' + `(${this.fileLink}/${test.file}#L${test.line}) ⚠️ *skipped*`));
         continue;  
       }
-      list.push(indent('* `' + test.name + '`'));
+      list.push(indent('* ✔️ `' + test.name + '`') + `${this.generateComment(fullName)}`);
     }
 
 
@@ -170,6 +183,16 @@ class Decorator {
     }
     
     return list;
+  }
+
+  generateComment(name) {
+    if (this.isCommentEnabled) {
+      const id = hash(name);
+      const content = (this.comments[id] && this.comments[id] !== '') ? `\n${this.comments[id]}\n` : '\n';
+      return ` <!-- check-tests: Add test docs below id=${id} -->${content}`
+    }
+
+    return '';
   }
 
 }
