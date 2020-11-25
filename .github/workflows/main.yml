@@ -8,14 +8,14 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Setup Node.js for use with actions
-        uses: actions/setup-node@v1.1.0
+        uses: actions/setup-node@v1
       - run: npm test
       - uses: testomatio/check-tests@stable
         with:
           framework: mocha
           tests: "tests/**_test.js"
           token: ${{ secrets.GITHUB_TOKEN }}
-          comment-on-empty: true       
+          comment-on-empty: true
           has-tests-label: true
           github-pat: ${{ secrets.GH_PAT }}
           enable-documentation: true
