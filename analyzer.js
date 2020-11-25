@@ -65,15 +65,27 @@ class Analyzer {
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 
       if (this.plugins.length > 0) {
-        source = require("@babel/core").transform(source, {
-          plugins: [...this.plugins],
-        }).code;
+        try {
+          source = require("@babel/core").transform(source, {
+            plugins: [...this.plugins],
+          }).code;
+        } catch (err) {
+          console.error(`Error parsing ${file}`);
+          console.error(err.message);
+          if (err.message.includes('@babel/')) {
+            console.log(`\nProbably, required babel plugins are not installed.`);
+            console.log(`Try to install them manually using npm:`);
+            console.log(`\nnpm i @babel/core @babel/plugin-transform-typescript --save-dev`);
+          }
+          process.exit(1);
+        }
       }
       let ast;
       try {
         ast = parser.parse(source, { sourceType: 'unambiguous' });
       } catch (err) {
-        console.error(`Error parsing ${file}: ${err}`);
+        console.error(`Error parsing ${file}:`);
+        console.error(err.message);
       }
       // append file name to each test
       const fileName = path.relative(this.workDir, file);

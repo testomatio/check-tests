@@ -4,20 +4,20 @@
 
 This action shows changed tests on each pull request with a complete list of all tests in this project. You can create test document in wiki of the project.
 
-Use this checker as 
+Use this checker as
 
 * [GitHub Action](#github-action)
 * [CLI tool](#cli)
 
 ### Features
 
-* Analyzes JavaScript test files in Pull Request 
+* Analyzes JavaScript test files in Pull Request
 * Uses AST parser to analyze tests
 * Detects added, removed, skipped tests
 * Fails when finds `.only` exclusive tests
 * Adds labels for PR with or witout tests
 * Shows expressive report for each PR
-* TypeScript supported
+* [TypeScript](#typescript) supported
 
 ## GitHub Action
 
@@ -28,7 +28,7 @@ Use this checker as
 🌀 Tests overview by [Testomatio](https://testomat.io)
 
 
-Found **7** codeceptjs tests in 1 files 
+Found **7** codeceptjs tests in 1 files
 #### ✔️ Added 1 test
 
 
@@ -74,7 +74,7 @@ tests
 
 ## Usage
 
-Once this action is enabled, bot will create a comment for each Pull Request with a list of all changed tests. 
+Once this action is enabled, bot will create a comment for each Pull Request with a list of all changed tests.
 
 This information is useful to:
 
@@ -120,7 +120,7 @@ jobs:
 
 > It is important to enable `actions/checkout@v2` step with `fetch-depth: 0` to allow testomatio to compare tests in pull requests with tests in base.
 
-#### Inputs (Configuration) 
+#### Inputs (Configuration)
 
 * `framework` - *(required)* Test framework to be used. Supported: mocha, codeceptjs'
 * `tests` - *(required)* Glob pattern to match tests in a project, example: `tests/**_test.js'`
@@ -166,7 +166,7 @@ steps:
       documentation-branch: "doc-branch"
 ```
 
-#### Jest 
+#### Jest
 
 Jest tests located in `tests/` directory:
 
@@ -180,7 +180,7 @@ steps:
       framework: jest
       tests: tests/**.spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: true       
+      comment-on-empty: true
       has-tests-label: true
 ```
 
@@ -201,7 +201,7 @@ steps:
       framework: cypress.io
       tests: cypress/integration/**.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: true 
+      comment-on-empty: true
       has-tests-label: true
 ```
 
@@ -222,8 +222,8 @@ steps:
       framework: codeceptjs
       tests: tests/**_test.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: true          
-      has-tests-label: true      
+      comment-on-empty: true
+      has-tests-label: true
 ```
 
 * list all tests even no tests were added
@@ -243,8 +243,8 @@ steps:
       framework: protractor
       tests: spec/**.spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: true       
-      has-tests-label: true      
+      comment-on-empty: true
+      has-tests-label: true
 ```
 
 * list all tests even no tests were added
@@ -268,7 +268,7 @@ steps:
 ```
 
 
-#### Mocha 
+#### Mocha
 
 Mocha tests located in `tests/` directory:
 
@@ -285,7 +285,7 @@ steps:
       no-tests-label: Tests Needed
 ```
 
-#### Testcafe 
+#### Testcafe
 
 Testcafe tests located in `tests/` directory:
 
@@ -351,7 +351,7 @@ npx check-tests <framework> "<tests>" --no-skipped
 
 To change host of endpoint for receiving data, and set it to other than app.testomat.io use TESTOMATIO_URL environment variable:
 
-TESTOMATIO_URL=http://beta.testomat.io
+TESTOMATIO_URL=http://local.testomat.io
 
 
 > This checker will fail a build if exclusive tests (with `.only` or `fit` or `fdescribe` found)
@@ -359,7 +359,7 @@ TESTOMATIO_URL=http://beta.testomat.io
 ### Arguments:
 
 * test framework
-* glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.**   
+* glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.**
 
 ### CLI Options:
 
@@ -420,6 +420,16 @@ When found `.only` test:
 Error: Exclusive tests detected. `.only` call found in test/checkout/important_test.js:290
 Remove `.only` to restore test checks
 
+```
+
+## TypeScript
+
+For TypeScript projects `@babel/core` and `@babel/plugin-transform-typescript` packages are used. GitHub Action already contains those modules, while CLI version of this tool tries to automatically install them on first run.
+
+If you face issues parsing TypeScript file menitioning `@babel/core` or `@babel/plugin-transform-typescript` try to install them manually:
+
+```
+npm i @babel/core @babel/plugin-transform-typescript --save-dev
 ```
 
 ## Limitations

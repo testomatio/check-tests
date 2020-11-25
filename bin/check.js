@@ -5,14 +5,14 @@ const Reporter = require('../reporter');
 const chalk = require('chalk');
 const util = require('../lib/utils');
 const document = require('../document');
-
+const { spawn } = require('child_process');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 
 const { version } = require('../package.json');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
 const program = require('commander');
- 
+
 program
   .arguments('<framework> <files>')
   .option('-d, --dir <dir>', 'test directory')
@@ -20,10 +20,19 @@ program
   .option('--typescript', 'enable typescript support')
   .option('-g, --generate-file <fileName>', 'Export test details to a document')
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
-  .action((framework, files, opts) => {
+  .action(async (framework, files, opts) => {
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
-      if (opts.typescript) analyzer.withTypeScript();
+      if (opts.typescript) {
+        try {
+          require.resolve('@babel/plugin-transform-typescript');
+          require.resolve('@babel/core')
+        } catch {
+          console.log("Installing TypeScript modules...");
+          await install(['@babel/core', '@babel/plugin-transform-typescript'])
+        }
+        analyzer.withTypeScript();
+      }
       analyzer.analyze(files);
       const decorator = analyzer.getDecorator();
       if (opts.url) {
@@ -67,8 +76,8 @@ program
       console.error(err.stack);
       process.exit(1);
     }
-  });  
-  
+  });
+
 
 if (process.argv.length <= 2) {
   program.outputHelp();
@@ -76,3 +85,38 @@ if (process.argv.length <= 2) {
 
 program.parse(process.argv);
 
+
+async function install(dependencies, verbose) {
+  return new Promise((resolve, reject) => {
+    let command;
+    let args;
+
+    console.log('Installing extra packages: ', chalk.green(dependencies.join(', ')));
+
+    if (fs.existsSync('yarn.lock')) { // use yarn
+      command = 'yarnpkg';
+      args = ['add','-D', '--exact'];
+      [].push.apply(args, dependencies);
+
+    } else {
+      command = 'npm';
+      args = [
+          'install',
+          '--save-dev',
+          '--loglevel',
+          'error',
+      ].concat(dependencies);
+    }
+
+    const child = spawn(command, args, { stdio: 'inherit' });
+    child.on('close', code => {
+      if (code !== 0) {
+        reject({
+          command: `${command} ${args.join(' ')}`,
+        });
+        return;
+      }
+      resolve();
+    });
+  });
+}
