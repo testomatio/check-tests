@@ -2,6 +2,7 @@ const parser = require('@babel/parser');
 const codeceptParser = require('../lib/frameworks/codeceptjs');
 const fs = require('fs');
 const { expect } = require('chai');
+const { features } = require('process');
 
 let source;
 let ast;
@@ -36,27 +37,22 @@ describe('codeceptjs parser', () => {
     });
   });
 
-  context('Parse Data table tests', () => {
+  context('Parse CodeceptJS tags', () => {
 
     before(() => {
-      source = fs.readFileSync('./example/codeceptjs/datatable_test.js').toString();
+      source = fs.readFileSync('./example/codeceptjs/tags_test.js').toString();
       ast = parser.parse(source);
     });
 
-    it('should parse codecept file with data tables', () => {
+    it('should include tags', () => {
       const tests = codeceptParser(ast, '', source);
       const actualTests = tests.map(t => t.name);
 
-      expect(actualTests).to.include('Todos containing weird characters');
-    });
-
-
-    it('should include Data in code', () => {
-      const tests = codeceptParser(ast, '', source);
-      expect(tests[0]).to.include.key('code');
-      expect(tests[0].code).to.include('Scenario(');
-      expect(tests[0].code).to.include('I.say(');
-      expect(tests[0].code).to.include('Data(');
+      // expect(actualTests).to.include('Login');
+      expect(tests[0].suites[0]).to.include('Auth');
+      expect(tests[0].suites[0]).to.include('@user');
+      expect(actualTests).to.include('Login @Important @Smoke @Other @T12321');
     });
   });
+
 });
