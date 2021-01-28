@@ -24,6 +24,7 @@ describe('codeceptjs parser', () => {
 
       expect(actualTests).to.include('Create multiple todo items');
       expect(actualTests).to.include('Todos containing weird characters');
+      expect(actualTests).to.include('Text input field should be cleared after each item');      
       expect(skippedTests, 'xScenario').to.include('Create a new todo item');
       // assert.equal(tests.length, 3);
     });
