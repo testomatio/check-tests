@@ -38,6 +38,10 @@ test('history mode', async () => {
   expect(pkg.dependencies).toHaveProperty('vue-router')
 })
 
+test(`empty test`, () => {
+  expect(files['src/router/index.js']).toBeTruthy()
+})
+
 test.skip('use with Babel', async () => {
   const { pkg, files } = await generateWithPlugin([
     {

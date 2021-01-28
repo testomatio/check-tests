@@ -23,6 +23,7 @@ describe('jest parser', () => {
 
 
       expect(actualTests).to.include('history mode');
+      expect(actualTests).to.include('empty test');
       expect(skippedTests).to.include('use with Babel');
       // assert.equal(tests.length, 3);
     });

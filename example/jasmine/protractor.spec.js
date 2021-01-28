@@ -27,7 +27,7 @@ describe ('Angular App', () => {
         expect(await friendPage.rows.count()).toBe(0);
     });
 
-    it('should display found search terms', async () => {
+    it(`should display found search terms`, async () => {
         await friendPage.searchFor(EXISTING_NAME);
 
         expect(await friendPage.inResults(EXISTING_NAME)).toBe(true);

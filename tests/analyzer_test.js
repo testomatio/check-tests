@@ -73,7 +73,21 @@ describe('analyzer', () => {
     expect(actualTests).to.not.include('Empty: should test');
   });
 
+  it('should read \` char', () => {
+    analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
+    analyzer.analyze('./example/dummy/string_spec.js');
 
+    const stats = analyzer.getStats();
+    const actualTests = stats.tests;
+    const skippedTests = stats.skipped;
+    const decorator = analyzer.getDecorator();
+
+    const skippedTestsLineNumbers = decorator.tests.filter(t => t.skipped).map(t => t.line);
+    expect(decorator.getSuiteNames()).to.include('Feature');
+
+    expect(actualTests).to.include('Feature: should test');
+    expect(skippedTests).to.include('Feature: should skip');
+  });
 
   it('should not load dirs as files', () => {
     analyzer = new Analyzer('mocha', path.join(__dirname, '..'));

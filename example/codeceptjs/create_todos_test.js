@@ -53,7 +53,7 @@ Scenario('Todos containing weird characters', async (I, current, TodosPage) => {
   }
 })
 
-Scenario('Text input field should be cleared after each item', async (I, TodosPage) => {
+Scenario(`Text input field should be cleared after each item`, async (I, TodosPage) => {
   I.say('Given I have an empty todo list')
   I.say('When I enter a new todo')
   TodosPage.enterTodo('foo')

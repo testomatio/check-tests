@@ -23,6 +23,7 @@ describe('jasmine parser', () => {
 
       expect(actualTests).to.include('should not display non-found search terms');
       expect(actualTests).to.include('should display actual count before saving new friend');
+      expect(actualTests).to.include('should display found search terms');
       expect(skippedTests).to.include('should display no rows when all friends deleted');
       // assert.equal(tests.length, 3);
     });
