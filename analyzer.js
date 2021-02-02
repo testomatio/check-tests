@@ -88,7 +88,10 @@ class Analyzer {
         console.error(err.message);
       }
       // append file name to each test
-      const fileName = path.relative(this.workDir, file);
+      let fileName = path.relative(this.workDir, file);
+      if (process.env.TESTOMATIO_PREPEND_DIR) {
+        fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName)
+      }
       const testsData = this.frameworkParser(ast, fileName, source);
 
       const tests = new Decorator(testsData);

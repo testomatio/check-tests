@@ -422,6 +422,30 @@ Remove `.only` to restore test checks
 
 ```
 
+## Using in Testomatio
+
+This library is used by [Testomatio](https://testomat.io) to import tests.
+
+## Importing Into Project
+
+Use `TESTOMATIO` environment variable with a valid API key to import data into a project.
+API key can be obtained on project settings page or on "Import From Source" page.
+
+For example:
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+
+```
+
+### Import Into a Specific Suite
+
+To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PREPEND_DIR` environment variable:
+
+```
+TESTOMATIO_PREPEND_DIR="MyTESTS" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+```
+
 ## TypeScript
 
 For TypeScript projects `@babel/core` and `@babel/plugin-transform-typescript` packages are used. GitHub Action already contains those modules, while CLI version of this tool tries to automatically install them on first run.

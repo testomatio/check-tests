@@ -102,6 +102,21 @@ describe('analyzer', () => {
     expect(decorator.getSuiteNames()).to.include('Math');
   });
 
+  context('env variable params', () => {
+    beforeEach(() => {
+        process.env.TESTOMATIO_PREPEND_DIR = "MyTests";
+    })
 
+    afterEach(() => {
+        process.env.TESTOMATIO_PREPEND_DIR = null;
+    })
+
+    it('should prepend a dir from env variable', () => {
+        analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
+        analyzer.analyze('./example/dummy/**_test.js');
+        const tests = analyzer.getDecorator().tests;
+        expect(tests[0].file).to.be.a('string').and.satisfy(msg => msg.startsWith('MyTests/'));
+    })
+  })
 
 });
