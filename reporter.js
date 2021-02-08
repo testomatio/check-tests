@@ -20,6 +20,39 @@ class Reporter {
     this.tests = this.tests.concat(tests);
   }
 
+  getIds() {
+    return new Promise((res, rej) => {
+      console
+      const req = request(URL.trim() + '/api/test_data?api_key=' + this.apiKey, { method: 'GET'}, (resp) => {
+        // The whole response has been received. Print out the result.
+        let message = '';
+  
+        resp.on('end', () => {
+          if (resp.statusCode !== 200) {
+            rej(message)
+          } else {
+            res(JSON.parse(message))
+          }
+        });
+  
+        resp.on('data', (chunk) => {
+          message += chunk.toString();
+        });
+  
+        resp.on('aborted', () => {
+          console.log(' ✖️ Data was not sent to Testomat.io');
+        });
+      });
+  
+      req.on("error", (err) => {
+        console.log("Error: " + err.message);
+        rej(err);
+      });
+
+      req.end();
+    });
+  }
+
   send() {
     console.log('\n 🚀 Sending data to testomat.io\n');
 
