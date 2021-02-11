@@ -10,6 +10,7 @@ class Analyzer {
     this.workDir = workDir;
     this.typeScript = false;
     this.plugins = [];
+    this.rawTests = [];
 
     switch (framework.toLowerCase()) {
       case 'jasmine':
@@ -93,7 +94,7 @@ class Analyzer {
         fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName)
       }
       const testsData = this.frameworkParser(ast, fileName, source);
-
+      this.rawTests.push(testsData);
       const tests = new Decorator(testsData);
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());
       this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());

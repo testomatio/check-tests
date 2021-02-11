@@ -20,9 +20,24 @@ program
   .option('--typescript', 'enable typescript support')
   .option('-g, --generate-file <fileName>', 'Export test details to a document')
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
+  .option('-U, --update-ids', 'Update test and suite with testomatio ids')
   .action(async (framework, files, opts) => {
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
+      if (opts.updateIds) {
+        console.log('Update test files called');
+        analyzer.analyze(files);
+        if (apiKey) {
+          const reporter = new Reporter(apiKey.trim(), framework);
+          reporter.getIds().then(idMap => {
+            util.updateFiles(analyzer.rawTests, idMap, opts.dir || process.cwd())
+          });
+        } else {
+          console.log(' ✖️  API key not provided');
+        }
+        console.log('Files updated');
+        return;
+      }
       if (opts.typescript) {
         try {
           require.resolve('@babel/plugin-transform-typescript');
