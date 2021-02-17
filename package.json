@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "main": "index.js",
   "keywords": [
