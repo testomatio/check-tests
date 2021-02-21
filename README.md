@@ -438,6 +438,36 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 
 ```
 
+## Disable Detached Tests
+
+If a test from a previous import was not found on next import it is marked as "detached".
+This is done to ensure that deleted tests are not staying in Testomatio while deleted in codebase.
+
+To disable this behavior and don't mark anything on detached on import use `--no-detached` option
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-detached
+```
+
+## Synchronous Import
+
+By default `check-tests` doesn't wait for all tests to be proceesed. It sends request to Testomatio and exits. To wait for processing to finish use `--sync` option.
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --sync
+```
+Please note, that this will take a long time on a large codebase.
+
+## Auto-assign Test IDs in Source Code
+
+To disable guess matching for tests it is recommend to use Testomatio IDs to map a test in source code to a test in Testomatio. Testomatio IDs can be put automatically into the test names into source code when `--update-ids` option is used:
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --update-ids
+```
+
+Tests imported with `--update-ids` will be processed in synchronouse mode, so the script will finish after all tests are processed.
+
 ### Import Into a Specific Suite
 
 To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PREPEND_DIR` environment variable:
@@ -454,6 +484,12 @@ If you face issues parsing TypeScript file menitioning `@babel/core` or `@babel/
 
 ```
 npm i @babel/core @babel/plugin-transform-typescript --save-dev
+```
+
+Now tests TypeScript can be imported with `--typescript` option:
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --typescript
 ```
 
 ## Limitations

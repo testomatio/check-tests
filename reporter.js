@@ -22,11 +22,10 @@ class Reporter {
 
   getIds() {
     return new Promise((res, rej) => {
-      console
       const req = request(URL.trim() + '/api/test_data?api_key=' + this.apiKey, { method: 'GET'}, (resp) => {
         // The whole response has been received. Print out the result.
         let message = '';
-  
+
         resp.on('end', () => {
           if (resp.statusCode !== 200) {
             rej(message)
@@ -34,16 +33,16 @@ class Reporter {
             res(JSON.parse(message))
           }
         });
-  
+
         resp.on('data', (chunk) => {
           message += chunk.toString();
         });
-  
+
         resp.on('aborted', () => {
           console.log(' ✖️ Data was not sent to Testomat.io');
         });
       });
-  
+
       req.on("error", (err) => {
         console.log("Error: " + err.message);
         rej(err);
@@ -53,10 +52,12 @@ class Reporter {
     });
   }
 
-  send() {
+  send(opts = {}) {
+    return new Promise((resolve, reject) => {
+
     console.log('\n 🚀 Sending data to testomat.io\n');
 
-    const data = JSON.stringify({ tests: this.tests, framework: this.framework });
+    const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
 
     const req = request(URL.trim() + '/api/load?api_key=' + this.apiKey, {
       method: 'POST',
@@ -65,34 +66,38 @@ class Reporter {
         'Content-Length': Buffer.byteLength(data)
       },
     }, (resp) => {
-    
-      // The whole response has been received. Print out the result.
-      let message = '';
 
-      resp.on('end', () => {
-        if (resp.statusCode !== 200) {
-          console.log(' ✖️ ', message);
-        } else {
-          console.log(' 🎉 Data received at Testomat.io');
-        }
+        // The whole response has been received. Print out the result.
+        let message = '';
+
+        resp.on('end', () => {
+          if (resp.statusCode >= 400) {
+            console.log(' ✖️ ', message, `(${resp.statusCode}: ${resp.statusMessage})`);
+          } else {
+            console.log(' 🎉 Data received at Testomat.io');
+          }
+          resolve()
+        });
+
+        resp.on('data', (chunk) => {
+          message += chunk.toString();
+        });
+
+        resp.on('aborted', () => {
+          console.log(' ✖️ Data was not sent to Testomat.io');
+          reject('aborted');
+        });
       });
 
-      resp.on('data', (chunk) => {
-        message += chunk.toString();
+      req.on("error", (err) => {
+        console.log("Error: " + err.message);
+        reject(err);
       });
 
-      resp.on('aborted', () => {
-        console.log(' ✖️ Data was not sent to Testomat.io');
-      });
-    });
+      req.write(data)
+      req.end();
+    })
 
-    req.on("error", (err) => {
-      console.log("Error: " + err.message);
-    });
-
-    req.write(data)
-    req.end();    
-    
   }
 
 }
