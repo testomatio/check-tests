@@ -1,3 +1,10 @@
+# 0.4.0
+
+* Added `--sync` option to toggle to process tests synchronously on backend
+* `--update-ids` are now executed as a part of import process, so can be used on a fresh new project.
+* Added `--no-detach` option to disable marking tests as detached
+* Readme updated
+
 # 0.3.19
 
 Added `--update-ids` command to automatically set ids for tests already loaded to project
