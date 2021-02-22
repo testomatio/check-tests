@@ -6,18 +6,18 @@ This action shows changed tests on each pull request with a complete list of all
 
 Use this checker as
 
-* [GitHub Action](#github-action)
-* [CLI tool](#cli)
+- [GitHub Action](#github-action)
+- [CLI tool](#cli)
 
 ### Features
 
-* Analyzes JavaScript test files in Pull Request
-* Uses AST parser to analyze tests
-* Detects added, removed, skipped tests
-* Fails when finds `.only` exclusive tests
-* Adds labels for PR with or witout tests
-* Shows expressive report for each PR
-* [TypeScript](#typescript) supported
+- Analyzes JavaScript test files in Pull Request
+- Uses AST parser to analyze tests
+- Detects added, removed, skipped tests
+- Fails when finds `.only` exclusive tests
+- Adds labels for PR with or witout tests
+- Shows expressive report for each PR
+- [TypeScript](#typescript) supported
 
 ## GitHub Action
 
@@ -27,47 +27,41 @@ Use this checker as
 
 🌀 Tests overview by [Testomatio](https://testomat.io)
 
-
 Found **7** codeceptjs tests in 1 files
-#### ✔️ Added 1 test
 
+#### ✔️ Added 1 test
 
 ```diff
 + @first Create Todos @step:06 @smoke @story:12345: Another test
 ```
 
-
-
 #### ⚠️ Skipped 1 test
+
 ```diff
 - @first Create Todos @step:06 @smoke @story:12345: Create multiple todo items
 ```
-
-
 
 <details>
   <summary>📑 List all tests</summary>
 
 ---
 
-
 📎 **`@first` Create Todos `@step:06` `@smoke` `@story:12345`**
 
 📝 [todomvc-tests/create-todos_test.js](#)
 
-* [Create a new todo item](#)
-* [Another test](#)
-* [~~Create multiple todo items~~](#) ⚠️ *skipped*
-* [Text input field should be cleared after each item](#)
-* [Text input should be trimmed](#)
-* [New todos should be added to the bottom of the list](#)
-* [Footer should be visible when adding TODOs](#)
-
+- [Create a new todo item](#)
+- [Another test](#)
+- [~~Create multiple todo items~~](#) ⚠️ _skipped_
+- [Text input field should be cleared after each item](#)
+- [Text input should be trimmed](#)
+- [New todos should be added to the bottom of the list](#)
+- [Footer should be visible when adding TODOs](#)
 
 </details>
 
-
 tests
+
 </details>
 
 ---
@@ -78,11 +72,11 @@ Once this action is enabled, bot will create a comment for each Pull Request wit
 
 This information is useful to:
 
-* track addition and removal of tests
-* protect from skipping tests
-* protect from using `.only` exclusive tests
-* automatically mark PR with `has tests` or `no tests` labels
-* review tests on GitHub
+- track addition and removal of tests
+- protect from skipping tests
+- protect from using `.only` exclusive tests
+- automatically mark PR with `has tests` or `no tests` labels
+- review tests on GitHub
 
 ## Installation
 
@@ -90,13 +84,13 @@ Check that your project uses one of the following testing frameworks (this list 
 
 **Supported testing frameworks**
 
-* mocha
-* codeceptjs
-* cypress.io
-* jest
-* protractor
-* jasmine
-* testcafe
+- mocha
+- codeceptjs
+- cypress.io
+- jest
+- protractor
+- jasmine
+- testcafe
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
@@ -108,35 +102,34 @@ jobs:
     runs-on: ubuntu-latest
     name: Check Tests
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: testomatio/check-tests@stable
-      with:
-        framework: # REQUIRED - testing framework
-        tests: # REQUIRED - glob pattern to match test files
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: testomatio/check-tests@stable
+        with:
+          framework: # REQUIRED - testing framework
+          tests: # REQUIRED - glob pattern to match test files
+          token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 > It is important to enable `actions/checkout@v2` step with `fetch-depth: 0` to allow testomatio to compare tests in pull requests with tests in base.
 
 #### Inputs (Configuration)
 
-* `framework` - *(required)* Test framework to be used. Supported: mocha, codeceptjs'
-* `tests` - *(required)* Glob pattern to match tests in a project, example: `tests/**_test.js'`
-* `token` - *(should be: `${{ secrets.GITHUB_TOKEN }}`)* GitHub token to post comment with summary to current pull request
-* `typescript` - enable TypeScript support
-* `has-tests-label` - add a label when PR contains new tests. Set `true` or a label name to enable.
-* `no-tests-label` - add a label when PR contains no new tests. Set `true` or a label name to enable.
-* `comment-on-empty` - post a comment to PR when no tests added. Can be either boolean (for neutral message) or a custom message within a comment (markdown supported)
-* `close-on-empty` - close PR when no tests added. Use with `comment-on-empty` to clarify this action
-* `comment-on-skipped` - add custom message when new tests are skipped (markdown supported).
-* `close-on-skipped` - close PR when introduced skipped tests. Use with `comment-on-skipped` to clarify this action
-* `enable-documentation` - If set to `true`, test document will be created in wiki.
-* `wiki-doc-name` - Name of the wiki document. By default it will use `Test Document`
-* `documentation-branch` - Branch to create document on push. Uses default branch if this field is empty
-* `github-pat` - Github Private access token to create document in wiki.
-
+- `framework` - _(required)_ Test framework to be used. Supported: mocha, codeceptjs'
+- `tests` - _(required)_ Glob pattern to match tests in a project, example: `tests/**_test.js'`
+- `token` - _(should be: `${{ secrets.GITHUB_TOKEN }}`)_ GitHub token to post comment with summary to current pull request
+- `typescript` - enable TypeScript support
+- `has-tests-label` - add a label when PR contains new tests. Set `true` or a label name to enable.
+- `no-tests-label` - add a label when PR contains no new tests. Set `true` or a label name to enable.
+- `comment-on-empty` - post a comment to PR when no tests added. Can be either boolean (for neutral message) or a custom message within a comment (markdown supported)
+- `close-on-empty` - close PR when no tests added. Use with `comment-on-empty` to clarify this action
+- `comment-on-skipped` - add custom message when new tests are skipped (markdown supported).
+- `close-on-skipped` - close PR when introduced skipped tests. Use with `comment-on-skipped` to clarify this action
+- `enable-documentation` - If set to `true`, test document will be created in wiki.
+- `wiki-doc-name` - Name of the wiki document. By default it will use `Test Document`
+- `documentation-branch` - Branch to create document on push. Uses default branch if this field is empty
+- `github-pat` - Github Private access token to create document in wiki.
 
 ### Examples
 
@@ -153,7 +146,7 @@ steps:
       fetch-depth: 0
   - uses: actions/setup-node@v1
     with:
-      node-version: '12'
+      node-version: "12"
   - run: npm install
   - uses: testomatio/check-tests@stable
     with:
@@ -184,8 +177,8 @@ steps:
       has-tests-label: true
 ```
 
-* list all tests even no tests were added
-* add label if tests were added
+- list all tests even no tests were added
+- add label if tests were added
 
 #### Cypress.io
 
@@ -205,8 +198,8 @@ steps:
       has-tests-label: true
 ```
 
-* list all tests even no tests were added
-* add label if tests were added
+- list all tests even no tests were added
+- add label if tests were added
 
 #### CodeceptJS
 
@@ -226,8 +219,8 @@ steps:
       has-tests-label: true
 ```
 
-* list all tests even no tests were added
-* add label if tests were added
+- list all tests even no tests were added
+- add label if tests were added
 
 #### Protractor
 
@@ -247,8 +240,8 @@ steps:
       has-tests-label: true
 ```
 
-* list all tests even no tests were added
-* add label if tests were added
+- list all tests even no tests were added
+- add label if tests were added
 
 #### Protractor with TypeScript
 
@@ -266,7 +259,6 @@ steps:
       token: ${{ secrets.GITHUB_TOKEN }}
       typescript: true
 ```
-
 
 #### Mocha
 
@@ -289,7 +281,7 @@ steps:
 
 Testcafe tests located in `tests/` directory:
 
-```yml
+````yml
 steps:
   - uses: actions/checkout@v2
     with:
@@ -317,7 +309,7 @@ steps:
       token: ${{ secrets.GITHUB_TOKEN }}
       comment-on-empty: "## PRs without tests not allowed"
       close-on-empty: true
-```
+````
 
 #### Notify on skipped tests
 
@@ -353,24 +345,24 @@ To change host of endpoint for receiving data, and set it to other than app.test
 
 TESTOMATIO_URL=http://local.testomat.io
 
-
 > This checker will fail a build if exclusive tests (with `.only` or `fit` or `fdescribe` found)
 
 ### Arguments:
 
-* test framework
-* glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.**
+- test framework
+- glob pattern to match tests in a project, example: `tests/**_test.js'`. **It is important to include glob pattern in double quotes `"` so wildcard could be used correctly.**
 
 ### CLI Options:
 
-* `--no-skipped` - fail when skipped tests found
-* `--typescript` - enable typescript support
-* `-g, --generate-file <fileName>` - Export test details to document
-* `-u, --url <url>`, Github URL to get file link (URL/tree/master)
+- `--no-skipped` - fail when skipped tests found
+- `--typescript` - enable typescript support
+- `-g, --generate-file <fileName>` - Export test details to document
+- `-u, --url <url>`, Github URL to get file link (URL/tree/master)
 
 ### Example
 
 To generate test document
+
 ```
 check-tests mocha "tests/*_test.js" -g Test-doc.md -u https://github.com/testomatio/check-tests/tree/master
 ```
@@ -456,6 +448,7 @@ By default `check-tests` doesn't wait for all tests to be processed. It sends re
 ```
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --sync
 ```
+
 Please note, that this will take a long time on a large codebase.
 
 ## Auto-assign Test IDs in Source Code
@@ -467,6 +460,18 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --updat
 ```
 
 Tests imported with `--update-ids` will be processed in synchronouse mode, so the script will finish after all tests are processed.
+
+## Clean Test IDs
+
+If you want to import the synced project as new project, you have to clean the test ids. To clean the project use `--clean-ids`
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --update-ids
+```
+
+TESTOMATIO is API key for old project.
+
+**Note:** If you don't have access to the old project you can still clean the project using `--unsafe-clean-ids`. This will clear the IDs that match the regex `@T****`. So if you have a tag like `@Test` this may also be removed. If you use this option make sure if all the test titles a proper before committing the tests in GIT.
 
 ### Import Into a Specific Suite
 
@@ -494,8 +499,8 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --types
 
 ## Limitations
 
-* Can't analyze included tests from external files
-* Can't analyze dynamically created tests
+- Can't analyze included tests from external files
+- Can't analyze dynamically created tests
 
 ## License MIT
 
