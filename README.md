@@ -451,7 +451,7 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-de
 
 ## Synchronous Import
 
-By default `check-tests` doesn't wait for all tests to be proceesed. It sends request to Testomatio and exits. To wait for processing to finish use `--sync` option.
+By default `check-tests` doesn't wait for all tests to be processed. It sends request to Testomatio and exits. To wait for processing to finish use `--sync` option.
 
 ```
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --sync
