@@ -23,6 +23,8 @@ program
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
   .option('--no-detach', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
+  .option('--clean-ids', 'Remove testomatio ids from test and suite')
+  .option('--unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .action(async (framework, files, opts) => {
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
@@ -37,6 +39,19 @@ program
         analyzer.withTypeScript();
       }
       analyzer.analyze(files);
+      if (opts.cleanIds || opts.unsafeCleanIds) {
+        let idMap = {};
+        if (apiKey) {
+          const reporter = new Reporter(apiKey.trim(), framework);
+          idMap = await reporter.getIds();
+        } else if (opts.cleanIds) {
+          console.log(' ✖️  API key not provided');
+          return;
+        }
+        const files = util.cleanFiles(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts.unsafeCleanIds)
+        console.log(`    ${files.length} files updated.`);
+        return;
+      }
       const decorator = analyzer.getDecorator();
       if (opts.url) {
         decorator.fileLink = opts.url;
@@ -70,6 +85,7 @@ program
           if (opts.updateIds) {
             await resp;
             console.log('    Updating test ids in the source code...');
+            analyzer.rawTests = [];
             analyzer.analyze(files);
             if (apiKey) {
               const reporter = new Reporter(apiKey.trim(), framework);
