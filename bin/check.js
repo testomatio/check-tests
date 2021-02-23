@@ -21,7 +21,7 @@ program
   .option('--sync', 'import tests to testomatio and wait for completion')
   .option('-g, --generate-file <fileName>', 'Export test details to a document')
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
-  .option('--no-detach', 'Don\t mark all unmatched tests as detached')
+  .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .option('--unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
@@ -77,7 +77,7 @@ program
         if (apiKey) {
           const reporter = new Reporter(apiKey.trim(), framework);
           reporter.addTests(decorator.getTests());
-          const resp = reporter.send({ sync: opts.sync || opts.updateIds }); // async call
+          const resp = reporter.send({ sync: opts.sync || opts.updateIds, 'no-detach': !opts.detached }); // async call
           if (opts.sync) {
             console.log('    Wait for Testomatio to synchronize tests...');
             await resp;
