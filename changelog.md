@@ -1,3 +1,9 @@
+# 0.4.1
+
+* Added `--clean-ids` option to remove automatically set ids syncing with a project
+* Added `--unsafe-clean-ids` option to clean test ids without checking with a project
+
+
 # 0.4.0
 
 * Added `--sync` option to toggle to process tests synchronously on backend
