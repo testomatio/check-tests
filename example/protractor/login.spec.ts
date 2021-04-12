@@ -8,7 +8,7 @@ describe('Login - Global Header', () => {
   let homePage;
   let isInstLoggedIn: boolean = false;
   let isWebAccountLoggedIn: boolean = false;
-  
+
   beforeEach(() => {
     homePage = new HomePage();
     homePage.goToPage();
@@ -38,7 +38,7 @@ describe('Login - Global Header', () => {
     it('should sign in institutional user after entering valid credentials', () => {
       instUserSpec(homePage.loginInstSignInModal);
     });
-  
+
     it('should add IEEE.org cookie after personal member sign in', () => {
       webAcctUserSpec(homePage.loginInstSignInModal);
     });
@@ -65,5 +65,4 @@ describe('Login - Global Header', () => {
     LoginUtil.webAcctUserLoginSpec(homePage, loginFunc, webAccountUser);
     isWebAccountLoggedIn = true;
   }
-  
 });

@@ -1,9 +1,9 @@
-var assert = require('assert');
+const assert = require('assert');
 
 // Create a test suite (group) called Math
-describe('Math', function() {
-  it('should test', function(){
+describe('Math', () => {
+  it('should test', () => {
     // Our actual test: 3*3 SHOULD EQUAL 9
-    assert.equal(9, 3*3);
+    assert.equal(9, 3 * 3);
   });
 });
