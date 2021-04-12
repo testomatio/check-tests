@@ -1,5 +1,5 @@
-const Analyzer = require('../analyzer');
-const util = require('../lib/utils');
+const Analyzer = require('../src/analyzer');
+const util = require('../src/lib/utils');
 const { expect } = require('chai');
 const path = require('path');
 const fs = require('fs');

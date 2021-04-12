@@ -7,7 +7,6 @@ test('Add dev name success', async t => {
     .click('#submit-button');
 });
 
-
 test('Add dev name failed', async t => {
   await t
     .typeText('#developer-name', 'John Smith')
@@ -16,12 +15,12 @@ test('Add dev name failed', async t => {
 
 test.skip('Skipped test', () => { });
 
-test(`Title with template literal`, async t => {
+test('Title with template literal', async t => {
   await t.typeText('#developer-name', 'John Smith');
-})
+});
 
 test.before(() => {
-  console.log('Before test')
+  console.log('Before test');
 })('Test with before hook', async t => {
   await t.typeText('#developer-name', 'John Smith');
 });

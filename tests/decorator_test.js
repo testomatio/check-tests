@@ -1,8 +1,7 @@
-const Decorator = require('../decorator');
 const { expect } = require('chai');
+const Decorator = require('../src/decorator');
 
 describe('Decorator', () => {
-
   it('should print markdown', () => {
     const decorator = new Decorator([
       { name: 'test1', suites: ['Appium', 'first', 'second'] },
@@ -28,7 +27,7 @@ describe('Decorator', () => {
       '  * 📎 **first**',
       '    * 📎 **second**',
       '      * 📎 **third**',
-      '        * ✔️ `test6`'      
+      '        * ✔️ `test6`',
     ]);
   });
 
@@ -45,9 +44,7 @@ describe('Decorator', () => {
       '    * ✔️ `should send basic`',
       '  * 📎 **basic mutations**',
       '    * ✔️ `should send mut 1`',
-      '    * ✔️ `should send mut 2`'       
+      '    * ✔️ `should send mut 2`',
     ]);
-  });  
-
-
+  });
 });

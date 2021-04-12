@@ -1,17 +1,17 @@
-var assert = require('assert');
+const assert = require('assert');
 
 // Create a test suite (group) called Math
-describe(`Feature`, function() {
-  it(`should test`, function(){
+describe('Feature', () => {
+  it('should test', () => {
     // Our actual test: 3*3 SHOULD EQUAL 9
-    assert.equal(9, 3*3);
+    assert.equal(9, 3 * 3);
   });
 
-  xit(`should skip`, function() {
-    assert.equal(9, 3*3);
-  })
+  xit('should skip', () => {
+    assert.equal(9, 3 * 3);
+  });
 
-  skip.it(`should also skip`, function() {
-    assert.equal(9, 3*3);
-  })
+  skip.it('should also skip', () => {
+    assert.equal(9, 3 * 3);
+  });
 });
