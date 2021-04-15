@@ -1,3 +1,8 @@
+# 0.4.2
+
+* Fixed `--update-ids` to work well for tests & suites with same title
+* Fixed `--update-ids` and `--clean-ids` to work with string literals
+
 # 0.4.1
 
 * Added `--clean-ids` option to remove automatically set ids syncing with a project
