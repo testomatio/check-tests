@@ -1,3 +1,8 @@
+# 0.4.3
+
+* Fixed `--update-ids` to respect multi-line titles.
+* Fixed `--update-ids` to update data in string literals.
+
 # 0.4.2
 
 * Fixed `--update-ids` to work well for tests & suites with same title

@@ -1,5 +1,5 @@
 const Analyzer = require('../analyzer');
-const util = require('../lib/utils');
+const { updateIds, cleanIds } = require('../updateIds');
 const { expect } = require('chai');
 const path = require('path');
 const fs = require('fs');
@@ -50,13 +50,13 @@ beforeEach(() => {
   process.env.TESTOMATIO_PREPEND_DIR = "";
 })
 
-describe('Utils', () => {
+describe('UpdateIds FS', () => {
 
   it('should add suite and test ids', () => {
     createTestFiles('update_examples')
     analyzer = new Analyzer('codeceptjs', path.join(__dirname, '..'));
     analyzer.analyze('./update_examples/**_test.js');
-    const files = util.updateFiles(analyzer.rawTests, idMap, process.cwd());
+    const files = updateIds(analyzer.rawTests, idMap, process.cwd());
     const file1 = fs.readFileSync(path.join(process.cwd(), 'update_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(process.cwd(), 'update_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
@@ -73,11 +73,11 @@ describe('Utils', () => {
     const dirPath =  path.join(__dirname, '..');
     analyzer = new Analyzer('codeceptjs', dirPath);
     analyzer.analyze('./clear_examples/**_test.js');
-    util.updateFiles(analyzer.rawTests, idMap, dirPath);
+    updateIds(analyzer.rawTests, idMap, dirPath);
 
     analyzer = new Analyzer('codeceptjs', dirPath);
     analyzer.analyze('./clear_examples/**_test.js');
-    const files = util.cleanFiles(analyzer.rawTests, idMap, dirPath)
+    const files = cleanIds(analyzer.rawTests, idMap, dirPath)
 
     const file1 = fs.readFileSync(path.join(dirPath, 'clear_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(dirPath, 'clear_examples', 'datatable_test.js'),  {encoding:'utf8'})
@@ -96,11 +96,11 @@ describe('Utils', () => {
     const dirPath =  path.join(__dirname, '..');
     analyzer = new Analyzer('codeceptjs', dirPath);
     analyzer.analyze('./unsafe_examples/**_test.js');
-    util.updateFiles(analyzer.rawTests, idMap, dirPath);
+    updateIds(analyzer.rawTests, idMap, dirPath);
 
     analyzer = new Analyzer('codeceptjs', dirPath);
     analyzer.analyze('./unsafe_examples/**_test.js');
-    const files = util.cleanFiles(analyzer.rawTests, {}, dirPath, true)
+    const files = cleanIds(analyzer.rawTests, {}, dirPath, true)
 
     const file1 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'datatable_test.js'),  {encoding:'utf8'})

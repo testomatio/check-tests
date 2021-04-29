@@ -5,6 +5,7 @@ const Reporter = require('../reporter');
 const chalk = require('chalk');
 const util = require('../lib/utils');
 const document = require('../document');
+const { cleanIds, updateIds } = require('../updateIds');
 const { spawn } = require('child_process');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 
@@ -48,7 +49,7 @@ program
           console.log(' ✖️  API key not provided');
           return;
         }
-        const files = util.cleanFiles(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts.unsafeCleanIds)
+        const files = cleanIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts.unsafeCleanIds)
         console.log(`    ${files.length} files updated.`);
         return;
       }
@@ -90,7 +91,7 @@ program
             if (apiKey) {
               const reporter = new Reporter(apiKey.trim(), framework);
               await reporter.getIds().then(idMap => {
-                const files = util.updateFiles(analyzer.rawTests, idMap, opts.dir || process.cwd())
+                const files = updateIds(analyzer.rawTests, idMap, opts.dir || process.cwd())
                 console.log(`    ${files.length} files updated.`);
               });
             } else {

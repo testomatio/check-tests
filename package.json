@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "main": "index.js",
   "keywords": [
@@ -45,7 +45,8 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "dotenv": "^8.2.0",
-    "mocha": "^6.2.2"
+    "mocha": "^6.2.2",
+    "mock-fs": "^4.14.0"
   },
   "scripts": {
     "check": "node -r dotenv/config bin/check.js",
