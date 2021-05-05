@@ -29,10 +29,10 @@ const copyDir = function(src, dest) {
 };
 
 const idMap = { tests: {
-    'Create a new todo item': '@T11111',
-    'Todos containing weird characters': '@T22222'
+    'Create a new todo item': '@T1111111',
+    'Todos containing weird characters': '@T22222111111'
   }, suites: {
-    '@first Create Todos @step:06 @smoke @story:12345': '@S11111'
+    '@first Create Todos @step:06 @smoke @story:12345': '@S12345678'
   }
 }
 
@@ -61,10 +61,10 @@ describe('UpdateIds FS', () => {
     const file2 = fs.readFileSync(path.join(process.cwd(), 'update_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
     expect(files.length).to.equal(4);
-    expect(file1).to.include('@S11111');
-    expect(file1).to.include('@T11111');
-    expect(file1).to.include('@T22222');
-    expect(file2).not.to.include('@T22222');
+    expect(file1).to.include('@S12345678');
+    expect(file1).to.include('@T1111111');
+    expect(file1).to.include('@T22222111');
+    expect(file2).not.to.include('@T22222111');
     cleanFiles('update_examples')
   });
 
@@ -83,11 +83,11 @@ describe('UpdateIds FS', () => {
     const file2 = fs.readFileSync(path.join(dirPath, 'clear_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
     expect(files.length).to.equal(4);
-    expect(file1).not.to.include('@S11111');
-    expect(file1).not.to.include('@T11111');
-    expect(file1).to.include('@Txxxxx');
+    expect(file1).not.to.include('@S12345678');
+    expect(file1).not.to.include('@T1111111');
+    expect(file1).to.include('@Txxxxxxxx');
 
-    expect(file2).not.to.include('@T22222');
+    expect(file2).not.to.include('@T22222111');
     cleanFiles('clear_examples')
   });
 
@@ -106,11 +106,11 @@ describe('UpdateIds FS', () => {
     const file2 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
     expect(files.length).to.equal(4);
-    expect(file1).not.to.include('@S11111');
-    expect(file1).not.to.include('@T11111');
-    expect(file1).not.to.include('@Txxxxx');
+    expect(file1).not.to.include('@S12345678');
+    expect(file1).not.to.include('@T1111111');
+    expect(file1).not.to.include('@Txxxxxxxx');
 
-    expect(file2).not.to.include('@T22222');
+    expect(file2).not.to.include('@T22222111');
     cleanFiles('unsafe_examples')
   });
 

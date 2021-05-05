@@ -1,3 +1,7 @@
+# 0.4.5
+
+* Fixed `--update-ids` to handle the same test names from different suites
+
 # 0.4.4
 
 * Fixed `--update-ids` to respect JSON data 

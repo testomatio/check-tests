@@ -10,7 +10,8 @@ describe("update ids", function () {
   afterEach(() => mock.restore());
 
   describe("update-ids", () => {
-    it("updates ids from server", () => {
+
+    it("should update id by title", () => {
       const analyzer = new Analyzer("codeceptjs", "virtual_dir");
 
       const idMap = {
@@ -42,12 +43,44 @@ describe("update ids", function () {
       expect(updatedFile).to.include(`Scenario('simple test @T1d6a52b9'`);
     });
 
+    it("updates ids from server", () => {
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+
+      const idMap = {
+        tests: {
+          "simple suite#simple test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+      mock({
+        virtual_dir: {
+          "test.js": `
+          Feature('simple suite')
+          
+          Scenario('simple test', async (I, TodosPage) => {
+          })        
+          `,
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs.readFileSync("virtual_dir/test.js").toString();
+      expect(updatedFile).to.include(`Feature('simple suite @Sf3d245a7')`);
+      expect(updatedFile).to.include(`Scenario('simple test @T1d6a52b9'`);
+    });
+
     it("allows multi-line titles", () => {
       const analyzer = new Analyzer("codeceptjs", "virtual_dir");
 
       const idMap = {
         tests: {
-          "simple test": "@T1d6a52b9",
+          "simple suite#simple test": "@T1d6a52b9",
         },
         suites: {
           "simple suite": "@Sf3d245a7",
@@ -79,7 +112,7 @@ describe("update ids", function () {
     it("respects string literals", () => {
       const idMap = {
         tests: {
-          "simple test": "@T1d6a52b9",
+          "simple suite#simple test": "@T1d6a52b9",
         },
         suites: {
           "simple suite": "@Sf3d245a7",
@@ -108,7 +141,7 @@ describe("update ids", function () {
     it("respects variables in string literals", () => {
       const idMap = {
         tests: {
-          "simple  test": "@T1d6a52b9",
+          "simple suite#simple  test": "@T1d6a52b9",
         },
         suites: {
           "simple suite": "@Sf3d245a7",
@@ -139,7 +172,7 @@ describe("update ids", function () {
     it("respects variables in string literals and JSON report mode", () => {
       const idMap = {
         tests: {
-          "simple  test | { 'user': 'bob' }": "@T1d6a52b9",
+          "simple suite#simple  test | { 'user': 'bob' }": "@T1d6a52b9",
         },
         suites: {
           "simple suite": "@Sf3d245a7",
@@ -170,7 +203,7 @@ describe("update ids", function () {
     it("respects variables in string literals in double param and JSON report mode", () => {
       const idMap = {
         tests: {
-          "simple   test | { 'user': 'bob' }": "@T1d6a52b9",
+          "simple suite#simple   test | { 'user': 'bob' }": "@T1d6a52b9",
         },
         suites: {
           "simple suite": "@Sf3d245a7",

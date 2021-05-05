@@ -7,15 +7,21 @@ function updateIds(testData, testomatioMap, workDir) {
     const file = `${workDir}/${testArr[0].file}`;
     let fileContent = fs.readFileSync(file, {encoding:'utf8'})
     const suite = testArr[0].suites[0];
-    if (testomatioMap.suites[suite] && !suite.includes(testomatioMap.suites[suite])) {
-      fileContent = fileContent.replace(suite, `${suite} ${testomatioMap.suites[suite]}`)
+    const suiteIndex = suite;
+    if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
+      fileContent = fileContent.replace(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`)
       fs.writeFileSync(file, fileContent);
     }
+    
     for (const test of testArr) {
-      if (testomatioMap.tests[test.name] && !test.name.includes(testomatioMap.tests[test.name])) {
-        fileContent = replaceAtPoint(fileContent, test.updatePoint, ' ' + testomatioMap.tests[test.name]);
+      let testIndex = test.suites[0] + '#' + test.name;
+      if (!testomatioMap.tests[testIndex]) {
+        testIndex = test.name; // if no suite title provided
+      }
+      if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
+        fileContent = replaceAtPoint(fileContent, test.updatePoint, ' ' + testomatioMap.tests[testIndex]);
         fs.writeFileSync(file, fileContent);
-        delete testomatioMap.tests[test.name];
+        delete testomatioMap.tests[testIndex];
       }
     }
     files.push(file);
@@ -49,9 +55,9 @@ function cleanIds(testData, testomatioMap = {}, workDir, dangerous = false) {
   }
   return files;
 }
-
+ 
 const parseTest = testTitle => {
-  const captures = testTitle.match(/@T([\w\d]+)/);
+  const captures = testTitle.match(/@T([\w\d]{8})/);
   if (captures) {
     return captures[1];
   }
@@ -60,7 +66,7 @@ const parseTest = testTitle => {
 };
 
 const parseSuite = suiteTitle => {
-  const captures = suiteTitle.match(/@S([\w\d]+)/);
+  const captures = suiteTitle.match(/@S([\w\d]{8})/);
   if (captures) {
     return captures[1];
   }
@@ -77,6 +83,11 @@ const getLineNumberOfText = (text, content) => {
 
   return 0;
 };
+
+function fileIndex(file, index) {
+  if (file) return file + ':' + index;
+  return index;
+}
 
 module.exports = {
   updateIds,

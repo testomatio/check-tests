@@ -22,7 +22,7 @@ describe('codeceptjs parser', () => {
       const actualTests = tests.filter(t => !t.skipped).map(t => t.name);
       const skippedTests = tests.filter(t => t.skipped).map(t => t.name);
 
-      expect(actualTests).to.include('Create multiple todo items @Txxxxx');
+      expect(actualTests).to.include('Create multiple todo items @Txxxxxxxx');
       expect(actualTests).to.include('Todos containing weird characters');
       expect(actualTests).to.include('Text input field should be cleared after each item');      
       expect(skippedTests, 'xScenario').to.include('Create a new todo item');

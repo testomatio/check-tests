@@ -19,7 +19,7 @@ xScenario('Create a new todo item', async (I, TodosPage) => {
   I.saveScreenshot('create-todo-item.png')
 })
 
-Scenario('Create multiple todo items @Txxxxx', async (I, TodosPage) => {
+Scenario('Create multiple todo items @Txxxxxxxx', async (I, TodosPage) => {
   I.say('Given I have an empty todo list')
 
   I.say('When I create todos "foo", "bar" and "baz"')
