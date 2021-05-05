@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const path = require("path");
-const { updateIds } = require("../updateIds");
+const { updateIds, cleanIds } = require("../updateIds");
 const Analyzer = require("../analyzer");
 const mock = require("mock-fs");
 const fs = require("fs");
@@ -9,127 +9,281 @@ const os = require("os");
 describe("update ids", function () {
   afterEach(() => mock.restore());
 
-  it("updates ids from server", () => {
-    const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+  describe("update-ids", () => {
+    it("updates ids from server", () => {
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
 
-    const idMap = {
-      tests: {
-        "simple test": "@T1d6a52b9",
-      },
-      suites: {
-        "simple suite": "@Sf3d245a7",
-      },
-    };
+      const idMap = {
+        tests: {
+          "simple test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
 
-    mock({
-      virtual_dir: {
-        "test.js": `
-Feature('simple suite')
+      mock({
+        virtual_dir: {
+          "test.js": `
+          Feature('simple suite')
+          
+          Scenario('simple test', async (I, TodosPage) => {
+          })        
+          `,
+        },
+      });
 
-Scenario('simple test', async (I, TodosPage) => {
-})        
-`,
-      },
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs.readFileSync("virtual_dir/test.js").toString();
+      expect(updatedFile).to.include(`Feature('simple suite @Sf3d245a7')`);
+      expect(updatedFile).to.include(`Scenario('simple test @T1d6a52b9'`);
     });
 
-    analyzer.analyze("test.js");
+    it("allows multi-line titles", () => {
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
 
-    updateIds(analyzer.rawTests, idMap, "virtual_dir");
+      const idMap = {
+        tests: {
+          "simple test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
 
-    const updatedFile = fs.readFileSync("virtual_dir/test.js").toString();
-    expect(updatedFile).to.include(`Feature('simple suite @Sf3d245a7')`);
-    expect(updatedFile).to.include(`Scenario('simple test @T1d6a52b9'`);
+      mock({
+        virtual_dir: {
+          "test.js": `
+          Feature('simple suite')
+          
+          Scenario(
+            'simple test', 
+            async (I, TodosPage) => {
+            })        
+            `,
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs.readFileSync("virtual_dir/test.js").toString();
+      expect(updatedFile).to.include(`Feature('simple suite @Sf3d245a7')`);
+      expect(updatedFile).to.include(`'simple test @T1d6a52b9'`);
+    });
+
+    it("respects string literals", () => {
+      const idMap = {
+        tests: {
+          "simple test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir2");
+      mock({
+        virtual_dir2: {
+          "test.js":
+            "\nFeature(`simple suite`)\n\nScenario(`simple test`, async ({ I }) => { I.doSomething() });",
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir2");
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir2/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature(`simple suite @Sf3d245a7`)");
+      expect(updatedFile).to.include("Scenario(`simple test @T1d6a52b9`");
+    });
+
+    it("respects variables in string literals", () => {
+      const idMap = {
+        tests: {
+          "simple  test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test`, async ({ I }) => { I.doSomething() });",
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature(`simple suite @Sf3d245a7`)");
+      expect(updatedFile).to.include(
+        "Scenario(`simple ${data} test @T1d6a52b9`"
+      );
+    });
+
+    it("respects variables in string literals and JSON report mode", () => {
+      const idMap = {
+        tests: {
+          "simple  test | { 'user': 'bob' }": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() });",
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature(`simple suite @Sf3d245a7`)");
+      expect(updatedFile).to.include(
+        "Scenario(`simple ${data} test @T1d6a52b9 | { 'user': 'bob' }`"
+      );
+    });
+
+    it("respects variables in string literals in double param and JSON report mode", () => {
+      const idMap = {
+        tests: {
+          "simple   test | { 'user': 'bob' }": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\nFeature(`simple suite`)\nconst data = 1;\n[].each((data2) => Scenario(`simple ${data} ${data2} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() }));",
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature(`simple suite @Sf3d245a7`)");
+      expect(updatedFile).to.include(
+        "Scenario(`simple ${data} ${data2} test @T1d6a52b9 | { 'user': 'bob' }`"
+      );
+    });
+
   });
 
-  it("allows multi-line titles", () => {
-    const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+  describe("clean-ids", () => {
 
-    const idMap = {
-      tests: {
-        "simple test": "@T1d6a52b9",
-      },
-      suites: {
-        "simple suite": "@Sf3d245a7",
-      },
-    };
+    it("cleans up ids from strings", () => {
+      const idMap = {
+        tests: {
+          "simple  test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
 
-    mock({
-      virtual_dir: {
-        "test.js": `
-Feature('simple suite')
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\nFeature('simple suite @Sf3d245a7')\nconst data = 1;\nScenario('simple test @T1d6a52b9', async ({ I }) => { I.doSomething() });",
+        },
+      });
 
-Scenario(
-  'simple test', 
-  async (I, TodosPage) => {
-})        
-`,
-      },
+      analyzer.analyze("test.js");
+
+      cleanIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature('simple suite')");
+      expect(updatedFile).to.include(
+        "Scenario('simple test'"
+      );
     });
 
-    analyzer.analyze("test.js");
+    it("cleans up ids from string literals", () => {
+      const idMap = {
+        tests: {
+          "simple  test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
 
-    updateIds(analyzer.rawTests, idMap, "virtual_dir");
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\nFeature(`simple suite @Sf3d245a7`)\nconst data = 1;\nScenario(`simple ${data} test @T1d6a52b9`, async ({ I }) => { I.doSomething() });",
+        },
+      });
 
-    const updatedFile = fs.readFileSync("virtual_dir/test.js").toString();
-    expect(updatedFile).to.include(`Feature('simple suite @Sf3d245a7')`);
-    expect(updatedFile).to.include(`'simple test @T1d6a52b9'`);
-  });  
+      analyzer.analyze("test.js");
 
-  it("respects string literals", () => {
+      cleanIds(analyzer.rawTests, idMap, "virtual_dir");
 
-    const idMap = {
-      tests: {
-        "simple test": "@T1d6a52b9",
-      },
-      suites: {
-        "simple suite": "@Sf3d245a7",
-      },
-    };
-
-    const analyzer = new Analyzer("codeceptjs", "virtual_dir2");
-    mock({
-      virtual_dir2: {
-        "test.js":
-          "\nFeature(`simple suite`)\n\nScenario(`simple test`, async ({ I }) => { I.doSomething() });",
-      },
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature(`simple suite`)");
+      expect(updatedFile).to.include(
+        "Scenario(`simple ${data} test`"
+      );
     });
 
-    analyzer.analyze("test.js");
+    it("unsafely cleans up ids from string literals", () => {
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\nFeature(`simple suite @Sf3d245a7`)\nconst data = 1;\nScenario(`simple ${data} test @T1d6a52b9`, async ({ I }) => { I.doSomething() });",
+        },
+      });
 
-    updateIds(analyzer.rawTests, idMap, "virtual_dir2");
+      analyzer.analyze("test.js");
 
-    const updatedFile = fs.readFileSync("virtual_dir2/test.js", "utf-8").toString();
-    expect(updatedFile).to.include("Feature(`simple suite @Sf3d245a7`)");
-    expect(updatedFile).to.include("Scenario(`simple test @T1d6a52b9`");
+      cleanIds(analyzer.rawTests, {}, "virtual_dir", true);
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("Feature(`simple suite`)");
+      expect(updatedFile).to.include(
+        "Scenario(`simple ${data} test`"
+      );
+    });    
   });
-
-
-  it("respects variables in string literals", () => {
-
-    const idMap = {
-      tests: {
-        "simple  test": "@T1d6a52b9",
-      },
-      suites: {
-        "simple suite": "@Sf3d245a7",
-      },
-    };
-
-    const analyzer = new Analyzer("codeceptjs", "virtual_dir");
-    mock({
-      virtual_dir: {
-        "test.js":
-          "\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test`, async ({ I }) => { I.doSomething() });",
-      },
-    });
-
-    analyzer.analyze("test.js");
-
-    updateIds(analyzer.rawTests, idMap, "virtual_dir");
-
-    const updatedFile = fs.readFileSync("virtual_dir/test.js", "utf-8").toString();
-    expect(updatedFile).to.include("Feature(`simple suite @Sf3d245a7`)");
-    expect(updatedFile).to.include("Scenario(`simple ${data} test @T1d6a52b9`");
-  });
-
 });

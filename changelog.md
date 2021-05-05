@@ -1,3 +1,8 @@
+# 0.4.4
+
+* Fixed `--update-ids` to respect JSON data 
+* Fixed `--clean-ids` to respect string literals
+
 # 0.4.3
 
 * Fixed `--update-ids` to respect multi-line titles.

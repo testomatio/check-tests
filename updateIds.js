@@ -1,6 +1,5 @@
-const { replaceAtPoint } = require('./lib/utils');
+const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 const fs = require('fs');
-const os = require('os');
 
 function updateIds(testData, testomatioMap, workDir) {
   const files = [];
@@ -40,8 +39,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, dangerous = false) {
     for (const test of testArr) {
       const testId = `@T${parseTest(test.name)}`;
       if (testIds.includes(testId) || (dangerous && testId)) {
-        const newTitle = test.name.slice().replace(testId, '').trim();
-        fileContent = fileContent.replace(test.name, newTitle)
+        fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
       }
     }
     files.push(file);
