@@ -25,7 +25,7 @@ program
   .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
-  .option('--unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
+  .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .action(async (framework, files, opts) => {
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
