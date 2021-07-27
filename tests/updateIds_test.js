@@ -231,6 +231,34 @@ describe("update ids", function () {
       );
     });
 
+    it("works ok with empty files", () => {
+      const idMap = {
+        tests: {
+          "simple suite#simple   test | { 'user': 'bob' }": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+      const analyzer = new Analyzer("codeceptjs", "virtual_dir");
+      mock({
+        virtual_dir: {
+          "test.js":
+            "\n// here was a test",
+        },
+      });
+
+      analyzer.analyze("test.js");
+
+      updateIds(analyzer.rawTests, idMap, "virtual_dir");
+
+      const updatedFile = fs
+        .readFileSync("virtual_dir/test.js", "utf-8")
+        .toString();
+      expect(updatedFile).to.include("// here was a test");
+    });
+
   });
 
   describe("clean-ids", () => {
