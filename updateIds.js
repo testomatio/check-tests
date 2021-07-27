@@ -4,7 +4,7 @@ const fs = require('fs');
 function updateIds(testData, testomatioMap, workDir) {
   const files = [];
   for (const testArr of testData) {
-    if (!testArr.length) return;
+    if (!testArr.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
     let fileContent = fs.readFileSync(file, {encoding:'utf8'})

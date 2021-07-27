@@ -1,3 +1,7 @@
+# 0.4.7
+
+* Fixed `--update-ids` to work on multiple empty JS files
+
 # 0.4.6
 
 * Fixed `--update-ids` to work on empty JS files

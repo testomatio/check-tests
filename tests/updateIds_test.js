@@ -249,8 +249,6 @@ describe("update ids", function () {
         },
       });
 
-      analyzer.analyze("test.js");
-
       updateIds(analyzer.rawTests, idMap, "virtual_dir");
 
       const updatedFile = fs
