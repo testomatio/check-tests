@@ -1,3 +1,7 @@
+# 0.4.6
+
+* Fixed `--update-ids` to work on empty JS files
+
 # 0.4.5
 
 * Fixed `--update-ids` to handle the same test names from different suites
