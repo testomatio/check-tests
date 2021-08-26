@@ -472,7 +472,7 @@ npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --purge
 
 This method may be unsafe, as it cleans all `@S*` and `@T*` tags from tests and suites. So if you have a tag like `@Test1234` this may also be removed. If you use this option make sure if all the test titles a proper before committing the tests in GIT.
 
-> **Note:** An alias of `--purge` option is `--unsafe-clean-ids`.
+> **Note:** `--purge` is an alias of `--unsafe-clean-ids` option.
 
 To clean only test ids set from a specific project use `--clean-ids` option instead:
 
@@ -480,7 +480,26 @@ To clean only test ids set from a specific project use `--clean-ids` option inst
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --clean-ids
 ```
 
-TESTOMATIO is API key for old project.
+TESTOMATIO is API key of a project with existing test ids.
+
+### Import Into a Branch
+
+Tests can be imported into a specific branch if `TESTOMATIO_BRANCH` parameter is used.
+Branch is matched by its id. If branch was not found, it will be created.
+
+```
+TESTOMATIO_BRANCH=dev TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+```
+
+### Keep Structure of Source Code
+
+When tests in source code have IDs assigned and those tests are imported, Testomat.io uses current structure in a project to put the tests in. If folders in source code doesn't match folders in Testomat.io project, existing structure in source code will be ignored. To force using the structure from the source code, use `--keep-structure` flag on import:
+
+```
+TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --keep-structure
+```
+
+> This may be helpful when you want to align current project with the source code and use the source code as the source of truth for tests.
 
 
 ### Import Into a Specific Suite
