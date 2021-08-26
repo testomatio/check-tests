@@ -48,7 +48,6 @@ class Analyzer {
   }
 
   analyze(pattern) {
-
     if (!this.frameworkParser) throw new Error('No test framework specified. Can\'t analyze');
 
     this.decorator = new Decorator([]);

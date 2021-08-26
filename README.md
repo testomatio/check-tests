@@ -463,15 +463,25 @@ Tests imported with `--update-ids` will be processed in synchronouse mode, so th
 
 ## Clean Test IDs
 
-If you want to import the synced project as new project, you have to clean the test ids. To clean the project use `--clean-ids`
+If you want to import the synced project as new project, you have to clean the test ids.
+To clean up test ids without connecting to Testomatio project use `--purge` option:
 
 ```
-TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --update-ids
+npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --purge
+```
+
+This method may be unsafe, as it cleans all `@S*` and `@T*` tags from tests and suites. So if you have a tag like `@Test1234` this may also be removed. If you use this option make sure if all the test titles a proper before committing the tests in GIT.
+
+> **Note:** An alias of `--purge` option is `--unsafe-clean-ids`.
+
+To clean only test ids set from a specific project use `--clean-ids` option instead:
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --clean-ids
 ```
 
 TESTOMATIO is API key for old project.
 
-**Note:** If you don't have access to the old project you can still clean the project using `--unsafe-clean-ids`. This will clear the IDs that match the regex `@T****`. So if you have a tag like `@Test` this may also be removed. If you use this option make sure if all the test titles a proper before committing the tests in GIT.
 
 ### Import Into a Specific Suite
 

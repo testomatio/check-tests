@@ -1,3 +1,13 @@
+# 0.5.0
+
+* Added `--keep-structure` option to prefer source code structure over the structure in Testomat.io
+* Uses `TESTOMATIO_BRANCH` env variable to import tests to a branch:
+
+```
+TESTOMATIO_BRANCH=dev TESTOMATIO=123456 npx check-tests ...
+```
+* Don't mark tests as "detached" when importing a single file
+
 # 0.4.7
 
 * Fixed `--update-ids` to work on multiple empty JS files

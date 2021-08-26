@@ -8,9 +8,17 @@ const document = require('../document');
 const { cleanIds, updateIds } = require('../updateIds');
 const { spawn } = require('child_process');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
+const branch = process.env.TESTOMATIO_BRANCH;
 
 const { version } = require('../package.json');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
+
+function checkPattern(pattern) {
+  pattern = pattern.trim();
+  if (!pattern) return true;
+  if (pattern == '.') return true;
+  return pattern.includes('*');
+}
 
 const program = require('commander');
 
@@ -24,9 +32,11 @@ program
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
   .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
-  .option('--clean-ids', 'Remove testomatio ids from test and suite')
+  .option('--keep-structure', 'Prefer structure of source code over structure in Testomat.io')
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
+  .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .action(async (framework, files, opts) => {
+    const isPattern = checkPattern(files);
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
       if (opts.typescript) {
@@ -78,7 +88,7 @@ program
         if (apiKey) {
           const reporter = new Reporter(apiKey.trim(), framework);
           reporter.addTests(decorator.getTests());
-          const resp = reporter.send({ sync: opts.sync || opts.updateIds, 'no-detach': !opts.detached }); // async call
+          const resp = reporter.send({ sync: opts.sync || opts.updateIds, branch, 'no-detach': !isPattern || !opts.detached, structure: opts.keepStructure }); // async call
           if (opts.sync) {
             console.log('    Wait for Testomatio to synchronize tests...');
             await resp;
@@ -159,3 +169,4 @@ async function install(dependencies, verbose) {
     });
   });
 }
+
