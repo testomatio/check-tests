@@ -100,7 +100,7 @@ describe('UpdateIds FS', () => {
 
     analyzer = new Analyzer('codeceptjs', dirPath);
     analyzer.analyze('./unsafe_examples/**_test.js');
-    const files = cleanIds(analyzer.rawTests, {}, dirPath, true)
+    const files = cleanIds(analyzer.rawTests, {}, dirPath, { dangerous: true })
 
     const file1 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'datatable_test.js'),  {encoding:'utf8'})
