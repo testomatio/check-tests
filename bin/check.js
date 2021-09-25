@@ -30,6 +30,7 @@ program
   .option('--sync', 'import tests to testomatio and wait for completion')
   .option('-g, --generate-file <fileName>', 'Export test details to a document')
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
+  .option('-p, --plugins [plugins...]', 'additional babel plugins')
   .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--keep-structure', 'Prefer structure of source code over structure in Testomat.io')
@@ -49,6 +50,12 @@ program
         }
         analyzer.withTypeScript();
       }
+      if (opts.plugins) {
+        if (!Array.isArray(opts.plugins)) {
+          opts.plugins = [opts.plugins]
+        }
+        opts.plugins.forEach(p => analyzer.addPlugin(p))
+      }
       analyzer.analyze(files);
       if (opts.cleanIds || opts.unsafeCleanIds) {
         let idMap = {};
@@ -59,10 +66,11 @@ program
           console.log(' ✖️  API key not provided');
           return;
         }
-        const files = cleanIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts.unsafeCleanIds)
+        const files = cleanIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), { ...opts, dangerous: opts.unsafeCleanIds })
         console.log(`    ${files.length} files updated.`);
         return;
       }
+
       const decorator = analyzer.getDecorator();
       if (opts.url) {
         decorator.fileLink = opts.url;
@@ -94,6 +102,10 @@ program
             await resp;
           }
           if (opts.updateIds) {
+            if (branch) {
+              console.log('To avoid conflicts, --update-ids is disabled in a branch. Skipping...');
+              return;
+            }
             await resp;
             console.log('    Updating test ids in the source code...');
             analyzer.rawTests = [];
@@ -101,7 +113,7 @@ program
             if (apiKey) {
               const reporter = new Reporter(apiKey.trim(), framework);
               await reporter.getIds().then(idMap => {
-                const files = updateIds(analyzer.rawTests, idMap, opts.dir || process.cwd())
+                const files = updateIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts)
                 console.log(`    ${files.length} files updated.`);
               });
             } else {

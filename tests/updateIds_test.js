@@ -31,7 +31,7 @@ describe("update ids", function () {
           Scenario('simple test', async (I, TodosPage) => {
           })        
           `,
-        },
+        }
       });
 
       analyzer.analyze("test.js");
@@ -257,6 +257,52 @@ describe("update ids", function () {
       expect(updatedFile).to.include("// here was a test");
     });
 
+    it("supports typescript", () => {
+      const analyzer = new Analyzer("cypress.io", "virtual_dir");
+      analyzer.withTypeScript();
+      require("@babel/core")
+
+      const idMap = {
+        tests: {
+          "simple suite#simple test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };
+
+
+      mock({        
+        'node_modules': mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          "test.ts": `
+          describe("simple suite", function () {
+            let ctx: TestBankAccountsCtx = {};
+          
+            beforeEach(function () {
+              cy.task("db:seed");
+            });
+          
+            it("simple test", function () {
+              const { id: userId } = ctx.authenticatedUser!;
+              cy.request("GET", \`\${apiBankAccounts}\`).then((response) => {
+                expect(response.status).to.eq(200);
+                expect(response.body.results[0].userId).to.eq(userId);
+              });
+            });
+          });`,
+        },
+      });
+      
+      analyzer.analyze("test.ts");
+      updateIds(analyzer.rawTests, idMap, "virtual_dir", { typescript: true });
+
+      const updatedFile = fs.readFileSync("virtual_dir/test.ts").toString();
+      expect(updatedFile).to.include('simple test @T1d6a52b9');
+      expect(updatedFile).to.include('simple suite @Sf3d245a7');
+
+    });    
+
   });
 
   describe("clean-ids", () => {
@@ -334,7 +380,7 @@ describe("update ids", function () {
 
       analyzer.analyze("test.js");
 
-      cleanIds(analyzer.rawTests, {}, "virtual_dir", true);
+      cleanIds(analyzer.rawTests, {}, "virtual_dir", { dangerous: true });
 
       const updatedFile = fs
         .readFileSync("virtual_dir/test.js", "utf-8")
@@ -343,6 +389,72 @@ describe("update ids", function () {
       expect(updatedFile).to.include(
         "Scenario(`simple ${data} test`"
       );
-    });    
+    });
+    
+    it('can remove ids from typescript', () => {
+      let analyzer = new Analyzer("cypress.io", "virtual_dir");
+      analyzer.withTypeScript();
+      require("@babel/core")
+
+      const mockConfig = {        
+        'node_modules': mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          "test.ts": `describe("simple suite @Sf3d245a7", function () {
+            beforeEach(function () {
+              cy.task("db:seed");
+              cy.server();
+            });
+            it("simple test @T1d6a52b9", function () {
+              cy.visit("/personal");
+              cy.location("pathname").should("equal", "/signin");
+              cy.percySnapshot("Redirect to SignIn");
+            });
+          })`
+        },
+      };
+
+      // unsafe clean
+      mock(mockConfig);
+
+
+      analyzer.analyze("test.ts");
+      cleanIds(analyzer.rawTests, {}, "virtual_dir", { dangerous: true, typescript: true });
+
+      let updatedFile = fs
+        .readFileSync("virtual_dir/test.ts", "utf-8")
+        .toString();
+
+      expect(updatedFile).to.include(`describe("simple suite"`);
+      expect(updatedFile).to.include(`it("simple test"`);
+      expect(updatedFile).not.to.include(`@T1d6a52b9`);
+
+
+      analyzer = new Analyzer("cypress.io", "virtual_dir");
+      analyzer.withTypeScript();
+      // save clean
+      mock(mockConfig);
+
+      
+      const idMap = {
+        tests: {
+          "simple suite#simple test": "@T1d6a52b9",
+        },
+        suites: {
+          "simple suite": "@Sf3d245a7",
+        },
+      };      
+      
+      analyzer.analyze("test.ts");
+      cleanIds(analyzer.rawTests, idMap, "virtual_dir", { dangerous: false, typescript: true });
+
+      updatedFile = fs
+        .readFileSync("virtual_dir/test.ts", "utf-8")
+        .toString();
+
+      expect(updatedFile).to.include(`describe("simple suite"`);
+      expect(updatedFile).to.include(`it("simple test"`);
+      expect(updatedFile).not.to.include(`@T1d6a52b9`);
+
+    })
   });
 });

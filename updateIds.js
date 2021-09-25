@@ -1,13 +1,32 @@
 const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 const fs = require('fs');
 
-function updateIds(testData, testomatioMap, workDir) {
+function updateIds(testData, testomatioMap, workDir, opts = {}) {
+  let plugins = []
+  if (opts.plugins) {
+    plugins = opts.plugins;
+  }
+  if (opts.typescript) {
+    plugins.push("@babel/plugin-transform-typescript");
+  }
+
   const files = [];
   for (const testArr of testData) {
     if (!testArr.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
     let fileContent = fs.readFileSync(file, {encoding:'utf8'})
+
+    if (plugins.length > 0) {
+      try {
+        fileContent = require("@babel/core").transform(fileContent, {
+          plugins,
+        }).code;
+      } catch (err) {
+        throw new Error(`Error parsing ${file}; Babel plugins cant be loaded`, err);
+      }
+    }
+
     const suite = testArr[0].suites[0];
     const suiteIndex = suite;
     if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
@@ -31,13 +50,35 @@ function updateIds(testData, testomatioMap, workDir) {
   return files;
 }
 
-function cleanIds(testData, testomatioMap = {}, workDir, dangerous = false) {
+function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: false }) {
+  const dangerous = opts.dangerous;
+  let plugins = []
+  if (opts.plugins) {
+    plugins = opts.plugins;
+  }
+  if (opts.typescript) {
+    plugins.push("@babel/plugin-transform-typescript");
+  }
+
   const testIds = testomatioMap.tests ? Object.values(testomatioMap.tests) : [];
   const suiteIds = testomatioMap.suites ? Object.values(testomatioMap.suites) : [];
   const files = [];
   for (const testArr of testData) {
+    if (!testArr.length) continue;
+
     const file = `${workDir}/${testArr[0].file}`;
     let fileContent = fs.readFileSync(file, {encoding:'utf8'})
+
+    if (plugins.length > 0) {
+      try {
+        fileContent = require("@babel/core").transform(fileContent, {
+          plugins,
+        }).code;
+      } catch (err) {
+        throw new Error(`Error parsing ${file}; Babel plugins cant be loaded`, err);
+      }
+    }
+
     const suite = testArr[0].suites[0];
     const suiteId = `@S${parseSuite(suite)}`;
     if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {

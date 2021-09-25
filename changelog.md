@@ -1,3 +1,12 @@
+# 0.6.0
+
+* Added TypeScript support for `--update-ids`, `--clean-ids`, `--purge` modes
+* Added `-p`, `--plugins` to pass in additional babel plugins:
+
+```
+npx check-tests ... --plugins "@babel/plugin-proposal-optional-chaining"
+```
+
 # 0.5.0
 
 * Added `--keep-structure` option to prefer source code structure over the structure in Testomat.io
