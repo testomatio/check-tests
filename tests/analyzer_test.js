@@ -1,11 +1,10 @@
-const Analyzer = require('../analyzer');
 const { expect } = require('chai');
 const path = require('path');
+const Analyzer = require('../src/analyzer');
 
 let analyzer;
 
 describe('analyzer', () => {
-
   it('should parse all mocha files', () => {
     analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
     analyzer.analyze('./example/mocha/**_test.js');
@@ -42,18 +41,18 @@ describe('analyzer', () => {
     analyzer = new Analyzer('mocha', 'example');
     analyzer.analyze('mocha/**_test.js');
 
-    const tests = analyzer.getDecorator().getTests()
+    const tests = analyzer.getDecorator().getTests();
     expect(tests.length).to.be.above(0);
-    expect(tests[0].file.startsWith('mocha/')).to.be.true
+    expect(tests[0].file.startsWith('mocha/')).to.be.true;
   });
 
   it('should include full dir in file name', () => {
     analyzer = new Analyzer('mocha');
     analyzer.analyze('example/mocha/**_test.js');
 
-    const tests = analyzer.getDecorator().getTests()
+    const tests = analyzer.getDecorator().getTests();
     expect(tests.length).to.be.above(0);
-    expect(tests[0].file.startsWith('example')).to.be.true
+    expect(tests[0].file.startsWith('example')).to.be.true;
   });
 
   it('should avoid node_modules', () => {
@@ -73,7 +72,7 @@ describe('analyzer', () => {
     expect(actualTests).to.not.include('Empty: should test');
   });
 
-  it('should read \` char', () => {
+  it('should read ` char', () => {
     analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
     analyzer.analyze('./example/dummy/string_spec.js');
 
@@ -104,19 +103,20 @@ describe('analyzer', () => {
 
   context('env variable params', () => {
     beforeEach(() => {
-        process.env.TESTOMATIO_PREPEND_DIR = "MyTests";
-    })
+      process.env.TESTOMATIO_PREPEND_DIR = 'MyTests';
+    });
 
     afterEach(() => {
-        process.env.TESTOMATIO_PREPEND_DIR = null;
-    })
+      process.env.TESTOMATIO_PREPEND_DIR = null;
+    });
 
     it('should prepend a dir from env variable', () => {
-        analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
-        analyzer.analyze('./example/dummy/**_test.js');
-        const tests = analyzer.getDecorator().tests;
-        expect(tests[0].file).to.be.a('string').and.satisfy(msg => msg.startsWith('MyTests/'));
-    })
-  })
-
+      analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
+      analyzer.analyze('./example/dummy/**_test.js');
+      const tests = analyzer.getDecorator().tests;
+      expect(tests[0].file)
+        .to.be.a('string')
+        .and.satisfy(msg => msg.startsWith('MyTests/'));
+    });
+  });
 });

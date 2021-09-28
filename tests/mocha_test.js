@@ -1,15 +1,13 @@
 const parser = require('@babel/parser');
-const mochaParser = require('../lib/frameworks/mocha');
 const fs = require('fs');
 const { expect } = require('chai');
+const mochaParser = require('../src/lib/frameworks/mocha');
 
 let source;
 let ast;
 
 describe('mocha parser', () => {
-
   context('mocha tests', () => {
-
     before(() => {
       source = fs.readFileSync('./example/mocha/index_test.js').toString();
       ast = parser.parse(source);
@@ -29,11 +27,9 @@ describe('mocha parser', () => {
       expect(skippedTests, 'describe.skip').to.include('should be disabled');
       // assert.equal(tests.length, 3);
     });
-
   });
 
   context('cypress tests', () => {
-
     before(() => {
       source = fs.readFileSync('./example/mocha/cypress_spec.js').toString();
       ast = parser.parse(source);
@@ -53,12 +49,9 @@ describe('mocha parser', () => {
       expect(tests[0]).to.include.key('code');
       expect(tests[0].code).to.include("it('.type() - type into a DOM element', () => {");
     });
-
   });
 
-
   context('graphql tests', () => {
-
     before(() => {
       source = fs.readFileSync('./example/mocha/graphql_test.js').toString();
       ast = parser.parse(source);
@@ -73,5 +66,4 @@ describe('mocha parser', () => {
       // assert.equal(tests.length, 3);
     });
   });
-
 });
