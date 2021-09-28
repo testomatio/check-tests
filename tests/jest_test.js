@@ -1,7 +1,7 @@
 const parser = require('@babel/parser');
-const jestParser = require('../lib/frameworks/jest');
 const fs = require('fs');
 const { expect } = require('chai');
+const jestParser = require('../src/lib/frameworks/jest');
 
 let source;
 let ast;

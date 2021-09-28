@@ -1,15 +1,13 @@
 const parser = require('@babel/parser');
-const testcafeParser = require('../lib/frameworks/testcafe');
 const fs = require('fs');
 const { expect } = require('chai');
+const testcafeParser = require('../src/lib/frameworks/testcafe');
 
 let source;
 let ast;
 
 describe('testcafe parser', () => {
-
   context('Testcafe tests', () => {
-
     before(() => {
       source = fs.readFileSync('./example/testcafe/index_test.js').toString();
       ast = parser.parse(source);
@@ -26,7 +24,6 @@ describe('testcafe parser', () => {
       expect(actualTests).to.include('Title with template literal');
       expect(actualTests).to.include('Test with before hook');
     });
-
 
     it('should include testcafe code', () => {
       const tests = testcafeParser(ast, '', source);

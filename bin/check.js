@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const Analyzer = require('../analyzer');
-const Reporter = require('../reporter');
+const Analyzer = require('../src/analyzer');
+const Reporter = require('../src/reporter');
 const chalk = require('chalk');
-const util = require('../lib/utils');
-const document = require('../document');
-const { cleanIds, updateIds } = require('../updateIds');
+const document = require('../src/document');
+const { cleanIds, updateIds } = require('../src/updateIds');
 const { spawn } = require('child_process');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 const branch = process.env.TESTOMATIO_BRANCH;
@@ -43,18 +42,18 @@ program
       if (opts.typescript) {
         try {
           require.resolve('@babel/plugin-transform-typescript');
-          require.resolve('@babel/core')
+          require.resolve('@babel/core');
         } catch {
-          console.log("Installing TypeScript modules...");
-          await install(['@babel/core', '@babel/plugin-transform-typescript'])
+          console.log('Installing TypeScript modules...');
+          await install(['@babel/core', '@babel/plugin-transform-typescript']);
         }
         analyzer.withTypeScript();
       }
       if (opts.plugins) {
         if (!Array.isArray(opts.plugins)) {
-          opts.plugins = [opts.plugins]
+          opts.plugins = [opts.plugins];
         }
-        opts.plugins.forEach(p => analyzer.addPlugin(p))
+        opts.plugins.forEach(p => analyzer.addPlugin(p));
       }
       analyzer.analyze(files);
       if (opts.cleanIds || opts.unsafeCleanIds) {
@@ -66,7 +65,10 @@ program
           console.log(' ✖️  API key not provided');
           return;
         }
-        const files = cleanIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), { ...opts, dangerous: opts.unsafeCleanIds })
+        const files = cleanIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), {
+          ...opts,
+          dangerous: opts.unsafeCleanIds,
+        });
         console.log(`    ${files.length} files updated.`);
         return;
       }
@@ -77,7 +79,7 @@ program
       }
       const skipped = decorator.getSkippedTests();
       let list = analyzer.getDecorator().getTextList();
-      list = list.map(l => l === '-----' ? chalk.bold('_______________________\n') : l).join('\n');
+      list = list.map(l => (l === '-----' ? chalk.bold('_______________________\n') : l)).join('\n');
       console.log(chalk.bold.white(`\nSHOWING ${framework.toUpperCase()} TESTS FROM ${files}:`));
       console.log(list);
       if (skipped.length) {
@@ -89,14 +91,20 @@ program
 
         if (opts.generateFile) {
           console.log(opts.generateFile);
-          document.createTestDoc(opts.generateFile, decorator)
-          .then(() => console.log(`📝 Document saved to ${opts.generateFile}`))
-          .catch(err => console.log('Error in creating test document', err));
+          document
+            .createTestDoc(opts.generateFile, decorator)
+            .then(() => console.log(`📝 Document saved to ${opts.generateFile}`))
+            .catch(err => console.log('Error in creating test document', err));
         }
         if (apiKey) {
           const reporter = new Reporter(apiKey.trim(), framework);
           reporter.addTests(decorator.getTests());
-          const resp = reporter.send({ sync: opts.sync || opts.updateIds, branch, 'no-detach': !isPattern || !opts.detached, structure: opts.keepStructure }); // async call
+          const resp = reporter.send({
+            sync: opts.sync || opts.updateIds,
+            branch,
+            'no-detach': !isPattern || !opts.detached,
+            structure: opts.keepStructure,
+          }); // async call
           if (opts.sync) {
             console.log('    Wait for Testomatio to synchronize tests...');
             await resp;
@@ -113,7 +121,7 @@ program
             if (apiKey) {
               const reporter = new Reporter(apiKey.trim(), framework);
               await reporter.getIds().then(idMap => {
-                const files = updateIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts)
+                const files = updateIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts);
                 console.log(`    ${files.length} files updated.`);
               });
             } else {
@@ -125,8 +133,10 @@ program
           console.log(' ✖️  API key not provided');
         }
       } else {
-        console.log(' ✖️  Can\'t find any tests in this folder\n');
-        console.log('Change file pattern or directory to scan to find test files:\n\nUsage: npx check-tests < pattern > -d[directory]');
+        console.log(" ✖️  Can't find any tests in this folder\n");
+        console.log(
+          'Change file pattern or directory to scan to find test files:\n\nUsage: npx check-tests < pattern > -d[directory]',
+        );
       }
 
       if (!opts.skipped && skipped.length) {
@@ -139,13 +149,11 @@ program
     }
   });
 
-
 if (process.argv.length <= 2) {
   program.outputHelp();
 }
 
 program.parse(process.argv);
-
 
 async function install(dependencies, verbose) {
   return new Promise((resolve, reject) => {
@@ -154,19 +162,14 @@ async function install(dependencies, verbose) {
 
     console.log('Installing extra packages: ', chalk.green(dependencies.join(', ')));
 
-    if (fs.existsSync('yarn.lock')) { // use yarn
+    if (fs.existsSync('yarn.lock')) {
+      // use yarn
       command = 'yarnpkg';
-      args = ['add','-D', '--exact'];
+      args = ['add', '-D', '--exact'];
       [].push.apply(args, dependencies);
-
     } else {
       command = 'npm';
-      args = [
-          'install',
-          '--save-dev',
-          '--loglevel',
-          'error',
-      ].concat(dependencies);
+      args = ['install', '--save-dev', '--loglevel', 'error'].concat(dependencies);
     }
 
     const child = spawn(command, args, { stdio: 'inherit' });
@@ -181,4 +184,3 @@ async function install(dependencies, verbose) {
     });
   });
 }
-
