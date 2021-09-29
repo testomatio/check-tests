@@ -1,6 +1,6 @@
 module.exports = {
   extends: 'airbnb-base',
-  ignorePatterns: ['example/**/*.js'],
+  ignorePatterns: ['example/**/*.js', 'dist/'],
   env: {
     node: true,
   },

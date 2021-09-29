@@ -43,6 +43,7 @@
     "object-hash": "^2.2.0"
   },
   "devDependencies": {
+    "@zeit/ncc": "^0.22.3",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",
@@ -59,6 +60,7 @@
     "test": "mocha tests/**_test.js",
     "lint": "eslint 'src/**/*.js' --fix",
     "pretty-quick": "pretty-quick --staged",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build": "ncc build index.js --minify"
   }
 }
