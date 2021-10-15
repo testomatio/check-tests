@@ -60,7 +60,7 @@ describe('UpdateIds FS', () => {
     const file1 = fs.readFileSync(path.join(process.cwd(), 'update_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(process.cwd(), 'update_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
-    expect(files.length).to.equal(4);
+    expect(files.length).to.equal(5);
     expect(file1).to.include('@S12345678');
     expect(file1).to.include('@T1111111');
     expect(file1).to.include('@T22222111');
@@ -82,7 +82,7 @@ describe('UpdateIds FS', () => {
     const file1 = fs.readFileSync(path.join(dirPath, 'clear_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(dirPath, 'clear_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
-    expect(files.length).to.equal(4);
+    expect(files.length).to.equal(5);
     expect(file1).not.to.include('@S12345678');
     expect(file1).not.to.include('@T1111111');
     expect(file1).to.include('@Txxxxxxxx');
@@ -105,7 +105,7 @@ describe('UpdateIds FS', () => {
     const file1 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'create_todos_test.js'),  {encoding:'utf8'})
     const file2 = fs.readFileSync(path.join(dirPath, 'unsafe_examples', 'datatable_test.js'),  {encoding:'utf8'})
 
-    expect(files.length).to.equal(4);
+    expect(files.length).to.equal(5);
     expect(file1).not.to.include('@S12345678');
     expect(file1).not.to.include('@T1111111');
     expect(file1).not.to.include('@Txxxxxxxx');

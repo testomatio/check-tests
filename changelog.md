@@ -1,3 +1,7 @@
+# 0.6.1
+
+* [CodecetpJS] Added support for `Data().Scenatio().tag()` structure
+
 # 0.6.0
 
 * Added TypeScript support for `--update-ids`, `--clean-ids`, `--purge` modes
