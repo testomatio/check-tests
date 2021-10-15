@@ -1,16 +1,13 @@
 const parser = require('@babel/parser');
-const codeceptParser = require('../lib/frameworks/codeceptjs');
 const fs = require('fs');
 const { expect } = require('chai');
-const { features } = require('process');
+const codeceptParser = require('../src/lib/frameworks/codeceptjs');
 
 let source;
 let ast;
 
 describe('codeceptjs parser', () => {
-
   context('create todo tests', () => {
-
     before(() => {
       source = fs.readFileSync('./example/codeceptjs/create_todos_test.js').toString();
       ast = parser.parse(source);
@@ -24,11 +21,10 @@ describe('codeceptjs parser', () => {
 
       expect(actualTests).to.include('Create multiple todo items @Txxxxxxxx');
       expect(actualTests).to.include('Todos containing weird characters');
-      expect(actualTests).to.include('Text input field should be cleared after each item');      
+      expect(actualTests).to.include('Text input field should be cleared after each item');
       expect(skippedTests, 'xScenario').to.include('Create a new todo item');
       // assert.equal(tests.length, 3);
     });
-
 
     it('should include code', () => {
       const tests = codeceptParser(ast, '', source);
@@ -39,7 +35,6 @@ describe('codeceptjs parser', () => {
   });
 
   context('Parse CodeceptJS tags', () => {
-
     before(() => {
       source = fs.readFileSync('./example/codeceptjs/tags_test.js').toString();
       ast = parser.parse(source);

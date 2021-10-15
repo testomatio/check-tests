@@ -10,16 +10,16 @@ jobs:
       - name: Setup Node.js for use with actions
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: '12'
       - run: npm install
       - run: npm test
       - uses: testomatio/check-tests@stable
         with:
           framework: mocha
-          tests: "tests/**_test.js"
+          tests: 'tests/**_test.js'
           token: ${{ secrets.GITHUB_TOKEN }}
           comment-on-empty: true
           has-tests-label: true
           github-pat: ${{ secrets.GH_PAT }}
           enable-documentation: true
-          documentation-branch: "master"
+          documentation-branch: 'master'
