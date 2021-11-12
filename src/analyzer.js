@@ -1,8 +1,9 @@
-const parser = require('@babel/parser');
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
 const Decorator = require('./decorator');
+
+let parser;
 
 class Analyzer {
   constructor(framework, workDir = '.') {
@@ -10,6 +11,8 @@ class Analyzer {
     this.typeScript = false;
     this.plugins = [];
     this.rawTests = [];
+
+    parser = require('@babel/parser');
 
     switch (framework.toLowerCase()) {
       case 'jasmine':
@@ -43,7 +46,9 @@ class Analyzer {
   }
 
   withTypeScript() {
-    this.addPlugin('@babel/plugin-transform-typescript');
+    this.typeScript = true;
+    parser = require('@typescript-eslint/typescript-estree');
+    // this.addPlugin('@babel/plugin-transform-typescript');
   }
 
   analyze(pattern) {
@@ -72,20 +77,31 @@ class Analyzer {
           console.error(`Error parsing ${file}`);
           console.error(err.message);
           if (err.message.includes('@babel/')) {
-            console.log(
-              '\nProbably, required babel plugins are not installed.',
-            );
+            console.log('\nProbably, required babel plugins are not installed.');
             console.log('Try to install them manually using npm:');
-            console.log(
-              '\nnpm i @babel/core @babel/plugin-transform-typescript --save-dev',
-            );
+            console.log('\nnpm i @babel/core @babel/plugin-transform-typescript --save-dev');
           }
           process.exit(1);
         }
       }
       let ast;
       try {
-        ast = parser.parse(source, { sourceType: 'unambiguous' });
+        if (this.typeScript) {
+          // const program = parser.createProgram(path.join(__dirname, '../tsconfig.json'))
+          const program = parser.parse(source, {
+            sourceType: 'unambiguous',
+            filePath: file,
+            loc: true,
+            range: true,
+            tokens: true,
+          });
+          ast = {
+            program,
+            type: 'File',
+          };
+        } else {
+          ast = parser.parse(source, { sourceType: 'unambiguous' });
+        }
       } catch (err) {
         console.error(`Error parsing ${file}:`);
         console.error(err.message);
@@ -99,9 +115,7 @@ class Analyzer {
       this.rawTests.push(testsData);
       const tests = new Decorator(testsData);
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());
-      this.stats.skipped = this.stats.skipped.concat(
-        tests.getSkippedTestFullNames(),
-      );
+      this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
       this.stats.files.push(file);
 
       this.decorator.append(testsData);

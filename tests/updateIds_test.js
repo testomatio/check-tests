@@ -281,6 +281,44 @@ describe('update ids', () => {
       expect(updatedFile).to.include('simple test @T1d6a52b9');
       expect(updatedFile).to.include('simple suite @Sf3d245a7');
     });
+
+    it('supports typescript with types', () => {
+      const analyzer = new Analyzer('cypress.io', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'simple suite#simple test': '@T1d6a52b9',
+        },
+        suites: {
+          'simple suite': '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          describe("simple suite", function () {
+            let ctx: TestBankAccountsCtx = {};
+          
+            it("simple test", function () {
+              const user: string = "user";
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts').toString();
+      expect(updatedFile).to.include('simple test @T1d6a52b9');
+      expect(updatedFile).to.include('simple suite @Sf3d245a7');
+      expect(updatedFile).to.include('const user: string = "user";');
+      expect(updatedFile).to.include('ctx: TestBankAccountsCtx = {}');
+    });
   });
 
   describe('clean-ids', () => {

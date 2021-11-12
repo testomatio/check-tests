@@ -50,4 +50,24 @@ describe('codeceptjs parser', () => {
       expect(actualTests).to.include('Login @Important @Smoke @Other @T12321');
     });
   });
+
+
+  context('Parse CodeceptJS tags & datatable', () => {
+
+    before(() => {
+      source = fs.readFileSync('./example/codeceptjs/data_table_tags_test.js').toString();
+      ast = parser.parse(source);
+    });
+
+    it('should include data and tags', () => {
+      const tests = codeceptParser(ast, '', source);
+      const actualTests = tests.map(t => t.name);
+
+      // expect(actualTests).to.include('Login');
+      expect(tests[0].suites[0]).to.include('Search on Google');
+      expect(actualTests).to.include('Search on Google @product-search @classic-test');
+    });
+  });
+
+
 });
