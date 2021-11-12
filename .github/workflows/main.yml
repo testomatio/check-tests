@@ -25,6 +25,7 @@ jobs:
           documentation-branch: 'master'
   action:
     needs: test
+    runs-on: ubuntu-latest
     name: Publish GitHub Action
     steps:
       - run: npm run build
