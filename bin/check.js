@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const path = require('path');
 const Analyzer = require('../src/analyzer');
 const Reporter = require('../src/reporter');
 const chalk = require('chalk');
@@ -41,11 +42,12 @@ program
     try {
       if (opts.typescript) {
         try {
-          require.resolve('@babel/plugin-transform-typescript');
-          require.resolve('@babel/core');
+          require.resolve('typescript');
+          require.resolve('@typescript-eslint/typescript-estree');
         } catch {
-          console.log('Installing TypeScript modules...');
-          await install(['@babel/core', '@babel/plugin-transform-typescript']);
+          console.log('Please install check-tests with TypeScript modules to proceed:');
+          install(['typescript', '@typescript-eslint/typescript-estree']);
+          process.exit(1);
         }
         analyzer.withTypeScript();
       }
@@ -160,7 +162,9 @@ async function install(dependencies, verbose) {
     let command;
     let args;
 
-    console.log('Installing extra packages: ', chalk.green(dependencies.join(', ')));
+    dependencies.unshift('check-tests@latest');
+
+    console.log('Install required packages locally:');
 
     if (fs.existsSync('yarn.lock')) {
       // use yarn
@@ -169,18 +173,9 @@ async function install(dependencies, verbose) {
       [].push.apply(args, dependencies);
     } else {
       command = 'npm';
-      args = ['install', '--save-dev', '--loglevel', 'error'].concat(dependencies);
+      args = ['install', '--save-dev'].concat(dependencies);
     }
 
-    const child = spawn(command, args, { stdio: 'inherit' });
-    child.on('close', code => {
-      if (code !== 0) {
-        reject({
-          command: `${command} ${args.join(' ')}`,
-        });
-        return;
-      }
-      resolve();
-    });
+    console.log(chalk.green(`${command} ${args.join(' ')}`));
   });
 }

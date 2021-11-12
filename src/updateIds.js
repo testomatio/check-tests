@@ -2,30 +2,12 @@ const fs = require('fs');
 const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
-  let plugins = [];
-  if (opts.plugins) {
-    plugins = opts.plugins;
-  }
-  if (opts.typescript) {
-    plugins.push('@babel/plugin-transform-typescript');
-  }
-
   const files = [];
   for (const testArr of testData) {
     if (!testArr.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
-
-    if (plugins.length > 0) {
-      try {
-        fileContent = require('@babel/core').transform(fileContent, {
-          plugins,
-        }).code;
-      } catch (err) {
-        throw new Error(`Error parsing ${file}; Babel plugins cant be loaded`, err);
-      }
-    }
 
     const suite = testArr[0].suites[0];
     const suiteIndex = suite;
@@ -52,13 +34,6 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
 function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: false }) {
   const dangerous = opts.dangerous;
-  let plugins = [];
-  if (opts.plugins) {
-    plugins = opts.plugins;
-  }
-  if (opts.typescript) {
-    plugins.push('@babel/plugin-transform-typescript');
-  }
 
   const testIds = testomatioMap.tests ? Object.values(testomatioMap.tests) : [];
   const suiteIds = testomatioMap.suites ? Object.values(testomatioMap.suites) : [];
@@ -68,16 +43,6 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
 
     const file = `${workDir}/${testArr[0].file}`;
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
-
-    if (plugins.length > 0) {
-      try {
-        fileContent = require('@babel/core').transform(fileContent, {
-          plugins,
-        }).code;
-      } catch (err) {
-        throw new Error(`Error parsing ${file}; Babel plugins cant be loaded`, err);
-      }
-    }
 
     const suite = testArr[0].suites[0];
     const suiteId = `@S${parseSuite(suite)}`;
@@ -92,7 +57,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
       }
     }
     files.push(file);
-    fs.writeFileSync(file, fileContent, (err) => {
+    fs.writeFileSync(file, fileContent, err => {
       if (err) throw err;
     });
   }

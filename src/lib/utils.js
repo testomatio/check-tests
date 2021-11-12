@@ -5,7 +5,7 @@ function hasStringOrTemplateArgument(path) {
 function hasStringArgument(path) {
   if (!path.arguments) return false;
   if (!path.arguments.length) return false;
-  return path.arguments[0].type === 'StringLiteral';
+  return path.arguments[0].type === 'StringLiteral' || path.arguments[0].type === 'Literal';
 }
 
 function getStringValue(path) {
@@ -96,7 +96,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }

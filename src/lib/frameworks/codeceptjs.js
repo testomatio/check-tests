@@ -54,9 +54,9 @@ module.exports = (ast, file = '', source = '') => {
         if (['Scenario'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -86,9 +86,9 @@ module.exports = (ast, file = '', source = '') => {
       }
       if (path.isIdentifier({ name: 'tag' })) {
         if (
-          !path.parentPath.container
-          || !path.parentPath.container.arguments
-          || !path.parentPath.container.arguments[0]
+          !path.parentPath.container ||
+          !path.parentPath.container.arguments ||
+          !path.parentPath.container.arguments[0]
         ) {
           return;
         }
@@ -109,14 +109,14 @@ module.exports = (ast, file = '', source = '') => {
   function appendTagToOwner(path, tagName) {
     if (!path.object) return null;
 
-    if (path.object.callee.name == 'Data') {
+    if (path.object.callee.name === 'Data') {
       test = tests[tests.length - 1];
       if (!test) return;
-      test.name = test.name.trim() + ' @'+tagName;
+      test.name = `${test.name.trim()} @${tagName}`;
       return;
     }
 
-    if (path.object.callee.name == 'Scenario') {
+    if (path.object.callee.name === 'Scenario') {
       const scenarioName = getStringValue(path.object);
       test = tests.filter(t => t.rawName === scenarioName)[0];
       if (!test) return;
