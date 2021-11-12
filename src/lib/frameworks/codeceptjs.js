@@ -54,9 +54,9 @@ module.exports = (ast, file = '', source = '') => {
         if (['Scenario'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in ' +
-              `${file}:${line}\n` +
-              'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in '
+              + `${file}:${line}\n`
+              + 'Remove `.only` to restore test checks',
           );
         }
       }
@@ -86,9 +86,9 @@ module.exports = (ast, file = '', source = '') => {
       }
       if (path.isIdentifier({ name: 'tag' })) {
         if (
-          !path.parentPath.container ||
-          !path.parentPath.container.arguments ||
-          !path.parentPath.container.arguments[0]
+          !path.parentPath.container
+          || !path.parentPath.container.arguments
+          || !path.parentPath.container.arguments[0]
         ) {
           return;
         }

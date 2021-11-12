@@ -23,3 +23,12 @@ jobs:
           github-pat: ${{ secrets.GH_PAT }}
           enable-documentation: true
           documentation-branch: 'master'
+  action:
+    needs: test
+    name: Publish GitHub Action
+    steps:
+      - run: npm run build
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          push_options: '--force'
+          file_pattern: dist/**/*.js
