@@ -1,11 +1,17 @@
+# 0.7.0
+
+- Parser rewritten to provide complete TypeScript support.
+- TypeScript dependencies added
+- Fixed breaking types and formatting in `*.ts` files.
+
 # 0.6.1
 
-* [CodecetpJS] Added support for `Data().Scenatio().tag()` structure
+- [CodecetpJS] Added support for `Data().Scenatio().tag()` structure
 
 # 0.6.0
 
-* Added TypeScript support for `--update-ids`, `--clean-ids`, `--purge` modes
-* Added `-p`, `--plugins` to pass in additional babel plugins:
+- Added TypeScript support for `--update-ids`, `--clean-ids`, `--purge` modes
+- Added `-p`, `--plugins` to pass in additional babel plugins:
 
 ```
 npx check-tests ... --plugins "@babel/plugin-proposal-optional-chaining"
@@ -13,53 +19,53 @@ npx check-tests ... --plugins "@babel/plugin-proposal-optional-chaining"
 
 # 0.5.0
 
-* Added `--keep-structure` option to prefer source code structure over the structure in Testomat.io
-* Uses `TESTOMATIO_BRANCH` env variable to import tests to a branch:
+- Added `--keep-structure` option to prefer source code structure over the structure in Testomat.io
+- Uses `TESTOMATIO_BRANCH` env variable to import tests to a branch:
 
 ```
 TESTOMATIO_BRANCH=dev TESTOMATIO=123456 npx check-tests ...
 ```
-* Don't mark tests as "detached" when importing a single file
+
+- Don't mark tests as "detached" when importing a single file
 
 # 0.4.7
 
-* Fixed `--update-ids` to work on multiple empty JS files
+- Fixed `--update-ids` to work on multiple empty JS files
 
 # 0.4.6
 
-* Fixed `--update-ids` to work on empty JS files
+- Fixed `--update-ids` to work on empty JS files
 
 # 0.4.5
 
-* Fixed `--update-ids` to handle the same test names from different suites
+- Fixed `--update-ids` to handle the same test names from different suites
 
 # 0.4.4
 
-* Fixed `--update-ids` to respect JSON data 
-* Fixed `--clean-ids` to respect string literals
+- Fixed `--update-ids` to respect JSON data
+- Fixed `--clean-ids` to respect string literals
 
 # 0.4.3
 
-* Fixed `--update-ids` to respect multi-line titles.
-* Fixed `--update-ids` to update data in string literals.
+- Fixed `--update-ids` to respect multi-line titles.
+- Fixed `--update-ids` to update data in string literals.
 
 # 0.4.2
 
-* Fixed `--update-ids` to work well for tests & suites with same title
-* Fixed `--update-ids` and `--clean-ids` to work with string literals
+- Fixed `--update-ids` to work well for tests & suites with same title
+- Fixed `--update-ids` and `--clean-ids` to work with string literals
 
 # 0.4.1
 
-* Added `--clean-ids` option to remove automatically set ids syncing with a project
-* Added `--unsafe-clean-ids` option to clean test ids without checking with a project
-
+- Added `--clean-ids` option to remove automatically set ids syncing with a project
+- Added `--unsafe-clean-ids` option to clean test ids without checking with a project
 
 # 0.4.0
 
-* Added `--sync` option to toggle to process tests synchronously on backend
-* `--update-ids` are now executed as a part of import process, so can be used on a fresh new project.
-* Added `--no-detach` option to disable marking tests as detached
-* Readme updated
+- Added `--sync` option to toggle to process tests synchronously on backend
+- `--update-ids` are now executed as a part of import process, so can be used on a fresh new project.
+- Added `--no-detach` option to disable marking tests as detached
+- Readme updated
 
 # 0.3.19
 
@@ -71,7 +77,7 @@ npx check-tests codeceptjs "**.js" --update-ids
 
 # 0.3.18
 
-* Added support of `TESTOMATIO_PREPEND_DIR` parameter to import tests into a specific suite:
+- Added support of `TESTOMATIO_PREPEND_DIR` parameter to import tests into a specific suite:
 
 ```
 TESTOMATIO_PREPEND_DIR=Automation TESTOMATIO=xxxx npx check-tests codeceptjs "**.js"
@@ -79,4 +85,4 @@ TESTOMATIO_PREPEND_DIR=Automation TESTOMATIO=xxxx npx check-tests codeceptjs "**
 
 # 0.3.17
 
-* [CodeceptJS, Mocha, Jest, Jasmine] Added support for template strings in test names
+- [CodeceptJS, Mocha, Jest, Jasmine] Added support for template strings in test names

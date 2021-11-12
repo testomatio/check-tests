@@ -14,7 +14,7 @@ module.exports = (ast, file = '', source = '') => {
   let currentSuite = [];
 
   function addSuite(path) {
-    currentSuite = currentSuite.filter(s => s.end > path.start);
+    currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
     currentSuite.push(path);
   }
 
@@ -36,9 +36,9 @@ module.exports = (ast, file = '', source = '') => {
         if (['describe', 'it', 'context'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }

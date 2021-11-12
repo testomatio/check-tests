@@ -9,4 +9,5 @@ module.exports = {
   bracketSpacing: true,
   arrowParens: 'avoid',
   endOfLine: 'lf',
+  files: ['src/**/*.js', 'bin/**.js'],
 };
