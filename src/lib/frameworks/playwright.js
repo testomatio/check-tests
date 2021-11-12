@@ -21,8 +21,9 @@ module.exports = (ast, file = '', source = '') => {
   traverse.default(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'describe' })) {
-        if (!hasStringOrTemplateArgument(path.parent)) return;
-        addSuite(path.parent);
+        if (!path.parentPath && !path.parentPath.container) return;
+        if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
+        addSuite(path.parentPath.container);
       }
 
       // forbid only

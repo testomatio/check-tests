@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "main": "index.js",
   "keywords": [
@@ -50,6 +50,7 @@
     "@actions/io": "^1.1.1",
     "@actions/tool-cache": "^1.7.1",
     "@zeit/ncc": "^0.22.3",
+    "babel-preset-es2015": "^6.24.1",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",

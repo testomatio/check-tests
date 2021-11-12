@@ -1,3 +1,7 @@
+# 0.7.1
+
+- Added support to playwright/test
+
 # 0.7.0
 
 - Parser rewritten to provide complete TypeScript support.

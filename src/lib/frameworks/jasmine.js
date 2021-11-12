@@ -14,7 +14,7 @@ module.exports = (ast, file = '', source = '') => {
   let currentSuite = [];
 
   function addSuite(path) {
-    currentSuite = currentSuite.filter(s => s.end > path.start);
+    currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
     currentSuite.push(path);
   }
 
