@@ -1,3 +1,7 @@
+# 0.7.2
+
+- Added `--create` option to create a test or suite by ID when they are not found in a project
+
 # 0.7.1
 
 - Added support to playwright/test

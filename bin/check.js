@@ -33,6 +33,7 @@ program
   .option('-p, --plugins [plugins...]', 'additional babel plugins')
   .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
+  .option('--create', 'Create tests and suites for missing IDs')
   .option('--keep-structure', 'Prefer structure of source code over structure in Testomat.io')
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
@@ -103,6 +104,7 @@ program
           reporter.addTests(decorator.getTests());
           const resp = reporter.send({
             sync: opts.sync || opts.updateIds,
+            create: opts.create || false,
             branch,
             'no-detach': !isPattern || !opts.detached,
             structure: opts.keepStructure,
