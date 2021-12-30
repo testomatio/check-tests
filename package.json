@@ -1,8 +1,7 @@
 {
   "name": "check-tests",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
-  "main": "index.js",
   "keywords": [
     "testing",
     "babel",
@@ -30,6 +29,7 @@
   "bin": {
     "check-tests": "./bin/check.js"
   },
+  "main": "src/index.js",
   "dependencies": {
     "@babel/core": "^7.15.5",
     "@babel/parser": "^7.15.7",

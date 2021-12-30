@@ -1,3 +1,14 @@
+# 0.7.3
+
+- Added QUnit support
+- Added `analyzer.addPreset` to include Babel presets
+- Added API to import analyzer scripts:
+
+```js
+const { Analyzer } = require('check-tests');
+// ... see Programmatic API in Readme
+```
+
 # 0.7.2
 
 - Added `--create` option to create a test or suite by ID when they are not found in a project

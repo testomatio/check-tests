@@ -27,13 +27,17 @@ module.exports = (ast, file = '', source = '') => {
 
       // forbid only
       if (path.isIdentifier({ name: 'only' })) {
-        const name = path.parent.object.name || path.parent.object.callee.object.name;
+        // console.log(path.parent.object);
+        if (!path.parent) return;
+        if (!path.parent.object) return;
+
+        const name = path.parent.object.name || (path.parent.object.callee && path.parent.object.callee.object.name);
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }

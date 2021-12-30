@@ -146,17 +146,17 @@ steps:
       fetch-depth: 0
   - uses: actions/setup-node@v1
     with:
-      node-version: "12"
+      node-version: '12'
   - run: npm install
   - uses: testomatio/check-tests@stable
     with:
       framework: jest
-      tests: "tests/*.spec.js"
+      tests: 'tests/*.spec.js'
       token: ${{ secrets.GITHUB_TOKEN }}
       github-pat: ${{ secrets.GH_PAT }}
       enable-documentation: true
-      wiki-doc-name: "Test-Document"
-      documentation-branch: "doc-branch"
+      wiki-doc-name: 'Test-Document'
+      documentation-branch: 'doc-branch'
 ```
 
 #### Jest
@@ -501,7 +501,6 @@ TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --keep-s
 
 > This may be helpful when you want to align current project with the source code and use the source code as the source of truth for tests.
 
-
 ### Import Into a Specific Suite
 
 To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PREPEND_DIR` environment variable:
@@ -524,6 +523,39 @@ Now tests TypeScript can be imported with `--typescript` option:
 
 ```
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --typescript
+```
+
+## Programmatic API
+
+Import Analyzer from module:
+
+```js
+const { Analyzer } = require('check-tests');
+
+const framework = 'jest';
+const pathToTests = './tests';
+const pattern = '**/*[._-]{test,spec}.{ts,js}';
+
+const analyzer = new Analyzer(framework, pathToTests);
+
+// to enable typescript...
+analyzer.withTypeScript();
+
+// to enable babel plugins
+analyzer.addPlugin('@babel/plugin-syntax-jsx');
+analyzer.addPlugin('@babel/plugin-syntax-flow');
+
+// to enable babel presets
+analyzer.addPreset('@babel/preset-react');
+analyzer.addPreset('@babel/preset-flow');
+
+analyzer.analyze(pattern);
+
+// stats on processed files
+const stats = analyzer.stats;
+
+// full info on parsed tests
+const data = analyzer.rawTests;
 ```
 
 ## Limitations

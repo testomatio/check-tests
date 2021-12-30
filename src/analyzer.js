@@ -10,6 +10,7 @@ class Analyzer {
     this.workDir = workDir;
     this.typeScript = false;
     this.plugins = [];
+    this.presets = [];
     this.rawTests = [];
 
     parser = require('@babel/parser');
@@ -33,6 +34,9 @@ class Analyzer {
       case 'testcafe':
         this.frameworkParser = require('./lib/frameworks/testcafe');
         break;
+      case 'qunit':
+        this.frameworkParser = require('./lib/frameworks/qunit');
+        break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io':
@@ -46,6 +50,10 @@ class Analyzer {
 
   addPlugin(plugin) {
     this.plugins.push(plugin);
+  }
+
+  addPreset(preset) {
+    this.presets.push(preset);
   }
 
   withTypeScript() {
@@ -71,11 +79,12 @@ class Analyzer {
 
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 
-      if (this.plugins.length > 0) {
+      if (this.plugins.length > 0 || this.presets.length) {
         try {
-          source = require('@babel/core').transform(source, {
-            plugins: [...this.plugins],
-          }).code;
+          const opts = {};
+          opts.plugins = this.plugins;
+          opts.presets = this.presets;
+          source = require('@babel/core').transform(source, opts).code;
         } catch (err) {
           console.error(`Error parsing ${file}`);
           console.error(err.message);
@@ -84,7 +93,7 @@ class Analyzer {
             console.log('Try to install them manually using npm:');
             console.log('\nnpm i @babel/core @babel/plugin-transform-typescript --save-dev');
           }
-          process.exit(1);
+          if (process.env.isTestomatioCli) process.exit(1);
         }
       }
       let ast;

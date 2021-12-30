@@ -5,6 +5,11 @@ const Analyzer = require('../src/analyzer');
 let analyzer;
 
 describe('analyzer', () => {
+  it('can import analyzer from main index', () => {
+    const { Analyzer } = require('../src');
+    expect(Analyzer).not.to.be.undefined;
+  });
+
   it('should parse all mocha files', () => {
     analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
     analyzer.analyze('./example/mocha/**_test.js');

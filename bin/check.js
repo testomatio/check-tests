@@ -20,6 +20,8 @@ function checkPattern(pattern) {
   return pattern.includes('*');
 }
 
+process.env.isTestomatioCli = true;
+
 const program = require('commander');
 
 program
