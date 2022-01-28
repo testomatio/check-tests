@@ -461,6 +461,15 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --updat
 
 Tests imported with `--update-ids` will be processed in synchronouse mode, so the script will finish after all tests are processed.
 
+## Keep Test IDs Between Projects
+
+To import tests with Test IDs set in source code into another project use `--create` option. In this case, a new project will be populated with the same Test IDs.
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --create
+```
+Without `--create` import will fail with a message that ID was not found.
+
 ## Clean Test IDs
 
 If you want to import the synced project as new project, you have to clean the test ids.
