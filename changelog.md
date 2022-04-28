@@ -1,3 +1,7 @@
+# 0.7.4
+
+- CodeceptJS fixed: `can't reading properties of undefined (reading 'name')`
+
 # 0.7.3
 
 - Added QUnit support
