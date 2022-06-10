@@ -1,6 +1,8 @@
 const fs = require('fs');
 const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 
+const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
+
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
   for (const testArr of testData) {
@@ -11,20 +13,34 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     const suite = testArr[0].suites[0];
     const suiteIndex = suite;
+    const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
     if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
       fileContent = fileContent.replace(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`);
+      fs.writeFileSync(file, fileContent);
+    } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
+      fileContent = fileContent.replace(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`);
       fs.writeFileSync(file, fileContent);
     }
 
     for (const test of testArr) {
       let testIndex = `${test.suites[0]}#${test.name}`;
-      if (!testomatioMap.tests[testIndex]) {
+      let testWithoutTags = `${test.suites[0].replace(TAG_REGEX, '').trim()}#${test.name.replace(
+        TAG_REGEX,
+        '',
+      )}`.trim();
+
+      if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
         testIndex = test.name; // if no suite title provided
+        testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
       }
       if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
         fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
         fs.writeFileSync(file, fileContent);
         delete testomatioMap.tests[testIndex];
+      } else if (testomatioMap.tests[testWithoutTags] && !test.name.includes(testomatioMap.tests[testWithoutTags])) {
+        fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testWithoutTags]}`);
+        fs.writeFileSync(file, fileContent);
+        delete testomatioMap.tests[testWithoutTags];
       }
     }
     files.push(file);

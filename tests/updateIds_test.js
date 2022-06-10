@@ -42,6 +42,43 @@ describe('update ids', () => {
       expect(updatedFile).to.include("Scenario('simple test @T1d6a52b9'");
     });
 
+    it('should update id with tags by title', () => {
+      const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'simple test': '@T1d6a52b9',
+          'simple suite#simple other test': '@T1d6a52b1',
+        },
+        suites: {
+          'simple suite': '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        virtual_dir: {
+          'test.js': `
+          Feature('simple suite @dev')
+
+          Scenario('simple test @prod', async (I, TodosPage) => {
+          })
+
+          Scenario('simple other test @prod', async (I, TodosPage) => {
+          })
+          `,
+        },
+      });
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+      expect(updatedFile).to.include("Feature('simple suite @dev @Sf3d245a7')");
+      expect(updatedFile).to.include("Scenario('simple test @prod @T1d6a52b9'");
+      expect(updatedFile).to.include("Scenario('simple other test @prod @T1d6a52b1'");
+    });
+
     it('updates ids from server', () => {
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
 
