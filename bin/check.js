@@ -108,11 +108,12 @@ program
           const resp = reporter.send({
             sync: opts.sync || opts.updateIds,
             create: opts.create || false,
+            noempty: !opts.empty,
             branch,
-            noempty: opts.noEmpty,
             'no-detach': !isPattern || !opts.detached,
             structure: opts.keepStructure,
           }); // async call
+
           if (opts.sync) {
             console.log('    Wait for Testomatio to synchronize tests...');
             await resp;

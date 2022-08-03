@@ -1,3 +1,7 @@
+# 0.7.7
+
+- Fixed using `--no-empty` option
+
 # 0.7.6
 
 - Added `--no-empty` option to delete empty suites after import
