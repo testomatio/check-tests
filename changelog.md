@@ -1,3 +1,7 @@
+# 0.7.6
+
+- Added `--no-empty` option to delete empty suites after import
+
 # 0.7.5
 
 - Fixed `--update-ids` with tags
