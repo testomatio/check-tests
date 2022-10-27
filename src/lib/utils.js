@@ -33,8 +33,16 @@ function hasTemplateQuasi(path) {
 function getQuasiArgument(path) {
   let quasiValue = '';
 
-  for (const quasi of path.arguments[0].quasis) {
-    quasiValue += quasi.value.raw;
+  const nodes = [...path.arguments[0].expressions, ...path.arguments[0].quasis].sort(
+    (a, b) => 1000 * a.loc.start.line + a.loc.start.column - (1000 * b.loc.start.line + b.loc.start.column),
+  );
+
+  for (const node of nodes) {
+    if (node.type === 'Identifier') {
+      quasiValue += ' ${' + node.name + '} '; // eslint-disable-line prefer-template
+      continue;
+    }
+    quasiValue += node.value.raw.trim();
   }
 
   return quasiValue;
@@ -96,7 +104,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }

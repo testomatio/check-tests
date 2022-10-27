@@ -174,7 +174,7 @@ describe('update ids', () => {
     it('respects variables in string literals', () => {
       const idMap = {
         tests: {
-          'simple suite#simple  test': '@T1d6a52b9',
+          'simple suite#simple ${data} test': '@T1d6a52b9',
         },
         suites: {
           'simple suite': '@Sf3d245a7',
@@ -201,7 +201,7 @@ describe('update ids', () => {
     it('respects variables in string literals and JSON report mode', () => {
       const idMap = {
         tests: {
-          "simple suite#simple  test | { 'user': 'bob' }": '@T1d6a52b9',
+          "simple suite#simple ${data} test | { 'user': 'bob' }": '@T1d6a52b9',
         },
         suites: {
           'simple suite': '@Sf3d245a7',
@@ -228,7 +228,7 @@ describe('update ids', () => {
     it('respects variables in string literals in double param and JSON report mode', () => {
       const idMap = {
         tests: {
-          "simple suite#simple   test | { 'user': 'bob' }": '@T1d6a52b9',
+          "simple suite#simple ${data} and ${data2} test | { 'user': 'bob' }": '@T1d6a52b9',
         },
         suites: {
           'simple suite': '@Sf3d245a7',
@@ -239,7 +239,7 @@ describe('update ids', () => {
       mock({
         virtual_dir: {
           'test.js':
-            "\nFeature(`simple suite`)\nconst data = 1;\n[].each((data2) => Scenario(`simple ${data} ${data2} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() }));",
+            "\nFeature(`simple suite`)\nconst data = 1;\n[].each((data2) => Scenario(`simple ${data} and ${data2} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() }));",
         },
       });
 
@@ -249,7 +249,7 @@ describe('update ids', () => {
 
       const updatedFile = fs.readFileSync('virtual_dir/test.js', 'utf-8').toString();
       expect(updatedFile).to.include('Feature(`simple suite @Sf3d245a7`)');
-      expect(updatedFile).to.include("Scenario(`simple ${data} ${data2} test @T1d6a52b9 | { 'user': 'bob' }`");
+      expect(updatedFile).to.include("Scenario(`simple ${data} and ${data2} test @T1d6a52b9 | { 'user': 'bob' }`");
     });
 
     it('works ok with empty files', () => {
