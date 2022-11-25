@@ -1,3 +1,11 @@
+# 0.8.0
+
+- Support of template strings and params in test titles:
+
+```js
+Scenario(`parameterized test with ${i} parameter`);
+```
+
 # 0.7.7
 
 - Fixed using `--no-empty` option
