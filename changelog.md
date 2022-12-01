@@ -1,3 +1,7 @@
+# 0.8.1
+
+- Fixed parsing string literals
+
 # 0.8.0
 
 - Support of template strings and params in test titles:
