@@ -1,3 +1,7 @@
+# 0.8.2
+
+- Fixed importing playwright tests witout suites
+
 # 0.8.1
 
 - Fixed parsing string literals

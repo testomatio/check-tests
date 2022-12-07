@@ -69,6 +69,15 @@ describe('playwright parser', () => {
     expect(tests[0].name).to.equal('my test');
     expect(tests[0].suites.length).to.eql(1);
     expect(tests[0].suites[0]).to.eql('feature foo');
-    expect(tests[1].suites[0]).to.eql('feature foo');
+  });
+
+  it('should update playwright suite if no suite set', () => {
+    source = fs.readFileSync('./example/playwright/tags.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = playwrightParser(ast, '', source);
+    expect(tests[0]).to.include.key('code');
+    expect(tests.length).to.equal(5);
+    const lastTest = tests[tests.length - 1];
+    expect(lastTest.suites.length).to.eql(0);
   });
 });

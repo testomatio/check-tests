@@ -32,9 +32,9 @@ module.exports = (ast, file = '', source = '') => {
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -53,7 +53,9 @@ module.exports = (ast, file = '', source = '') => {
           const testName = getStringValue(path.parentPath.container);
           tests.push({
             name: testName,
-            suites: currentSuite.map(s => getStringValue(s)),
+            suites: currentSuite
+              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
+              .map(s => getStringValue(s)),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
             file,
@@ -81,7 +83,9 @@ module.exports = (ast, file = '', source = '') => {
           const testName = getStringValue(path.parentPath.container);
           tests.push({
             name: testName,
-            suites: currentSuite.map(s => getStringValue(s)),
+            suites: currentSuite
+              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
+              .map(s => getStringValue(s)),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
             file,
@@ -94,9 +98,12 @@ module.exports = (ast, file = '', source = '') => {
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
         const testName = getStringValue(path.parent);
+
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: currentSuite
+            .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
+            .map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
@@ -112,7 +119,9 @@ module.exports = (ast, file = '', source = '') => {
         const testName = getStringValue(currentPath.parent);
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: currentSuite
+            .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
+            .map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(currentPath),
           code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath)),
