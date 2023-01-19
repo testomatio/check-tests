@@ -1,3 +1,7 @@
+# 0.8.4
+
+- added more debug information in `DEBUG` mode
+
 # 0.8.3
 
 - Better error handling for update ids

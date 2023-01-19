@@ -9,7 +9,7 @@ const { cleanIds, updateIds } = require('../src/updateIds');
 const { spawn } = require('child_process');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 const branch = process.env.TESTOMATIO_BRANCH;
-
+const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
@@ -136,6 +136,7 @@ program
                 console.log(`    ${files.length} files updated.`);
               } catch (err) {
                 console.log(' ✖️  Error in updating test ids', err);
+                debug(err.message);
               }
             } else {
               console.log(' ✖️  API key not provided');

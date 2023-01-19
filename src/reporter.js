@@ -1,6 +1,6 @@
 const URL = process.env.TESTOMATIO_URL || 'https://app.testomat.io';
 const isHttps = URL.startsWith('https');
-const debug = require('debug')('testomatio:analyze');
+const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
 
 class Reporter {
@@ -30,6 +30,7 @@ class Reporter {
         resp.on('end', () => {
           debug('Data fetched from Testomat.io', message);
           if (resp.statusCode !== 200) {
+            debug('Data fetch failed', resp.statusCode, resp.statusMessage, message);
             rej(message);
           } else {
             res(JSON.parse(message));
