@@ -42,6 +42,7 @@ function getQuasiArgument(path) {
       quasiValue += ' ${' + node.name + '} '; // eslint-disable-line prefer-template
       continue;
     }
+    if (!node.value) continue;
     if (node.value.raw) quasiValue += node.value.raw.trim();
   }
 
@@ -104,7 +105,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }

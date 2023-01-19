@@ -1,6 +1,7 @@
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
+const debug = require('debug')('testomatio:analyze');
 const Decorator = require('./decorator');
 
 let parser;
@@ -76,6 +77,8 @@ class Analyzer {
 
       // skip node_modules. On Windows its \n + ode_modules
       if (file.includes('ode_modules')) continue;
+
+      debug(`Analyzing ${file}`);
 
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 

@@ -1,6 +1,14 @@
 # 0.8.3
 
 - Better error handling for update ids
+- Fixed importing files without suites in Playwright
+- added `DEBUG` mode for additional logging:
+
+```
+DEBUG="testomatio:*" npx check-tests ...
+```
+
+- Fixed importing TestCafe tests
 
 # 0.8.2
 

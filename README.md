@@ -577,6 +577,14 @@ const stats = analyzer.stats;
 const data = analyzer.rawTests;
 ```
 
+## Debugging
+
+Run import with `DEBUG="testomatio:*"` environment variable to get additional logs which may help understanding the cause of an issue. Usually it may happen because of a specific file that couldn't be parsed:
+
+```
+DEBUG="testomatio:*" npx check-tests@latest ....
+```
+
 ## Limitations
 
 - Can't analyze included tests from external files

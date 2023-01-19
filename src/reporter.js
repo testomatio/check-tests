@@ -1,5 +1,6 @@
 const URL = process.env.TESTOMATIO_URL || 'https://app.testomat.io';
 const isHttps = URL.startsWith('https');
+const debug = require('debug')('testomatio:analyze');
 const { request } = isHttps ? require('https') : require('http');
 
 class Reporter {
@@ -21,11 +22,13 @@ class Reporter {
 
   getIds() {
     return new Promise((res, rej) => {
-      const req = request(`${URL.trim()}/api/test_data?api_key=${this.apiKey}`, { method: 'GET' }, (resp) => {
+      debug('Getting ids from Testomat.io...');
+      const req = request(`${URL.trim()}/api/test_data?api_key=${this.apiKey}`, { method: 'GET' }, resp => {
         // The whole response has been received. Print out the result.
         let message = '';
 
         resp.on('end', () => {
+          debug('Data fetched from Testomat.io', message);
           if (resp.statusCode !== 200) {
             rej(message);
           } else {
@@ -33,7 +36,7 @@ class Reporter {
           }
         });
 
-        resp.on('data', (chunk) => {
+        resp.on('data', chunk => {
           message += chunk.toString();
         });
 
@@ -42,7 +45,7 @@ class Reporter {
         });
       });
 
-      req.on('error', (err) => {
+      req.on('error', err => {
         console.log(`Error: ${err.message}`);
         rej(err);
       });
@@ -57,37 +60,41 @@ class Reporter {
 
       const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
 
-      const req = request(`${URL.trim()}/api/load?api_key=${this.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(data),
+      const req = request(
+        `${URL.trim()}/api/load?api_key=${this.apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(data),
+          },
         },
-      }, (resp) => {
-        // The whole response has been received. Print out the result.
-        let message = '';
+        resp => {
+          // The whole response has been received. Print out the result.
+          let message = '';
 
-        resp.on('end', () => {
-          if (resp.statusCode >= 400) {
-            console.log(' ✖️ ', message, `(${resp.statusCode}: ${resp.statusMessage})`);
-          } else {
-            console.log(' 🎉 Data received at Testomat.io');
-          }
-          resolve();
-        });
+          resp.on('end', () => {
+            if (resp.statusCode >= 400) {
+              console.log(' ✖️ ', message, `(${resp.statusCode}: ${resp.statusMessage})`);
+            } else {
+              console.log(' 🎉 Data received at Testomat.io');
+            }
+            resolve();
+          });
 
-        resp.on('data', (chunk) => {
-          message += chunk.toString();
-        });
+          resp.on('data', chunk => {
+            message += chunk.toString();
+          });
 
-        resp.on('aborted', () => {
-          console.log(' ✖️ Data was not sent to Testomat.io');
-          // eslint-disable-next-line prefer-promise-reject-errors
-          reject('aborted');
-        });
-      });
+          resp.on('aborted', () => {
+            console.log(' ✖️ Data was not sent to Testomat.io');
+            // eslint-disable-next-line prefer-promise-reject-errors
+            reject('aborted');
+          });
+        },
+      );
 
-      req.on('error', (err) => {
+      req.on('error', err => {
         console.log(`Error: ${err.message}`);
         reject(err);
       });

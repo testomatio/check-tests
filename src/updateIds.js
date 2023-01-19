@@ -1,4 +1,5 @@
 const fs = require('fs');
+const debug = require('debug')('testomatio:update-ids');
 const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 
 const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
@@ -9,9 +10,10 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     if (!testArr.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
+    debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
-    const suite = testArr[0].suites[0];
+    const suite = testArr[0].suites[0] || '';
     const suiteIndex = suite;
     const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
     if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
@@ -23,8 +25,10 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     }
 
     for (const test of testArr) {
-      let testIndex = `${test.suites[0]}#${test.name}`;
-      let testWithoutTags = `${test.suites[0].replace(TAG_REGEX, '').trim()}#${test.name.replace(
+      let testIndex = `${test.suites[0] || ''}#${test.name}`;
+      debug('    test  ', testIndex);
+
+      let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
         TAG_REGEX,
         '',
       )}`.trim();
@@ -58,6 +62,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
     if (!testArr.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
+    debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     const suite = testArr[0].suites[0];
@@ -68,6 +73,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
     }
     for (const test of testArr) {
       const testId = `@T${parseTest(test.name)}`;
+      debug('  clenaing test: ', test.name);
       if (testIds.includes(testId) || (dangerous && testId)) {
         fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
       }
