@@ -129,10 +129,14 @@ program
             analyzer.analyze(files);
             if (apiKey) {
               const reporter = new Reporter(apiKey.trim(), framework);
-              await reporter.getIds().then(idMap => {
-                const files = updateIds(analyzer.rawTests, idMap, opts.dir || process.cwd(), opts);
+              const workDir = opts.dir || process.cwd();
+              try {
+                const idMap = await reporter.getIds();
+                const files = updateIds(analyzer.rawTests, idMap, workDir, opts);
                 console.log(`    ${files.length} files updated.`);
-              });
+              } catch (err) {
+                console.log(' ✖️  Error in updating test ids', err);
+              }
             } else {
               console.log(' ✖️  API key not provided');
             }

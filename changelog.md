@@ -1,3 +1,7 @@
+# 0.8.3
+
+- Better error handling for update ids
+
 # 0.8.2
 
 - Fixed importing playwright tests witout suites
