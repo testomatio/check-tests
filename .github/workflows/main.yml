@@ -1,5 +1,8 @@
 on: [pull_request]
 
+permissions:
+  pull-requests: write
+
 name: Tests
 jobs:
   test:
