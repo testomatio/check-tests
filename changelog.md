@@ -1,3 +1,8 @@
+# 0.8.5
+
+- fixed replacing other strings instead of suite titles in `--update-ids`
+- fixed duplicated test IDs in `--update-ids`
+
 # 0.8.4
 
 - added more debug information in `DEBUG` mode

@@ -3,9 +3,15 @@ const debug = require('debug')('testomatio:update-ids');
 const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 
 const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
+const TEST_ID_REGEX = /@T([\w\d]{8})/;
+const SUITE_ID_REGEX = /@S([\w\d]{8})/;
+const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
+  let duplicateTests = 0;
+  let duplicateSuites = 0;
+
   for (const testArr of testData) {
     if (!testArr.length) continue;
 
@@ -16,11 +22,18 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     const suite = testArr[0].suites[0] || '';
     const suiteIndex = suite;
     const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
+
+    if (parseSuite(suiteIndex)) {
+      debug(`   Previous ID detected in suite '${suiteIndex}'`);
+      duplicateSuites++;
+      continue;
+    }
+
     if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-      fileContent = fileContent.replace(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`);
+      fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
       fs.writeFileSync(file, fileContent);
     } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-      fileContent = fileContent.replace(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`);
+      fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
       fs.writeFileSync(file, fileContent);
     }
 
@@ -37,6 +50,13 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
         testIndex = test.name; // if no suite title provided
         testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
       }
+
+      if (parseTest(testIndex)) {
+        debug(`   Previous ID detected in test '${testIndex}'`);
+        duplicateTests++;
+        continue;
+      }
+
       if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
         fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
         fs.writeFileSync(file, fileContent);
@@ -49,6 +69,12 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     }
     files.push(file);
   }
+  if (duplicateSuites || duplicateTests) {
+    console.log('! Previously set Test IDs detected, new IDs ignored');
+    console.log('! Clean previously set Test IDs to override them');
+    console.log('! Run script with DEBUG="testomatio:*" flag to get more info of affected tests ');
+  }
+
   return files;
 }
 
@@ -87,7 +113,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
 }
 
 const parseTest = testTitle => {
-  const captures = testTitle.match(/@T([\w\d]{8})/);
+  const captures = testTitle.match(TEST_ID_REGEX);
   if (captures) {
     return captures[1];
   }
@@ -96,7 +122,7 @@ const parseTest = testTitle => {
 };
 
 const parseSuite = suiteTitle => {
-  const captures = suiteTitle.match(/@S([\w\d]{8})/);
+  const captures = suiteTitle.match(SUITE_ID_REGEX);
   if (captures) {
     return captures[1];
   }
@@ -104,20 +130,26 @@ const parseSuite = suiteTitle => {
   return null;
 };
 
-const getLineNumberOfText = (text, content) => {
+const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.includes(text)) return i;
+
+  // try to find string near keyword
+  for (const lineNumber in lines) {
+    const line = lines[lineNumber];
+    for (const keyword of SUITE_KEYWORDS) {
+      if (line.match(keyword)) {
+        for (let i = lineNumber; i < lines.length; i++) {
+          if (lines[i].includes(title)) {
+            lines[i] = line.replace(title, replace);
+            return lines.join('\n');
+          }
+        }
+      }
+    }
   }
 
-  return 0;
+  return content.replace(title, replace);
 };
-
-function fileIndex(file, index) {
-  if (file) return `${file}:${index}`;
-  return index;
-}
 
 module.exports = {
   updateIds,

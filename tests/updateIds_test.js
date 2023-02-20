@@ -111,6 +111,72 @@ describe('update ids', () => {
       expect(updatedFile).to.include("Scenario('simple test @T1d6a52b9'");
     });
 
+    it('ignore duplicates for ids from server', () => {
+      const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'simple suite#simple test': '@T09132a21',
+        },
+        suites: {
+          'simple suite': '@S09132a21',
+        },
+      };
+
+      mock({
+        virtual_dir: {
+          'test.js': `
+          Feature('simple suite @Sf3d245a7')
+          
+          Scenario('simple test @T1d6a52b9', async (I, TodosPage) => {
+          })        
+          `,
+        },
+      });
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+      expect(updatedFile).to.include("Feature('simple suite @Sf3d245a7')");
+      expect(updatedFile).to.include("Scenario('simple test @T1d6a52b9'");
+    });
+
+    it('should not update other strings in file', () => {
+      const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'simple suite#simple test': '@T09132a21',
+        },
+        suites: {
+          'simple suite': '@S09132a21',
+        },
+      };
+
+      mock({
+        virtual_dir: {
+          'test.js': `
+          const layer = 'simple suite';
+
+          Feature('simple suite')
+          
+          Scenario('simple test', async (I, TodosPage) => {
+          })        
+          `,
+        },
+      });
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+      expect(updatedFile).to.include("Feature('simple suite @S09132a21')");
+      expect(updatedFile).to.include("const layer = 'simple suite';");
+    });
+
     it('allows multi-line titles', () => {
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
 
