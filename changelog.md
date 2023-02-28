@@ -1,3 +1,7 @@
+# 0.8.6
+
+- fixed notification on tests duplication for currently available tests and suites in `--update-ids`
+
 # 0.8.5
 
 - fixed replacing other strings instead of suite titles in `--update-ids`
