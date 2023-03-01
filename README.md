@@ -430,6 +430,24 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 
 ```
 
+## Import Parametrized Tests
+
+It is possible to import parametrized tests if they use template literals with variables in thier names:
+
+```js
+['one', 'two', 'three'].forEach(() => {
+  it(`this is test number ${parameter}`);
+});
+```
+
+This test will be imported with its original name including a placeholder:
+
+```
+this is test number ${parameter}
+```
+
+When executed test will be reported with 3 results matched to the same test and param values will be added to the report.
+
 ## Disable Detached Tests
 
 If a test from a previous import was not found on next import it is marked as "detached".

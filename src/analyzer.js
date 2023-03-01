@@ -127,6 +127,7 @@ class Analyzer {
         fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName);
       }
       const testsData = this.frameworkParser(ast, fileName, source);
+      debug(testsData);
       this.rawTests.push(testsData);
       const tests = new Decorator(testsData);
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());

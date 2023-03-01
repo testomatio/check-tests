@@ -1,3 +1,7 @@
+# 0.8.7
+
+- Fixed using string literal as parameters, added docs for importing parametrized tests
+
 # 0.8.6
 
 - fixed notification on tests duplication for currently available tests and suites in `--update-ids`
