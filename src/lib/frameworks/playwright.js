@@ -74,6 +74,41 @@ module.exports = (ast, file = '', source = '') => {
         // todo: handle "context"
       }
 
+      if (path.isIdentifier({ name: 'fixme' })) {
+        if (!path.parent || !path.parent.object) {
+          return;
+        }
+
+        const name = path.parent.object.name || path.parent.object.callee.object.name;
+
+        if (name === 'test' || name === 'it') {
+          // test or it
+          if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
+
+          const testName = getStringValue(path.parentPath.container);
+          tests.push({
+            name: testName,
+            suites: currentSuite
+              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
+              .map(s => getStringValue(s)),
+            line: getLineNumber(path),
+            code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+            file,
+            skipped: true,
+          });
+        }
+
+        if (name === 'describe') {
+          // suite
+          if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
+          const suite = path.parentPath.container;
+          suite.skipped = true;
+          addSuite(suite);
+        }
+
+        // todo: handle "context"
+      }
+
       if (path.isIdentifier({ name: 'todo' })) {
         // todo tests => skipped tests
         if (path.parent.object.name === 'test') {
