@@ -1,3 +1,7 @@
+# 0.8.8
+
+- Added support for `test.fixme` annotation in Playwright
+
 # 0.8.7
 
 - Fixed using string literal as parameters, added docs for importing parametrized tests
