@@ -17,6 +17,8 @@ jobs:
       - run: npm install
       - run: npm test
         env:
+          TESTOMATIO: 6am95e8a2hsq
+          TESTOMATIO_CREATE: 1
           GH_PAT: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: 1
       - uses: testomatio/check-tests@stable
