@@ -12,6 +12,7 @@ const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
+require('dotenv').config();
 
 function checkPattern(pattern) {
   pattern = pattern.trim();
@@ -110,7 +111,7 @@ program
             create: opts.create || false,
             noempty: !opts.empty,
             branch,
-            'no-detach': !isPattern || !opts.detached,
+            'no-detach': process.env.TESTOMATIO_NO_DETACHED || !isPattern || !opts.detached,
             structure: opts.keepStructure,
           }); // async call
 
