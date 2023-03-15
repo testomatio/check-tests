@@ -460,7 +460,7 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-de
 ```
 
 This option could also be set via environment variable `TESTOMATIO_NO_DETACHED=1`.
-If you don't want to pass it each time, create .env file with this variable set.
+If you don't want to pass it each time, create .env file in the root dir of your project with this variable set.
 
 ## Synchronous Import
 

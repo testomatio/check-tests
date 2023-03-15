@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const Analyzer = require('../src/analyzer');
@@ -12,7 +13,6 @@ const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
-require('dotenv').config();
 
 function checkPattern(pattern) {
   pattern = pattern.trim();
