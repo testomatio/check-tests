@@ -4,6 +4,9 @@ permissions:
   pull-requests: write
 
 name: Tests
+concurrency:
+  group: check-tests-main-${{github.event.pull_request.number}}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
