@@ -50,7 +50,7 @@ describe('playwright parser', () => {
     expect(tests[1].suites[0]).to.eql('feature foo');
   });
 
-  it('should parse multiple playwright-js tests', () => {
+  it('should parse multiple playwright-ts tests', () => {
     source = fs.readFileSync('./example/playwright/multiple.ts').toString();
     const program = tsParser.parse(source, {
       sourceType: 'unambiguous',
@@ -81,7 +81,7 @@ describe('playwright parser', () => {
     expect(lastTest.suites.length).to.eql(0);
   });
 
-  it('should parse playwright-js tests with skip() annotation', () => {
+  it('should parse playwright-js tests with annotation', () => {
     source = fs.readFileSync('./example/playwright/annotations.js').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
@@ -89,10 +89,9 @@ describe('playwright parser', () => {
     expect(tests[1].code.trim()).to.equal("test.skip('my skip test @first', async ({ page }) => {".trim());
     expect(tests[1].name).to.equal('my skip test @first');
     expect(tests[1].suites.length).to.eql(1);
-    expect(tests[1].skipped).to.be.true;
   });
 
-  it('should parse playwright-js tests with fixme() annotation', () => {
+  it('should parse playwright-js tests with annotation including fixme', () => {
     source = fs.readFileSync('./example/playwright/annotations.js').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
@@ -100,10 +99,9 @@ describe('playwright parser', () => {
     expect(tests[2].code.trim()).to.equal("test.fixme('my fixme test @third', async ({ page }) => {".trim());
     expect(tests[2].name).to.equal('my fixme test @third');
     expect(tests[2].suites.length).to.eql(1);
-    expect(tests[2].skipped).to.be.true;
   });
 
-  it('should parse playwright-ts tests with skip() & fixme() annotations', () => {
+  it('should parse playwright-ts tests with annotations', () => {
     source = fs.readFileSync('./example/playwright/annotations.ts').toString();
     const program = tsParser.parse(source, {
       sourceType: 'unambiguous',
@@ -119,10 +117,44 @@ describe('playwright parser', () => {
 
     expect(tests[1].code).to.include("test.skip('my skip test @first");
     expect(tests[1].name).to.equal('my skip test @first');
-    expect(tests[1].skipped).to.be.true;
 
     expect(tests[2].code).to.include("test.fixme('my fixme test @third");
     expect(tests[2].name).to.equal('my fixme test @third');
+  });
+
+  it('should parse playwright-js tests with skip() annotation for the description and test sections', () => {
+    source = fs.readFileSync('./example/playwright/skip.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = playwrightParser(ast, '', source);
+    // Condition 1: test.describe.skip => all inner tests skipped
+    expect(tests[0].skipped).to.be.true;
+    expect(tests[1].skipped).to.be.true;
     expect(tests[2].skipped).to.be.true;
+    // Condition 2: test.describe.skip + 1 inner skip => all inner tests skipped
+    expect(tests[3].skipped).to.be.true;
+    expect(tests[4].skipped).to.be.true;
+    expect(tests[5].skipped).to.be.true;
+    // Condition 3: 1 inner skip => only 1 skipped
+    expect(tests[6].skipped).to.be.false;
+    expect(tests[7].skipped).to.be.true;
+    expect(tests[8].skipped).to.be.false;
+  });
+
+  it('should parse playwright-js tests with fixme() annotation for the description and test sections', () => {
+    source = fs.readFileSync('./example/playwright/fixme.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = playwrightParser(ast, '', source);
+    // Condition 1: test.describe.fixme => all inner tests skipped
+    expect(tests[0].skipped).to.be.true;
+    expect(tests[1].skipped).to.be.true;
+    expect(tests[2].skipped).to.be.true;
+    // Condition 2: test.describe.fixme + 1 inner fixme + 1 inner skip => all inner tests skipped
+    expect(tests[3].skipped).to.be.true;
+    expect(tests[4].skipped).to.be.true;
+    expect(tests[5].skipped).to.be.true;
+    // Condition 3: 1 inner fixme => only 1 skipped
+    expect(tests[6].skipped).to.be.false;
+    expect(tests[7].skipped).to.be.true;
+    expect(tests[8].skipped).to.be.false;
   });
 });
