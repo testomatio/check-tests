@@ -1,7 +1,7 @@
 on: [pull_request]
 
 permissions:
-  pull-requests: write
+  pull-requests: write-all
 
 name: Tests
 concurrency:
