@@ -111,7 +111,7 @@ program
             create: opts.create || false,
             noempty: !opts.empty,
             branch,
-            'no-detach': process.env.TESTOMATIO_NO_DETACHED || !isPattern || !opts.detached,
+            'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached,
             structure: opts.keepStructure,
           }); // async call
 
