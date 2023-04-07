@@ -141,38 +141,24 @@ const parseSuite = suiteTitle => {
   return null;
 };
 
-const fixSuiteContent = (title, replace, content) => {
-  const importLines = content.split('\n').filter(line => line.match(LINE_START_REGEX));
-
-  if (importLines.length) {
-    const testLines = content.split('\n').filter(line => !line.match(LINE_START_REGEX));
-    const updatedTestLines = testLines.map(line => line.replace(title, replace));
-
-    return [...importLines, ...updatedTestLines].join('\n');
-  }
-
-  return content.replace(title, replace);
-};
-
 const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
 
-  // try to find string near keyword
-  for (const lineNumber in lines) {
-    const line = lines[lineNumber];
-    for (const keyword of SUITE_KEYWORDS) {
-      if (line.match(keyword)) {
-        for (let i = lineNumber; i < lines.length; i++) {
-          if (lines[i].includes(title)) {
-            lines[i] = line.replace(title, replace);
-            return lines.join('\n');
-          }
+  // try to find string near keyword & exclude import lines
+  const updatedLines = lines.map(line => {
+    if (!line.match(LINE_START_REGEX)) {
+      for (const keyword of SUITE_KEYWORDS) {
+        if (line.match(keyword) || line.includes(title)) {
+          return line.replace(title, replace);
         }
+        return line;
       }
     }
-  }
 
-  return fixSuiteContent(title, replace, content);
+    return line;
+  });
+
+  return [...updatedLines].join('\n');
 };
 
 module.exports = {

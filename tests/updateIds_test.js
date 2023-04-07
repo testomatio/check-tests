@@ -584,8 +584,11 @@ describe('update ids', () => {
           import { test, page } from '@playwright/test';
           import Example from '@src/Example';
 
+          const userId = 1;
+
           test.describe('Example', () => {          
             test('test case #1', async ({ page }) => {
+              const opts = {"a": 1, "b": 2};
 
               await test.step('[Check 1] Open page and confirm title', async () => {
                 await page.goto("https://todomvc.com/examples/vanilla-es6/");
@@ -623,8 +626,11 @@ describe('update ids', () => {
         node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
         virtual_dir: {
           'test.ts': `
+          const suite = "test";
+
           test.describe('Example', () => {          
             test('test case #1.1', async ({ page }) => {
+              let myVar = "msg";
 
               await test.step('[Check 1] Open page and confirm title', async () => {
                 await page.goto("https://todomvc.com/examples/vanilla-es6/");
@@ -669,7 +675,9 @@ describe('update ids', () => {
                 await page.goto("https://todomvc.com/examples/vanilla-es6/");
               });
             });
-          });`,
+          });
+          let msg = "some test case message";
+          `,
         },
       });
 
