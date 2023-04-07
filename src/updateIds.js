@@ -5,6 +5,7 @@ const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
 const TEST_ID_REGEX = /@T([\w\d]{8})/;
 const SUITE_ID_REGEX = /@S([\w\d]{8})/;
+const LINE_START_REGEX = /^[ \t]*(import|const|let|var)\s+.*$/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
@@ -25,9 +26,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     const currentSuiteId = parseSuite(suiteIndex);
     if (
-      currentSuiteId
-      && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
-      && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+      currentSuiteId &&
+      testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+      testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
     ) {
       debug(`   Previous ID detected in suite '${suiteIndex}'`);
       duplicateSuites++;
@@ -58,9 +59,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId &&
+        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
+        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
         debug(`   Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
@@ -140,6 +141,19 @@ const parseSuite = suiteTitle => {
   return null;
 };
 
+const fixSuiteContent = (title, replace, content) => {
+  const importLines = content.split('\n').filter(line => line.match(LINE_START_REGEX));
+
+  if (importLines.length) {
+    const testLines = content.split('\n').filter(line => !line.match(LINE_START_REGEX));
+    const updatedTestLines = testLines.map(line => line.replace(title, replace));
+
+    return [...importLines, ...updatedTestLines].join('\n');
+  }
+
+  return content.replace(title, replace);
+};
+
 const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
 
@@ -158,7 +172,7 @@ const replaceSuiteTitle = (title, replace, content) => {
     }
   }
 
-  return content.replace(title, replace);
+  return fixSuiteContent(title, replace, content);
 };
 
 module.exports = {

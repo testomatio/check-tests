@@ -561,4 +561,126 @@ describe('update ids', () => {
       expect(updatedFile).not.to.include('@T1d6a52b9');
     });
   });
+
+  describe('[Playwright examples] lines processing', () => {
+    it('[ts file]: the same import name as suite name', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'test case #1': '@T1d6a52b9',
+        },
+        suites: {
+          Example: '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          import { test, page } from '@playwright/test';
+          import Example from '@src/Example';
+
+          test.describe('Example', () => {          
+            test('test case #1', async ({ page }) => {
+
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+
+      expect(updatedFile).to.include("import Example from '@src/Example';");
+      expect(updatedFile).to.include("test.describe('Example @Sf3d245a7'");
+      expect(updatedFile).to.include('test case #1 @T1d6a52b9');
+    });
+
+    it('[ts file]: test file without imports should update only suite & test name', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'test case #1.1': '@T1d6a52b911',
+        },
+        suites: {
+          Example: '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          test.describe('Example', () => {          
+            test('test case #1.1', async ({ page }) => {
+
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+
+      expect(updatedFile).to.include("test.describe('Example @Sf3d245a7'");
+      expect(updatedFile).to.include('test case #1.1 @T1d6a52b911');
+    });
+
+    it('[js file]: the same require name as suite name', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'test case #2': '@T1d6a52b11',
+        },
+        suites: {
+          Example1: '@Sf3d245a71',
+        },
+      };
+
+      mock({
+        virtual_dir: {
+          'test.js': `
+          const { test, expect } = require('@playwright/test');
+          const Example2 = require('@src/Example1');
+          var Example1 = require('@src/lib/Example2');
+
+          test.describe('Example1', () => {          
+            test('test case #2', async ({ page }) => {
+
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+      expect(updatedFile).to.include("var Example1 = require('@src/lib/Example2');");
+      expect(updatedFile).to.include("test.describe('Example1 @Sf3d245a71'");
+      expect(updatedFile).to.include('test case #2 @T1d6a52b11');
+    });
+  });
 });
