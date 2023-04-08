@@ -1,9 +1,13 @@
 on: [pull_request]
 
 permissions:
-  pull-requests: write
+  pull-requests: read
   issues: write
   discussions: write
+  id-token: write
+  contents: read
+  actions: read
+  security-events: write
 
 name: Tests
 concurrency:
