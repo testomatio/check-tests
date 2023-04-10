@@ -26,9 +26,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     const currentSuiteId = parseSuite(suiteIndex);
     if (
-      currentSuiteId &&
-      testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
-      testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+      currentSuiteId
+      && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
+      && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
     ) {
       debug(`   Previous ID detected in suite '${suiteIndex}'`);
       duplicateSuites++;
@@ -59,9 +59,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId &&
-        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
-        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId
+        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
+        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
         debug(`   Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
@@ -143,22 +143,21 @@ const parseSuite = suiteTitle => {
 
 const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
-
   // try to find string near keyword & exclude import lines
   const updatedLines = lines.map(line => {
-    if (!line.match(LINE_START_REGEX)) {
-      for (const keyword of SUITE_KEYWORDS) {
-        if (line.match(keyword) || line.includes(title)) {
-          return line.replace(title, replace);
-        }
-        return line;
-      }
-    }
+    // ignore lines with kewords
+    if (line.match(LINE_START_REGEX)) return line;
 
-    return line;
+    for (const keyword of SUITE_KEYWORDS) {
+      if (line.match(keyword) || line.includes(title)) {
+        return line.replace(title, replace);
+      }
+      
+      return line;
+    }
   });
 
-  return [...updatedLines].join('\n');
+  return updatedLines.join('\n');
 };
 
 module.exports = {

@@ -603,6 +603,7 @@ describe('update ids', () => {
 
       const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
 
+      expect(updatedFile).to.include("import { test, page } from '@playwright/test';");
       expect(updatedFile).to.include("import Example from '@src/Example';");
       expect(updatedFile).to.include("test.describe('Example @Sf3d245a7'");
       expect(updatedFile).to.include('test case #1 @T1d6a52b9');
