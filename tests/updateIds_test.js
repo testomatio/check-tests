@@ -385,6 +385,57 @@ describe('update ids', () => {
       expect(updatedFile).to.include('simple suite @Sf3d245a7');
     });
 
+    it('suite name from the new line', () => {
+      const analyzer = new Analyzer('cypress.io', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'simple suite#simple test': '@T1d6a52b9',
+        },
+        suites: {
+          'simple suite': '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          describe(
+            'simple suite', 
+            function () {
+            let ctx: TestBankAccountsCtx = {};
+          
+            beforeEach(function () {
+              cy.task("db:seed");
+            });
+          
+            it(
+              'simple test', 
+              function () {
+
+              const { id: userId } = ctx.authenticatedUser!;
+              cy.request("GET", \`\${apiBankAccounts}\`).then((response) => {
+                expect(response.status).to.eq(200);
+                expect(response.body.results[0].userId).to.eq(userId);
+              });
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts').toString();
+
+      expect(updatedFile).to.include('simple suite @Sf3d245a7');
+      expect(updatedFile).to.include("'simple test @T1d6a52b9',");
+      expect(updatedFile).to.include('cy.request("GET", `${apiBankAccounts}`).then((response) => {');
+    });
+
     it('supports typescript with types', () => {
       const analyzer = new Analyzer('cypress.io', 'virtual_dir');
       analyzer.withTypeScript();
@@ -690,6 +741,49 @@ describe('update ids', () => {
       expect(updatedFile).to.include("var Example1 = require('@src/lib/Example2');");
       expect(updatedFile).to.include("test.describe('Example1 @Sf3d245a71'");
       expect(updatedFile).to.include('test case #2 @T1d6a52b11');
+    });
+
+    it('[js file]: suite name as a new line', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'test case #3': '@T1d6a52b119',
+        },
+        suites: {
+          'suite name': '@Sf3d245a719',
+        },
+      };
+
+      mock({
+        virtual_dir: {
+          'test.js': `
+          const { test, expect } = require('@playwright/test');
+
+          test.describe(
+            'suite name',
+            () => {          
+            test('test case #3', async ({ page }) => {
+
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+          });
+          `,
+        },
+      });
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+
+      expect(updatedFile).to.include("const { test, expect } = require('@playwright/test');");
+      expect(updatedFile).to.include('test.describe(');
+      expect(updatedFile).to.include("'suite name @Sf3d245a719',");
+      expect(updatedFile).to.include("test('test case #3 @T1d6a52b119', async ({ page }) => {");
     });
   });
 });
