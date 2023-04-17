@@ -5,6 +5,7 @@ const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
 const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
 const TEST_ID_REGEX = /@T([\w\d]{8})/;
 const SUITE_ID_REGEX = /@S([\w\d]{8})/;
+const LINE_START_REGEX = /^[ \t]*(import|const|let|var)\s+.*$/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
@@ -142,23 +143,21 @@ const parseSuite = suiteTitle => {
 
 const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
+  // try to find string near keyword & exclude import lines
+  const updatedLines = lines.map(line => {
+    // ignore lines with kewords
+    if (line.match(LINE_START_REGEX)) return line;
 
-  // try to find string near keyword
-  for (const lineNumber in lines) {
-    const line = lines[lineNumber];
     for (const keyword of SUITE_KEYWORDS) {
-      if (line.match(keyword)) {
-        for (let i = lineNumber; i < lines.length; i++) {
-          if (lines[i].includes(title)) {
-            lines[i] = line.replace(title, replace);
-            return lines.join('\n');
-          }
-        }
+      if (line.match(keyword) || line.includes(title)) {
+        return line.replace(title, replace);
       }
+      
+      return line;
     }
-  }
+  });
 
-  return content.replace(title, replace);
+  return updatedLines.join('\n');
 };
 
 module.exports = {
