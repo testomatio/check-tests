@@ -6,6 +6,10 @@ const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
 const TEST_ID_REGEX = /@T([\w\d]{8})/;
 const SUITE_ID_REGEX = /@S([\w\d]{8})/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
+const SUITE_KEYWORDS_SPECIAL = ['describe', 'context', 'suite', 'Feature'].map(
+  k => new RegExp(`^(?=.*?\\b${k}\\b).*`, 'gm'),
+);
+const LINE_START_REGEX = /^[ \t]*(import|const|let|var)\s+.*$/;
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
@@ -72,9 +76,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId &&
+        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
+        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
         debug(`   Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
@@ -115,7 +119,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
     const file = `${workDir}/${testArr[0].file}`;
 
     let fileContent = getFileContent(file);
-    
+
     for (const suiteGroup of testArr) {
       fileSuites.push(...suiteGroup.suites);
     }
@@ -181,17 +185,29 @@ const parseSuite = suiteTitle => {
 
 const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
-
   // try to find string near keyword
   for (const lineNumber in lines) {
+    if (lines[lineNumber].match(LINE_START_REGEX)) continue;
+
     const line = lines[lineNumber];
+    // first condition
+    // TODO: need refactor
     for (const keyword of SUITE_KEYWORDS) {
-      if (line.match(keyword)) {
+      if (line.match(keyword) && line.includes(title)) {
         for (let i = lineNumber; i < lines.length; i++) {
-          if (lines[i].includes(title)) {
-            lines[i] = line.replace(title, replace);
-            return lines.join('\n');
-          }
+          lines[i] = line.replace(title, replace);
+
+          return lines.join('\n');
+        }
+      }
+    }
+    // second condition
+    for (const keyword of SUITE_KEYWORDS_SPECIAL) {
+      if (line.match(keyword) && line.includes(title)) {
+        for (let i = lineNumber; i < lines.length; i++) {
+          lines[i] = line.replace(title, replace);
+
+          return lines.join('\n');
         }
       }
     }

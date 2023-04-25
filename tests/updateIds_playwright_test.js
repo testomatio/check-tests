@@ -6,9 +6,9 @@ const fs = require('fs');
 const { updateIds, cleanIds } = require('../src/updateIds');
 const Analyzer = require('../src/analyzer');
 
-describe('update ids tests(part 2)', () => {
+describe('update ids tests(playwright adapter)', () => {
   afterEach(() => mock.restore());
- 
+
   describe('[Playwright examples] lines processing', () => {
     it('[ts file]: the same import name as suite name', () => {
       const analyzer = new Analyzer('playwright', 'virtual_dir');
@@ -134,6 +134,8 @@ describe('update ids tests(part 2)', () => {
       updateIds(analyzer.rawTests, idMap, 'virtual_dir');
 
       const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+
+      expect(updatedFile).to.include("const Example2 = require('@src/Example1')");
       expect(updatedFile).to.include("var Example1 = require('@src/lib/Example2');");
       expect(updatedFile).to.include("test.describe('Example1 @Sf3d245a71'");
       expect(updatedFile).to.include('test case #2 @T1d6a52b11');
@@ -195,7 +197,7 @@ describe('update ids tests(part 2)', () => {
         },
         suites: {
           'main suite 0': '@Sf3245a70',
-          'inner suite1': '@Sf3246a71',
+          'inner suite 1': '@Sf3246a71',
         },
       };
 
@@ -207,7 +209,7 @@ describe('update ids tests(part 2)', () => {
           const URL = "https://todomvc.com/examples/vanilla-es6/";
 
           test.describe('main suite 0', () => {
-            test.describe('inner suite1', () => {
+            test.describe('inner suite 1', () => {
               test.beforeAll(async () => {
                 console.log("Before All");
               });
@@ -227,10 +229,10 @@ describe('update ids tests(part 2)', () => {
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
 
       const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
-      
+
       //suite titles updates
       expect(updatedFile).to.include("test.describe('main suite 0 @Sf3245a70',");
-      expect(updatedFile).to.include("test.describe('inner suite1 @Sf3246a71',");
+      expect(updatedFile).to.include("test.describe('inner suite 1 @Sf3246a71',");
       //test titles updates
       expect(updatedFile).to.include("test('test case_1 @T16a52b91',");
     });
@@ -377,9 +379,9 @@ describe('update ids tests(part 2)', () => {
 
       expect(updatedFile).to.include("test.describe('main suite'");
       expect(updatedFile).to.include("test.describe('inner suite'");
-      expect(updatedFile).not.to.include("@Sf3245a70");
-      expect(updatedFile).not.to.include("@Sf3246a71");
-      expect(updatedFile).not.to.include("@T16a52b91");
+      expect(updatedFile).not.to.include('@Sf3245a70');
+      expect(updatedFile).not.to.include('@Sf3246a71');
+      expect(updatedFile).not.to.include('@T16a52b91');
     });
   });
 });
