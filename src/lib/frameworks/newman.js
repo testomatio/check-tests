@@ -8,6 +8,7 @@ module.exports = (ast = '', file = '', source = '') => {
   // item could be request or folder
   const items = collection.item;
 
+  // "request" entity in postman/newman collection == "test" entity in testomatio
   const requests = [];
   /**
    *
@@ -35,8 +36,8 @@ module.exports = (ast = '', file = '', source = '') => {
         continue;
       }
 
-      // if item including other items > it is folder;
-      // if item.length = 0, then folder does contain nothing (is empty)
+      // if item including other items - it is folder;
+      // if item.length=0 - folder does contain nothing (is empty)
       if (item.item?.length) {
         suites.push(item.name);
         getRequestsFromCollectionItems(item.item, suites);
