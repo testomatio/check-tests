@@ -134,6 +134,8 @@ program
               try {
                 const idMap = await reporter.getIds();
                 const files = updateIds(analyzer.rawTests, idMap, workDir, opts);
+                // const files = updateIds(analyzer.rawTests, idMap, workDir, {...opts, framework});
+
                 console.log(`    ${files.length} files updated.`);
               } catch (err) {
                 console.log(' ✖️  Error in updating test ids', err);

@@ -25,6 +25,9 @@ class Analyzer {
       case 'jestio':
         this.frameworkParser = require('./lib/frameworks/jest');
         break;
+      case 'newman':
+        this.frameworkParser = require('./lib/frameworks/newman');
+        break;
       case 'playwright':
         this.frameworkParser = require('./lib/frameworks/playwright');
         break;
