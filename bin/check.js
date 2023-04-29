@@ -42,8 +42,13 @@ program
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .action(async (framework, files, opts) => {
+    console.log(' - - - - -- - -- - - - - -- - -- - - - - -');
+    console.log('+++++++ FILES\n', files);
+    opts.framework = framework;
+    opts.files = files;
     const isPattern = checkPattern(files);
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
+
     try {
       if (opts.typescript) {
         try {
@@ -85,7 +90,7 @@ program
         decorator.fileLink = opts.url;
       }
       const skipped = decorator.getSkippedTests();
-      let list = analyzer.getDecorator().getTextList();
+      let list = analyzer.getDecorator().getTextList({ framework });
       list = list.map(l => (l === '-----' ? chalk.bold('_______________________\n') : l)).join('\n');
       console.log(chalk.bold.white(`\nSHOWING ${framework.toUpperCase()} TESTS FROM ${files}:`));
       console.log(list);

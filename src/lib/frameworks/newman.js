@@ -31,7 +31,15 @@ module.exports = (ast = '', file = '', source = '') => {
           code += '\n';
         }
 
-        requests.push({ code, name: item.name, suites });
+        requests.push({
+          code, _file: file, name: item.name, suites,
+        });
+        /*
+          "file" property should not be passed,
+          because all newman tests are located in one json file which is collection;
+          passing "file" prop will break the suites tree
+        */
+
         // item is request, stop iterating deeper; (iteration continues only if item is folder)
         continue;
       }

@@ -1,20 +1,12 @@
 on: [pull_request]
 
-permissions:
-  pull-requests: read
-  issues: write
-  discussions: write
-  id-token: write
-  contents: read
-  actions: read
-  security-events: write
-
 name: Tests
 concurrency:
   group: check-tests-main-${{github.event.pull_request.number}}
   cancel-in-progress: true
 jobs:
   test:
+    permissions: write-all
     runs-on: ubuntu-latest
     name: Check Tests
     steps:
