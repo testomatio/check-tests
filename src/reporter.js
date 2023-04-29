@@ -39,9 +39,6 @@ class Reporter {
 
         resp.on('data', chunk => {
           message += chunk.toString();
-          console.log(' * * * ** * *** * * * * ');
-          console.log(message);
-          console.log(' * * * ** * *** * * * * ');
         });
 
         resp.on('aborted', () => {

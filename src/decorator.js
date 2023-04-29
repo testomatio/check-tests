@@ -87,7 +87,7 @@ class Decorator {
     return list;
   }
 
-  getTextList(opts = {}) {
+  getTextList() {
     const list = [];
     let suites = [];
 

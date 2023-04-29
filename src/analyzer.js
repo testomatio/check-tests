@@ -13,7 +13,6 @@ class Analyzer {
     this.plugins = [];
     this.presets = [];
     this.rawTests = [];
-    this.framework = framework.toLowerCase();
 
     parser = require('@babel/parser');
 

@@ -8,15 +8,6 @@ const SUITE_ID_REGEX = /@S([\w\d]{8})/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
-  debug('testData', testData);
-  // debug('workDir', workDir);
-  // debug('testomatioMap', testomatioMap);
-  // debug('opts', opts);
-
-  if (opts?.framework === 'newman') {
-    return updateIdsForNewmanCollection(testData, testomatioMap, workDir, opts);
-  }
-
   const files = [];
   let duplicateTests = 0;
   let duplicateSuites = 0;
@@ -28,16 +19,13 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
-    // ! why 0 ?
     const suite = testArr[0].suites[0] || '';
     const suiteIndex = suite;
     const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
-    // ! ?
     const currentSuiteId = parseSuite(suiteIndex);
     if (
       currentSuiteId
-      // ! testomatioMap
       && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
       && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
     ) {
@@ -172,100 +160,6 @@ const replaceSuiteTitle = (title, replace, content) => {
 
   return content.replace(title, replace);
 };
-
-function updateIdsForNewmanCollection(testData, testomatioMap, workDir, opts) {
-  if (!testData.length) return;
-  /* each test(request) has "_file" prop and it is the same for each test;
-    thus it is enoth to get the 1st only
-  */
-
-  const files = [];
-
-  for (const testArr of testData) {
-    debug('- - - - - ');
-    debug('testArr', testArr);
-    if (!testArr.length) continue;
-
-    const file = `${workDir}/${testArr[0]._file}`;
-    debug('- - - -- FILE - - -- - ', file);
-    debug('Updating file: ', file);
-    const fileContent = fs.readFileSync(file, { encoding: 'utf8' });
-    const collection = JSON.parse(fileContent);
-
-    const suite = testArr[0].suites[0] || '';
-    const suiteId = suite;
-    const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
-
-    const currentSuiteId = parseSuite(suiteId);
-    if (
-      currentSuiteId
-      && testomatioMap.suites[suiteId] !== `@S${currentSuiteId}`
-      && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
-    ) {
-      debug(`   Previous ID detected in suite '${suiteId}'`);
-      continue;
-    }
-
-    if (testomatioMap.suites[suiteId] && !suite.includes(testomatioMap.suites[suiteId])) {
-      // fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteId]}`, fileContent);
-      // fs.writeFileSync(file, fileContent);
-    } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-      // fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-      // fs.writeFileSync(file, fileContent);
-    }
-
-    for (const test of testArr) {
-      let testIndex = `${test.suites[0] || ''}#${test.name}`;
-      debug('    test  ', testIndex);
-
-      let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
-        TAG_REGEX,
-        '',
-      )}`.trim();
-
-      if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
-        testIndex = test.name; // if no suite title provided
-        testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
-      }
-
-      const currentTestId = parseTest(testIndex);
-      if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
-      ) {
-        debug(`   Previous ID detected in test '${testIndex}'`);
-        continue;
-      }
-
-      if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
-        // fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
-        // fs.writeFileSync(file, fileContent);
-        debug(`updating ID to ${testomatioMap.tests[testIndex]}`);
-        delete testomatioMap.tests[testIndex];
-      } else if (testomatioMap.tests[testWithoutTags] && !test.name.includes(testomatioMap.tests[testWithoutTags])) {
-        // fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testWithoutTags]}`);
-        // fs.writeFileSync(file, fileContent);
-        debug(`updating ID to ${testomatioMap.tests[testWithoutTags]}`);
-        delete testomatioMap.tests[testWithoutTags];
-      }
-    }
-    files.push(file);
-    debug('FILES', files);
-
-    // const fileContent = fs.readFileSync(testData[0]._file, { encoding: 'utf8' });
-    // let collection = {};
-    // try {
-    //   collection = JSON.parse(fileContent);
-    // } catch (e) {
-    //   console.error(`Can't parse newman collection ${file}\n`, e);
-    // }
-    // debug('Collection', collection);
-    debug('Collection', fileContent);
-
-    return files;
-  }
-}
 
 module.exports = {
   updateIds,
