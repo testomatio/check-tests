@@ -6,6 +6,10 @@ const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
 const TEST_ID_REGEX = /@T([\w\d]{8})/;
 const SUITE_ID_REGEX = /@S([\w\d]{8})/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
+const SUITE_KEYWORDS_SPECIAL = ['describe', 'context', 'suite', 'Feature'].map(
+  k => new RegExp(`^(?=.*?\\b${k}\\b).*`, 'gm'),
+);
+const LINE_START_REGEX = /^[ \t]*(import|const|let|var)\s+.*$/;
 
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
@@ -25,9 +29,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     const currentSuiteId = parseSuite(suiteIndex);
     if (
-      currentSuiteId
-      && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
-      && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+      currentSuiteId &&
+      testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+      testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
     ) {
       debug(`   Previous ID detected in suite '${suiteIndex}'`);
       duplicateSuites++;
@@ -58,9 +62,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId &&
+        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
+        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
         debug(`   Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
@@ -145,13 +149,18 @@ const replaceSuiteTitle = (title, replace, content) => {
 
   // try to find string near keyword
   for (const lineNumber in lines) {
+    if (lines[lineNumber].match(LINE_START_REGEX)) continue;
+
     const line = lines[lineNumber];
-    for (const keyword of SUITE_KEYWORDS) {
-      if (line.match(keyword)) {
-        for (let i = lineNumber; i < lines.length; i++) {
-          if (lines[i].includes(title)) {
-            lines[i] = line.replace(title, replace);
-            return lines.join('\n');
+
+    if (line.includes(title)) {
+      for (const keyword of SUITE_KEYWORDS.concat(SUITE_KEYWORDS_SPECIAL)) {
+        if (line.match(keyword)) {
+          for (let i = lineNumber; i < lines.length; i++) {
+            if (lines[i].includes(title)) {
+              lines[i] = line.replace(title, replace);
+              return lines.join('\n');
+            }
           }
         }
       }
