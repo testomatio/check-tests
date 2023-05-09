@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.8.13-beta.1.5.80",
+  "version": "0.8.12",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "keywords": [
     "testing",
