@@ -9,6 +9,96 @@ const Analyzer = require('../src/analyzer');
 describe('update ids tests(playwright adapter)', () => {
   afterEach(() => mock.restore());
 
+  describe('[Playwright examples] includes/no includes main suite', () => {
+    it('[ts file]: test file includes suite with tests', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'basic test case #1.1': '@T1d52b111',
+          'basic test case #1.2': '@T1d52b112',
+        },
+        suites: {
+          'Suite main': '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          let basic = 'test';
+
+          test.describe('Suite main', () => {          
+            test('basic test case #1.1', async ({ page }) => {
+              let myVar = "msg";
+
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+            test('basic test case #1.2', async ({ page }) => {
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+
+      expect(updatedFile).to.include("test.describe('Suite main @Sf3d245a7', ()");
+      expect(updatedFile).to.include("test('basic test case #1.1 @T1d52b111'");
+      expect(updatedFile).to.include("test('basic test case #1.2 @T1d52b112'");
+    });
+
+    it('[ts file]: test file does not include suite name, only tests', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'basic test case #1.1': '@T1d52b111',
+          'basic test case #1.2': '@T1d52b112',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `         
+            test('basic test case #1.1', async ({ page }) => {
+              let myVar = "msg";
+
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+            test('basic test case #1.2', async ({ page }) => {
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+
+      expect(updatedFile).to.include("test('basic test case #1.1 @T1d52b111'");
+      expect(updatedFile).to.include("test('basic test case #1.2 @T1d52b112'");
+    });
+  });
+
   describe('[Playwright examples] lines processing', () => {
     it('[ts file]: the same import name as suite name', () => {
       const analyzer = new Analyzer('playwright', 'virtual_dir');
@@ -213,15 +303,15 @@ describe('update ids tests(playwright adapter)', () => {
 
       analyzer.analyze('test.ts');
 
-      cleanIds(analyzer.rawTests, {}, 'virtual_dir', { 
+      cleanIds(analyzer.rawTests, {}, 'virtual_dir', {
         dangerous: true,
-        typescript: true
+        typescript: true,
       });
 
       const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
       // suite section
       expect(updatedFile).to.include('test.describe("basic suite", function () {');
-      expect(updatedFile).not.to.include('@Sf3d245a7');  
+      expect(updatedFile).not.to.include('@Sf3d245a7');
       // test setion
       expect(updatedFile).to.include('test("basic test", async ({ page }) => {');
       expect(updatedFile).not.to.include('@T1d6a52b9');
@@ -249,9 +339,9 @@ describe('update ids tests(playwright adapter)', () => {
 
       analyzer.analyze('test.ts');
 
-      cleanIds(analyzer.rawTests, {}, 'virtual_dir', { 
+      cleanIds(analyzer.rawTests, {}, 'virtual_dir', {
         dangerous: true,
-        typescript: true
+        typescript: true,
       });
 
       const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
