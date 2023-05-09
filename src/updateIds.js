@@ -24,6 +24,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     const suite = testArr[0].suites[0] || '';
+
+    if (!suite) continue;
+
     const suiteIndex = suite;
     const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
@@ -106,14 +109,21 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     const suite = testArr[0].suites[0];
-    const suiteId = `@S${parseSuite(suite)}`;
-    if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
-      const newTitle = suite.slice().replace(suiteId, '').trim();
-      fileContent = fileContent.replace(suite, newTitle);
+
+    if (suite) {
+      const suiteId = `@S${parseSuite(suite)}`;
+      debug('  clenaing suite: ', suite);
+
+      if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
+        const newTitle = suite.slice().replace(suiteId, '').trim();
+        fileContent = fileContent.replace(suite, newTitle);
+      }
     }
+
     for (const test of testArr) {
       const testId = `@T${parseTest(test.name)}`;
       debug('  clenaing test: ', test.name);
+
       if (testIds.includes(testId) || (dangerous && testId)) {
         fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
       }

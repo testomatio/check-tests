@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const path = require('path');
 const mock = require('mock-fs');
 const fs = require('fs');
-const { updateIds } = require('../src/updateIds');
+const { updateIds, cleanIds } = require('../src/updateIds');
 const Analyzer = require('../src/analyzer');
 
 describe('update ids tests(playwright adapter)', () => {
@@ -185,6 +185,79 @@ describe('update ids tests(playwright adapter)', () => {
       expect(updatedFile).to.include('test.describe(');
       expect(updatedFile).to.include("'suite name @Sf3d245a719',");
       expect(updatedFile).to.include("test('test case #3 @T1d6a52b119', async ({ page }) => {");
+    });
+  });
+
+  describe('[Playwright examples] clean-ids for the --typescript mode', () => {
+    it('can remove ids from the file with suite', () => {
+      let analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const mockConfig = {
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          import { test, expect } from '@playwright/test';
+          
+          test.describe("basic suite @Sf3d245a7", function () {
+            test("basic test @T1d6a52b9", async ({ page }) => {
+              await page.goto('https://todomvc.com/examples/vanilla-es6/');
+
+              const inputBox = page.locator('input.new-todo');
+            });
+          })`,
+        },
+      };
+      mock(mockConfig);
+
+      analyzer.analyze('test.ts');
+
+      cleanIds(analyzer.rawTests, {}, 'virtual_dir', { 
+        dangerous: true,
+        typescript: true
+      });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+      // suite section
+      expect(updatedFile).to.include('test.describe("basic suite", function () {');
+      expect(updatedFile).not.to.include('@Sf3d245a7');  
+      // test setion
+      expect(updatedFile).to.include('test("basic test", async ({ page }) => {');
+      expect(updatedFile).not.to.include('@T1d6a52b9');
+    });
+
+    it('can remove ids if no suites in the file', () => {
+      let analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const mockConfig = {
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          import { test, expect } from '@playwright/test';
+
+          test("basic test @T1d6a52b9", async ({ page }) => {
+            await page.goto('https://todomvc.com/examples/vanilla-es6/');
+
+            const inputBox = page.locator('input.new-todo');
+          });`,
+        },
+      };
+      mock(mockConfig);
+
+      analyzer.analyze('test.ts');
+
+      cleanIds(analyzer.rawTests, {}, 'virtual_dir', { 
+        dangerous: true,
+        typescript: true
+      });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+      // test setion
+      expect(updatedFile).to.include('test("basic test", async ({ page })');
+      expect(updatedFile).not.to.include('@T1d6a52b9');
     });
   });
 });
