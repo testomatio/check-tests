@@ -2,9 +2,8 @@ const debug = require('debug')('testomatio:update-ids-newman');
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
-
-const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
-const TEST_ID_REGEX = /@T([\w\d]{8})/;
+const { TAG_REGEX } = require('./constants');
+const { parseTest } = require('./helpers');
 
 /**
  *
@@ -112,7 +111,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
             testIndexWithoutTags = item.name.replace(TAG_REGEX, '').trim();
           }
 
-          const currentTestId = (testIndex.match(TEST_ID_REGEX) && testIndex.match(TEST_ID_REGEX)[1]) || null;
+          const currentTestId = parseTest(testIndex);
           debug(`testIndex:', ${testIndex}
           testIndexWithoutTags:', ${testIndexWithoutTags}
           currentTestId:', ${currentTestId}`);
@@ -181,6 +180,68 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
       Clean previously set Test IDs to override them');
       Run script with DEBUG="testomatio:*" flag to get more info of affected tests`);
     }
+  }
+  return updatedFiles;
+};
+
+exports.cleanIdsNewman = function (testData, testomatioMap, workDir, opts) {
+  const dangerous = opts.dangerous;
+
+  const patternWithFullPath = path.join(path.resolve(workDir), opts.pattern);
+  const files = glob.sync(patternWithFullPath);
+  debug('Files:', files);
+
+  // debug('Testomatio map:\n', testomatioMap);
+  const updatedFiles = [];
+
+  // each file represents collection
+  for (const file of files) {
+    debug(`Cleaning ids in file ${file}`);
+    const fileContent = fs.readFileSync(file, { encoding: 'utf8' });
+
+    let collection = {};
+    try {
+      collection = JSON.parse(fileContent);
+    } catch (e) {
+      console.warn(`Cannot parse file ${file}. Ignoring.`);
+      continue;
+    }
+
+    const items = collection.item;
+    const testIdsFromMap = testomatioMap.tests ? Object.values(testomatioMap.tests) : [];
+
+    /**
+     *
+     * @param {*} items collection items (could be folder or request)
+     * @returns
+     */
+    /* eslint-disable */
+    function iterateThroughCollectionItems(items) {
+      for (const item of items) {
+        if (item.request) {
+          const testId = `@T${parseTest(item.name)}`;
+          if (item.name.includes(testId) || (dangerous && testIdsFromMap)) {
+            item.name = item.name.replace(testId, '').trim();
+            debug(`Remove test id ${testId}`);
+          }
+
+          // item is request, stop iterating deeper
+          continue;
+        }
+
+        // if item includes other items - it is folder;
+        // if item.item.length=0, folder does contain nothing (is empty)
+        if (item.item?.length) {
+          iterateThroughCollectionItems(item.item);
+        }
+      }
+    }
+
+    iterateThroughCollectionItems(items);
+
+    // update file
+    fs.writeFileSync(file, JSON.stringify(collection, null, 2));
+    updatedFiles.push(file);
   }
   return updatedFiles;
 };

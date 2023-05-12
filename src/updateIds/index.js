@@ -1,11 +1,10 @@
 const fs = require('fs');
 const debug = require('debug')('testomatio:update-ids');
-const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
-const { updateIdsForNewman } = require('./updateIds-newman');
+const { replaceAtPoint, cleanAtPoint } = require('../lib/utils');
+const { updateIdsForNewman, cleanIdsNewman } = require('./updateIds-newman');
+const { TAG_REGEX } = require('./constants');
+const { parseTest, parseSuite } = require('./helpers');
 
-const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
-const TEST_ID_REGEX = /@T([\w\d]{8})/;
-const SUITE_ID_REGEX = /@S([\w\d]{8})/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
 
 /**
@@ -42,9 +41,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     const currentSuiteId = parseSuite(suiteIndex);
     if (
-      currentSuiteId
-      && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
-      && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+      currentSuiteId &&
+      testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+      testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
     ) {
       debug(`   Previous ID detected in suite '${suiteIndex}'`);
       duplicateSuites++;
@@ -75,9 +74,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId &&
+        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
+        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
         debug(`Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
@@ -107,6 +106,10 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
 function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: false }) {
   const dangerous = opts.dangerous;
+
+  if (opts.framework === 'newman') {
+    return cleanIdsNewman(testData, testomatioMap, workDir, opts);
+  }
 
   const testIds = testomatioMap.tests ? Object.values(testomatioMap.tests) : [];
   const suiteIds = testomatioMap.suites ? Object.values(testomatioMap.suites) : [];
@@ -138,24 +141,6 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
   }
   return files;
 }
-
-const parseTest = testTitle => {
-  const captures = testTitle.match(TEST_ID_REGEX);
-  if (captures) {
-    return captures[1];
-  }
-
-  return null;
-};
-
-const parseSuite = suiteTitle => {
-  const captures = suiteTitle.match(SUITE_ID_REGEX);
-  if (captures) {
-    return captures[1];
-  }
-
-  return null;
-};
 
 const replaceSuiteTitle = (title, replace, content) => {
   const lines = content.split('\n');
