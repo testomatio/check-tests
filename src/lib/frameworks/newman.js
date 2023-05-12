@@ -40,7 +40,7 @@ module.exports = (ast = '', file = '', source = '') => {
           name: item.name,
           suites,
         });
-        // item is request, stop iterating deeper; (iteration continues only if item is folder)
+        // item is request, stop iterating deeper;
         continue;
       }
 
