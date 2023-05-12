@@ -1,16 +1,33 @@
 const fs = require('fs');
 const debug = require('debug')('testomatio:update-ids');
 const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
+const { updateIdsForNewman } = require('./updateIds-newman');
 
 const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
 const TEST_ID_REGEX = /@T([\w\d]{8})/;
 const SUITE_ID_REGEX = /@S([\w\d]{8})/;
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
 
+/**
+ *
+ * @param {*} testData array of arrays of test data;
+ * the main array represents test files, nested arrays includes test data for each test
+ * @param {*} testomatioMap mapping of test ids received from testomatio server
+ * @param {*} workDir
+ * @param {*} opts
+ * @returns
+ */
 function updateIds(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
+
+  if (opts.framework === 'newman') {
+    return updateIdsForNewman(testData, testomatioMap, workDir, opts);
+  }
+
   let duplicateTests = 0;
   let duplicateSuites = 0;
+
+  debug('Test data:', testData);
 
   for (const testArr of testData) {
     if (!testArr.length) continue;
@@ -25,9 +42,9 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     const currentSuiteId = parseSuite(suiteIndex);
     if (
-      currentSuiteId
-      && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
-      && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+      currentSuiteId &&
+      testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+      testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
     ) {
       debug(`   Previous ID detected in suite '${suiteIndex}'`);
       duplicateSuites++;
@@ -44,7 +61,7 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     for (const test of testArr) {
       let testIndex = `${test.suites[0] || ''}#${test.name}`;
-      debug('    test  ', testIndex);
+      debug('testIndex', testIndex);
 
       let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
         TAG_REGEX,
@@ -58,11 +75,11 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId &&
+        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
+        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
-        debug(`   Previous ID detected in test '${testIndex}'`);
+        debug(`Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
         continue;
       }

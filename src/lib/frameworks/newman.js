@@ -21,17 +21,25 @@ module.exports = (ast = '', file = '', source = '') => {
       if (item.request) {
         // get request scripts code
         let code = '';
-        for (const event of item.event) {
-          // script could be empty
-          if (!event.script?.exec?.length || !event.script?.exec[0]) continue;
 
-          const scriptType = event.listen;
-          code += `> ${scriptType}\n`;
-          code += event.script?.exec.join('\n');
-          code += '\n';
+        if (item.event && item.event.length) {
+          for (const event of item.event) {
+            // script could be empty
+            if (!event.script?.exec?.length || !event.script?.exec[0]) continue;
+
+            const scriptType = event.listen;
+            code += `> ${scriptType}\n`;
+            code += event.script?.exec.join('\n');
+            code += '\n';
+          }
         }
 
-        requests.push({ code, name: item.name, suites });
+        requests.push({
+          code,
+          _file: file,
+          name: item.name,
+          suites,
+        });
         // item is request, stop iterating deeper; (iteration continues only if item is folder)
         continue;
       }
