@@ -422,6 +422,58 @@ describe('update ids', () => {
       expect(updatedFile).to.include('const user: string = "user";');
       expect(updatedFile).to.include('ctx: TestBankAccountsCtx = {}');
     });
+
+    it('should not reformat the Array code with --typescript option', () => {
+      const analyzer = new Analyzer('jest', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'simple test': '@T1d6a52b9',
+        },
+        suites: {
+          'simple suite': '@Sf3d245a1',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+        const isEven = (n: number): boolean => n % 2 === 0;
+    
+        const cases: Array<[number, boolean]> = [
+          [10, true],
+          [11, true],
+          [12, false]
+        ];
+    
+        describe("simple suite", function () {
+        
+          it("simple test", function () {
+          cases.forEach(el => {
+            expect(isEven(el[0])).toBe(el[1]);
+          });
+          });
+        });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts').toString();
+
+      expect(updatedFile).to.include('const cases: Array<[number, boolean]> = [\n');
+      expect(updatedFile).to.include('[10, true],\n');
+      expect(updatedFile).to.include('[11, true],\n');
+      expect(updatedFile).to.include('[12, false]\n');
+      expect(updatedFile).to.include('];\n');
+
+      expect(updatedFile).to.include('simple suite @Sf3d245a1');
+      expect(updatedFile).to.include('simple test @T1d6a52b9');
+    });
   });
 
   describe('clean-ids', () => {

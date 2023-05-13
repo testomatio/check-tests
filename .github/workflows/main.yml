@@ -1,6 +1,18 @@
-on: [push, pull_request]
+on: [pull_request]
 
-name: Code Analysis
+permissions:
+  pull-requests: read
+  issues: write
+  discussions: write
+  id-token: write
+  contents: read
+  actions: read
+  security-events: write
+
+name: Tests
+concurrency:
+  group: check-tests-main-${{github.event.pull_request.number}}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -10,9 +22,12 @@ jobs:
       - name: Setup Node.js for use with actions
         uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: '14'
       - run: npm install
       - run: npm test
+        env:
+          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: 1
       - uses: testomatio/check-tests@stable
         with:
           framework: mocha
@@ -23,19 +38,3 @@ jobs:
           github-pat: ${{ secrets.GH_PAT }}
           enable-documentation: true
           documentation-branch: 'master'
-  action:
-    needs: test
-    runs-on: ubuntu-latest
-    name: Publish GitHub Action
-    steps:
-      - uses: actions/checkout@v1
-      - name: Setup Node.js for use with actions
-        uses: actions/setup-node@v2
-        with:
-          node-version: '12'
-      - run: npm install
-      - run: npm run build
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          push_options: '--force'
-          file_pattern: dist/**/*.js

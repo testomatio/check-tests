@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const Analyzer = require('../src/analyzer');
@@ -110,7 +111,7 @@ program
             create: opts.create || false,
             noempty: !opts.empty,
             branch,
-            'no-detach': !isPattern || !opts.detached,
+            'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached,
             structure: opts.keepStructure,
           }); // async call
 
