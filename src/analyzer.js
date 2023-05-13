@@ -6,6 +6,10 @@ const Decorator = require('./decorator');
 
 let parser;
 
+/**
+ * @typedef {import('../types').Test} TestData
+ */
+
 class Analyzer {
   constructor(framework, workDir = '.') {
     this.workDir = workDir;
@@ -126,6 +130,11 @@ class Analyzer {
       if (process.env.TESTOMATIO_PREPEND_DIR) {
         fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName);
       }
+
+      /**
+       * Assigns the array of TestData objects to the `tests` variable.
+       * @type {TestData[]}
+       */
       const testsData = this.frameworkParser(ast, fileName, source);
       debug(testsData);
       this.rawTests.push(testsData);

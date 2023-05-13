@@ -1,0 +1,95 @@
+paths:
+  /api/load:
+    post:
+      summary: Load tests
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Import tests payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportTests'
+      responses:
+        '200':
+          description: Tests successfully loaded
+
+  /api/test_data:
+    get:
+      summary: Get test data
+      description: Returns test data for the specified API key
+      parameters:
+        - in: query
+          name: api_key
+          description: API key for authentication
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tests:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: A map of test names to their corresponding IDs
+                  suites:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: A map of suite names to their corresponding IDs
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Test:
+      type: object
+      properties:
+        name:
+          type: string
+        rawName:
+          type: string
+        suites:
+          type: array
+          items:
+            type: string
+        line:
+          type: integer
+        code:
+          type: string
+        skipped:
+          type: boolean
+        file:
+          type: string
+      required:
+        - name
+        - suites
+        - file
+    ImportTests:
+      type: object
+      properties:
+        create:
+          type: boolean
+        noempty:
+          type: boolean
+        'no-detach':
+          type: boolean
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/Test'
+      required:
+        - tests
