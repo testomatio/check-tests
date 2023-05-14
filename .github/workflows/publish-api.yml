@@ -1,0 +1,29 @@
+name: Build docs
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Docs
+    steps:
+      # first checkout your code
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # then use redoc-cli-github-action to generate your HTML bundle
+      - name: redoc-cli test
+        uses: seeebiii/redoc-cli-github-action@v10
+        with:
+          args: 'bundle testomat-api-definition.yml'
+      - run: mv redoc-static.html index.html
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3 # https://github.com/peaceiris/actions-gh-pages
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          publish_dir: .
+          force_orphan: true
+          exclude_assets: '.github,openapi,.redocly.yaml,LICENSE,README.md,make.sh'
+          cname: docs.api.jizt.it
