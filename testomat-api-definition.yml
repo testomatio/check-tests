@@ -127,6 +127,9 @@ components:
         structure:
           type: boolean
           description: If tests were organized in Testomat.io, re-organize them to match tests in the source code.
+        sync:
+          type: boolean
+          description: Wait for all the tests to be uploaded and added
         tests:
           type: array
           items:

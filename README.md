@@ -606,6 +606,12 @@ Run import with `DEBUG="testomatio:*"` environment variable to get additional lo
 DEBUG="testomatio:*" npx check-tests@latest ....
 ```
 
+## API Definition
+
+API Endpoint to import test data into Testomat.io:
+
+[Import API Reference](https://testomatio.github.io/check-tests/)
+
 ## Limitations
 
 - Can't analyze included tests from external files
