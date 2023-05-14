@@ -60,12 +60,14 @@ paths:
 
                       Example Response:
 
+                      ```
                         "file_name#suite_title#test_title: T12345678",
                         "suite_title#test_title: T12345678",
                         "test_title: T12345678",
+                      ```
 
                       So at first, check for a file `file_name` with suite `suite_title`, and test `test_title`.
-                      If it's not found use the second line where we ignore the file name. 
+                      If the test is not found, try the second line where we ignore the file name and look only by suite title and test title. 
                       If not found - search by test title only, ignoring information about suite.
 
                   suites:
@@ -110,12 +112,21 @@ components:
     ImportTests:
       type: object
       properties:
-        create:
-          type: boolean
+        framework:
+          type: string
+          description: Name of a testing framework used (`jest`, `cucumber`, `codeceptjs`, etc).
+        language:
+          type: string
+          description: Name of a programming language used (`javascript`, `php`, etc)
         noempty:
+          description: Remove empty suites after import
           type: boolean
         'no-detach':
+          description: Do not mark previously imported tests but missing on this import as `detached`
           type: boolean
+        structure:
+          type: boolean
+          description: If tests were organized in Testomat.io, re-organize them to match tests in the source code.
         tests:
           type: array
           items:
