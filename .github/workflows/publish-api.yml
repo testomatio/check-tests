@@ -14,16 +14,14 @@ jobs:
         uses: actions/checkout@v2
 
       # then use redoc-cli-github-action to generate your HTML bundle
-      - name: redoc-cli test
-        uses: seeebiii/redoc-cli-github-action@v10
-        with:
-          args: 'bundle testomat-api-definition.yml'
-      - run: mv redoc-static.html index.html
+      - name: Generate and rename Redoc documentation
+        run: |
+          npx redoc-cli bundle testomat-api-definition.yml
+          mv redoc-static.html index.html
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3 # https://github.com/peaceiris/actions-gh-pages
         with:
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           force_orphan: true
-          exclude_assets: '.github,openapi,.redocly.yaml,LICENSE,README.md,make.sh'
-          cname: docs.api.jizt.it
+          exclude_assets: '.github,src,bin,test,LICENSE,README.md'
