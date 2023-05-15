@@ -45,7 +45,7 @@ addIdToRequestAndUpdateCollection = function (collection, pathToRequestThrouthTh
   }
 
   if (addIdToRequest(collection.item, pathToRequestThrouthTheFolders)) {
-    debug(`"${collection.name}" collection  updated`);
+    debug(`"${collection.info.name}" collection  updated`);
   } else {
     debug(`Request "${currentRequestName}" not found in ${pathToRequestThrouthTheFolders}`);
   }
@@ -129,7 +129,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
           const isTestNameIncludesId = item.name.includes(testomatioMap.tests[testIndex]);
           // if testId found in map and test name does not include test id, add test id
           if (testomatioMap.tests[testIndex] && !isTestNameIncludesId) {
-            debug(`Start adding test id for test ${suites}: ${item.name}`);
+            debug(`Adding test id for test ${suites}: ${item.name}`);
             collection = addIdToRequestAndUpdateCollection(
               collection,
               suites,
@@ -142,7 +142,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
             testomatioMap.tests[testIndexWithoutTags] &&
             !item.name.includes(testomatioMap.tests[testIndexWithoutTags])
           ) {
-            debug(`Start adding test id for test ${suites}: ${item.name}`);
+            debug(`Adding test id for test ${suites}: ${item.name}`);
             collection = addIdToRequestAndUpdateCollection(
               collection,
               suites,
