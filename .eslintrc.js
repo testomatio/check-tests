@@ -4,7 +4,7 @@ module.exports = {
   env: {
     node: true,
   },
-  parser: "babel-eslint",
+  parser: 'babel-eslint',
   rules: {
     'func-names': 0,
     'no-use-before-define': 0,

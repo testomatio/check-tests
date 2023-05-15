@@ -6,6 +6,10 @@ const { TAG_REGEX } = require('./constants');
 const { parseTest, parseSuite } = require('./helpers');
 
 const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
+const SUITE_KEYWORDS_SPECIAL = ['describe', 'context', 'suite', 'Feature'].map(
+  k => new RegExp(`^(?=.*?\\b${k}\\b).*`, 'gm'),
+);
+const LINE_START_REGEX = /^[ \t]*(import|const|let|var)\s+.*$/;
 
 /**
  *
@@ -36,26 +40,29 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     const suite = testArr[0].suites[0] || '';
-    const suiteIndex = suite;
-    const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
-    const currentSuiteId = parseSuite(suiteIndex);
-    if (
-      currentSuiteId &&
-      testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
-      testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
-    ) {
-      debug(`   Previous ID detected in suite '${suiteIndex}'`);
-      duplicateSuites++;
-      continue;
-    }
+    if (suite) {
+      const suiteIndex = suite;
+      const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
-    if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-      fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
-      fs.writeFileSync(file, fileContent);
-    } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-      fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-      fs.writeFileSync(file, fileContent);
+      const currentSuiteId = parseSuite(suiteIndex);
+      if (
+        currentSuiteId &&
+        testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+        testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+      ) {
+        debug(`   Previous ID detected in suite '${suiteIndex}'`);
+        duplicateSuites++;
+        continue;
+      }
+
+      if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
+        fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+        fs.writeFileSync(file, fileContent);
+      } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
+        fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
+        fs.writeFileSync(file, fileContent);
+      }
     }
 
     for (const test of testArr) {
@@ -122,14 +129,21 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     const suite = testArr[0].suites[0];
-    const suiteId = `@S${parseSuite(suite)}`;
-    if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
-      const newTitle = suite.slice().replace(suiteId, '').trim();
-      fileContent = fileContent.replace(suite, newTitle);
+
+    if (suite) {
+      const suiteId = `@S${parseSuite(suite)}`;
+      debug('  clenaing suite: ', suite);
+
+      if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
+        const newTitle = suite.slice().replace(suiteId, '').trim();
+        fileContent = fileContent.replace(suite, newTitle);
+      }
     }
+
     for (const test of testArr) {
       const testId = `@T${parseTest(test.name)}`;
       debug('  clenaing test: ', test.name);
+
       if (testIds.includes(testId) || (dangerous && testId)) {
         fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
       }
@@ -147,13 +161,18 @@ const replaceSuiteTitle = (title, replace, content) => {
 
   // try to find string near keyword
   for (const lineNumber in lines) {
+    if (lines[lineNumber].match(LINE_START_REGEX)) continue;
+
     const line = lines[lineNumber];
-    for (const keyword of SUITE_KEYWORDS) {
-      if (line.match(keyword)) {
-        for (let i = lineNumber; i < lines.length; i++) {
-          if (lines[i].includes(title)) {
-            lines[i] = line.replace(title, replace);
-            return lines.join('\n');
+
+    if (line.includes(title)) {
+      for (const keyword of SUITE_KEYWORDS.concat(SUITE_KEYWORDS_SPECIAL)) {
+        if (line.match(keyword)) {
+          for (let i = lineNumber; i < lines.length; i++) {
+            if (lines[i].includes(title)) {
+              lines[i] = line.replace(title, replace);
+              return lines.join('\n');
+            }
           }
         }
       }

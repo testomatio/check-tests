@@ -1,6 +1,10 @@
 const hash = require('object-hash');
 
 class Decorator {
+  /**
+   * @typedef {import('../types').Test} Test
+   * @param {Test[]} tests
+   */
   constructor(tests) {
     this.tests = tests.map(t => {
       if (!t.suites) t.suites = [];
