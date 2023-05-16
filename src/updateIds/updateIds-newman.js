@@ -61,14 +61,14 @@ addIdToRequestAndUpdateCollection = function (collection, pathToRequestThrouthTh
  * @param {*} opts
  * @returns
  */
-exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = {}) {
+exports.updateIdsNewman = function (testomatioMap, workDir, opts = {}) {
   const patternWithFullPath = path.join(path.resolve(workDir), opts.pattern);
   const files = glob.sync(patternWithFullPath);
   debug('Files:', files);
 
   debug('Testomatio map:\n', testomatioMap);
   const updatedFiles = [];
-  let duplicateTests = 0;
+  let duplicatedTests = 0;
 
   // debug(`Test data (containing tests from ${testData.length} files)`, JSON.stringify(testData));
 
@@ -105,7 +105,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
             '',
           )}`.trim();
 
-          // if testId not fount in map > don't use suite and #
+          // if testId not fount in map > don't use suite and # sign
           if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testIndexWithoutTags]) {
             testIndex = item.name;
             testIndexWithoutTags = item.name.replace(TAG_REGEX, '').trim();
@@ -122,7 +122,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
             testomatioMap.tests[testIndexWithoutTags] !== `@T${currentTestId}`
           ) {
             debug(`Previous ID detected in test '${testIndex}'`);
-            duplicateTests++;
+            duplicatedTests++;
             continue;
           }
 
@@ -175,7 +175,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
     fs.writeFileSync(file, JSON.stringify(collection, null, 2));
     updatedFiles.push(file);
 
-    if (duplicateTests) {
+    if (duplicatedTests) {
       console.log(`! Previously set Test IDs detected, new IDs ignored
       Clean previously set Test IDs to override them');
       Run script with DEBUG="testomatio:*" flag to get more info of affected tests`);
@@ -184,7 +184,7 @@ exports.updateIdsForNewman = function (testData, testomatioMap, workDir, opts = 
   return updatedFiles;
 };
 
-exports.cleanIdsNewman = function (testData, testomatioMap, workDir, opts) {
+exports.cleanIdsNewman = function (testomatioMap, workDir, opts) {
   const dangerous = opts.dangerous;
 
   const patternWithFullPath = path.join(path.resolve(workDir), opts.pattern);
