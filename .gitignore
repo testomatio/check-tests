@@ -2,5 +2,10 @@
 .vscode
 node_modules/
 
+# unit test artifacts
+clear_examples/
+unsafe_examples/
+update_examples/
+
 # Output of 'npm pack'
 *.tgz
