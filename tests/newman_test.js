@@ -4,7 +4,7 @@ const newmanParser = require('../src/lib/frameworks/newman');
 
 const source = fs.readFileSync('./example/newman/collection.json').toString();
 
-describe.only('newman parser', () => {
+describe('newman parser', () => {
   it('should parse newman collection', () => {
     const tests = newmanParser(null, '', source);
     expect(tests[0]).to.include.key('code');
