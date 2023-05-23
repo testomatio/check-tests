@@ -1,20 +1,24 @@
 const fs = require('fs');
 const debug = require('debug')('testomatio:update-ids');
-const { replaceAtPoint, cleanAtPoint } = require('./lib/utils');
+const { replaceAtPoint, cleanAtPoint } = require('../lib/utils');
+const { TAG_REGEX } = require('./constants');
+const { parseTest, parseSuite, replaceSuiteTitle } = require('./helpers');
 
-const TAG_REGEX = /\@([\w\d\-\(\)\.\,\*:]+)/g;
-const TEST_ID_REGEX = /@T([\w\d]{8})/;
-const SUITE_ID_REGEX = /@S([\w\d]{8})/;
-const SUITE_KEYWORDS = ['describe', 'context', 'suite', 'Feature'].map(k => new RegExp(`(\\s|^)${k}(\\(|\\s)`));
-const SUITE_KEYWORDS_SPECIAL = ['describe', 'context', 'suite', 'Feature'].map(
-  k => new RegExp(`^(?=.*?\\b${k}\\b).*`, 'gm'),
-);
-const LINE_START_REGEX = /^[ \t]*(import|const|let|var)\s+.*$/;
-
-function updateIds(testData, testomatioMap, workDir, opts = {}) {
+/**
+ * Insert test ids (@T12345678) into test files
+ * @param {*} testData array of arrays of test data;
+ * the main array represents test files, nested arrays includes test data for each test
+ * @param {*} testomatioMap mapping of test ids received from testomatio server
+ * @param {*} workDir
+ * @param {*} opts
+ * @returns
+ */
+function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
   let duplicateTests = 0;
   let duplicateSuites = 0;
+
+  debug('Test data:', testData);
 
   for (const testArr of testData) {
     if (!testArr.length) continue;
@@ -51,7 +55,7 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
 
     for (const test of testArr) {
       let testIndex = `${test.suites[0] || ''}#${test.name}`;
-      debug('    test  ', testIndex);
+      debug('testIndex', testIndex);
 
       let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
         TAG_REGEX,
@@ -69,7 +73,7 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
         && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
         && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
       ) {
-        debug(`   Previous ID detected in test '${testIndex}'`);
+        debug(`Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
         continue;
       }
@@ -95,7 +99,15 @@ function updateIds(testData, testomatioMap, workDir, opts = {}) {
   return files;
 }
 
-function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: false }) {
+/**
+ * Removes test ids (@T12345678) from test files
+ * @param {*} testData
+ * @param {*} testomatioMap
+ * @param {*} workDir
+ * @param {*} opts
+ * @returns
+ */
+function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerous: false }) {
   const dangerous = opts.dangerous;
 
   const testIds = testomatioMap.tests ? Object.values(testomatioMap.tests) : [];
@@ -136,51 +148,7 @@ function cleanIds(testData, testomatioMap = {}, workDir, opts = { dangerous: fal
   return files;
 }
 
-const parseTest = testTitle => {
-  const captures = testTitle.match(TEST_ID_REGEX);
-  if (captures) {
-    return captures[1];
-  }
-
-  return null;
-};
-
-const parseSuite = suiteTitle => {
-  const captures = suiteTitle.match(SUITE_ID_REGEX);
-  if (captures) {
-    return captures[1];
-  }
-
-  return null;
-};
-
-const replaceSuiteTitle = (title, replace, content) => {
-  const lines = content.split('\n');
-
-  // try to find string near keyword
-  for (const lineNumber in lines) {
-    if (lines[lineNumber].match(LINE_START_REGEX)) continue;
-
-    const line = lines[lineNumber];
-
-    if (line.includes(title)) {
-      for (const keyword of SUITE_KEYWORDS.concat(SUITE_KEYWORDS_SPECIAL)) {
-        if (line.match(keyword)) {
-          for (let i = lineNumber; i < lines.length; i++) {
-            if (lines[i].includes(title)) {
-              lines[i] = line.replace(title, replace);
-              return lines.join('\n');
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return content.replace(title, replace);
-};
-
 module.exports = {
-  updateIds,
-  cleanIds,
+  updateIdsCommon,
+  cleanIdsCommon,
 };

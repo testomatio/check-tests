@@ -12,6 +12,7 @@ let parser;
 
 class Analyzer {
   constructor(framework, workDir = '.') {
+    this.framework = framework.toLowerCase();
     this.workDir = workDir;
     this.typeScript = false;
     this.plugins = [];
@@ -28,6 +29,9 @@ class Analyzer {
       case 'jest':
       case 'jestio':
         this.frameworkParser = require('./lib/frameworks/jest');
+        break;
+      case 'newman':
+        this.frameworkParser = require('./lib/frameworks/newman');
         break;
       case 'playwright':
         this.frameworkParser = require('./lib/frameworks/playwright');
@@ -75,6 +79,7 @@ class Analyzer {
 
     pattern = path.join(path.resolve(this.workDir), pattern);
     const files = glob.sync(pattern);
+    debug('Files:', files);
 
     for (const file of files) {
       if (fs.lstatSync(file).isDirectory()) continue;
@@ -86,45 +91,49 @@ class Analyzer {
 
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 
-      if (this.plugins.length > 0 || this.presets.length) {
-        try {
-          const opts = {};
-          opts.plugins = this.plugins;
-          opts.presets = this.presets;
-          source = require('@babel/core').transform(source, opts).code;
-        } catch (err) {
-          console.error(`Error parsing ${file}`);
-          console.error(err.message);
-          if (err.message.includes('@babel/')) {
-            console.log('\nProbably, required babel plugins are not installed.');
-            console.log('Try to install them manually using npm:');
-            console.log('\nnpm i @babel/core @babel/plugin-transform-typescript --save-dev');
-          }
-          if (process.env.isTestomatioCli) process.exit(1);
-        }
-      }
       let ast;
-      try {
-        if (this.typeScript) {
-          // const program = parser.createProgram(path.join(__dirname, '../tsconfig.json'))
-          const program = parser.parse(source, {
-            sourceType: 'unambiguous',
-            filePath: file,
-            loc: true,
-            range: true,
-            tokens: true,
-          });
-          ast = {
-            program,
-            type: 'File',
-          };
-        } else {
-          ast = parser.parse(source, { sourceType: 'unambiguous' });
+      // no need to parse code for newman tests
+      if (this.framework !== 'newman') {
+        if (this.plugins.length > 0 || this.presets.length) {
+          try {
+            const opts = {};
+            opts.plugins = this.plugins;
+            opts.presets = this.presets;
+            source = require('@babel/core').transform(source, opts).code;
+          } catch (err) {
+            console.error(`Error parsing ${file}`);
+            console.error(err.message);
+            if (err.message.includes('@babel/')) {
+              console.log('\nProbably, required babel plugins are not installed.');
+              console.log('Try to install them manually using npm:');
+              console.log('\nnpm i @babel/core @babel/plugin-transform-typescript --save-dev');
+            }
+            if (process.env.isTestomatioCli) process.exit(1);
+          }
         }
-      } catch (err) {
-        console.error(`Error parsing ${file}:`);
-        console.error(err.message);
+        try {
+          if (this.typeScript) {
+            // const program = parser.createProgram(path.join(__dirname, '../tsconfig.json'))
+            const program = parser.parse(source, {
+              sourceType: 'unambiguous',
+              filePath: file,
+              loc: true,
+              range: true,
+              tokens: true,
+            });
+            ast = {
+              program,
+              type: 'File',
+            };
+          } else {
+            ast = parser.parse(source, { sourceType: 'unambiguous' });
+          }
+        } catch (err) {
+          console.error(`Error parsing ${file}:`);
+          console.error(err.message);
+        }
       }
+
       // append file name to each test
       let fileName = path.relative(this.workDir, file);
       if (process.env.TESTOMATIO_PREPEND_DIR) {
@@ -136,7 +145,6 @@ class Analyzer {
        * @type {TestData[]}
        */
       const testsData = this.frameworkParser(ast, fileName, source);
-      debug(testsData);
       this.rawTests.push(testsData);
       const tests = new Decorator(testsData);
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());

@@ -114,7 +114,8 @@ class Decorator {
     };
 
     for (const test of this.tests) {
-      const fileLine = ` 🗒️  File: ${test.file}\n`;
+      // _test is used for newman tests
+      const fileLine = ` 🗒️  File: ${test.file || test._file}\n`;
       if (list.indexOf(fileLine) < 0) {
         list.push('-----');
         list.push(fileLine);

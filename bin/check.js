@@ -42,6 +42,8 @@ program
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .action(async (framework, files, opts) => {
+    opts.framework = framework;
+    opts.pattern = files;
     const isPattern = checkPattern(files);
     const analyzer = new Analyzer(framework, opts.dir || process.cwd());
     try {
