@@ -281,7 +281,7 @@ steps:
 
 Testcafe tests located in `tests/` directory:
 
-````yml
+```yml
 steps:
   - uses: actions/checkout@v2
     with:
@@ -292,8 +292,21 @@ steps:
       tests: tests/**/*.js
       token: ${{ secrets.GITHUB_TOKEN }}
       no-tests-label: Tests Needed
+```
 
-#### Close PRs without tests
+#### Newman
+
+```
+TESTOMATIO={apiKey} npx check-tests newman "your_collection_name.json"
+```
+
+or
+
+```
+TESTOMATIO={apiKey} npx check-tests newman "folder_with_collections/*.json"
+```
+
+### Close PRs without tests
 
 When PR doesn't contain tests - close it and write a message
 
@@ -307,11 +320,11 @@ steps:
       framework: protractor
       tests: spec/**_spec.js
       token: ${{ secrets.GITHUB_TOKEN }}
-      comment-on-empty: "## PRs without tests not allowed"
+      comment-on-empty: '## PRs without tests not allowed'
       close-on-empty: true
-````
+```
 
-#### Notify on skipped tests
+### Notify on skipped tests
 
 When PR contains skipped tests - close it and write a message
 
