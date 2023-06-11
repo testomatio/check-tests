@@ -9,7 +9,6 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     name: Check Tests
-    permissions: write-all
     steps:
       - uses: actions/checkout@v1
       - name: Setup Node.js for use with actions
