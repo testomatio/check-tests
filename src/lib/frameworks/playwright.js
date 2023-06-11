@@ -50,6 +50,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           }
         }
       }
+      
+      if (path.isIdentifier({ name: 'parallel' })) {
+        if (!path.parentPath && !path.parentPath.container) return;
+        if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
+        addSuite(path.parentPath.container);
+      }
 
       // forbid only
       if (path.isIdentifier({ name: 'only' })) {
@@ -73,7 +79,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = 
+        const name =
           path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
