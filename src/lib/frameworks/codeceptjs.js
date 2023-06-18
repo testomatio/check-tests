@@ -12,8 +12,15 @@ const {
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = '';
+  let beforeCode = '';
+  let beforeSuiteCode = '';
+  let afterSuiteCode = '';
 
   const getScenario = path => {
+    beforeCode = beforeCode !== undefined ? beforeCode : '';
+    beforeSuiteCode = beforeSuiteCode !== undefined ? beforeSuiteCode : '';
+    afterSuiteCode = afterSuiteCode !== undefined ? afterSuiteCode : '';
+
     if (hasStringOrTemplateArgument(path.container)) {
       const testName = getStringValue(path.container);
       tests.push({
@@ -22,7 +29,8 @@ module.exports = (ast, file = '', source = '') => {
         suites: [currentSuite],
         updatePoint: getUpdatePoint(path.container),
         line: getLineNumber(path),
-        code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+        code:
+          beforeSuiteCode + beforeCode + getCode(source, getLineNumber(path), getEndLineNumber(path)) + afterSuiteCode,
         file,
       });
       return;
@@ -49,14 +57,24 @@ module.exports = (ast, file = '', source = '') => {
         currentScenario = null;
       }
 
+      if (path.isIdentifier({ name: 'Before' })) {
+        beforeCode = '';
+        beforeCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
+      }
+
+      if (path.isIdentifier({ name: 'BeforeSuite' })) {
+        beforeSuiteCode = '';
+        beforeSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
+      }
+
       if (path.isIdentifier({ name: 'only' })) {
         const name = path.parent.object.name;
         if (['Scenario'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -84,11 +102,23 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'Data' })) {
         getScenario(path.parentPath.parentPath);
       }
+
+      if (path.isIdentifier({ name: 'AfterSuite' })) {
+        afterSuiteCode = '';
+        afterSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
+
+        for (const test of tests) {
+          if (!test.code.includes(afterSuiteCode)) {
+            test.code += afterSuiteCode;
+          }
+        }
+      }
+
       if (path.isIdentifier({ name: 'tag' })) {
         if (
-          !path.parentPath.container
-          || !path.parentPath.container.arguments
-          || !path.parentPath.container.arguments[0]
+          !path.parentPath.container ||
+          !path.parentPath.container.arguments ||
+          !path.parentPath.container.arguments[0]
         ) {
           return;
         }

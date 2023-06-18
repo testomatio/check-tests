@@ -51,9 +51,7 @@ describe('codeceptjs parser', () => {
     });
   });
 
-
   context('Parse CodeceptJS tags & datatable', () => {
-
     before(() => {
       source = fs.readFileSync('./example/codeceptjs/data_table_tags_test.js').toString();
       ast = parser.parse(source);
@@ -69,5 +67,33 @@ describe('codeceptjs parser', () => {
     });
   });
 
+  context('Parse CodeceptJS hooks code', () => {
+    let fileSource,
+      fileAst = '';
+    before(() => {
+      fileSource = fs.readFileSync('./example/codeceptjs/test_hooks_description.js').toString();
+      fileAst = parser.parse(fileSource);
+    });
 
+    it('should include AfterSuite hook code', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+
+      expect(tests[0].code).to.include('AfterSuite(({ I }) => {\n');
+      expect(tests[1].code).to.include('AfterSuite(({ I }) => {\n');
+    });
+
+    it('should include BeforeSuite hook code', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+
+      expect(tests[0].code).to.include('BeforeSuite(({ I }) => {\n');
+      expect(tests[1].code).to.include('BeforeSuite(({ I }) => {\n');
+    });
+
+    it('should include Before hook code', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+
+      expect(tests[0].code).to.include('Before(async (I, TodosPage) => {\n');
+      expect(tests[1].code).to.include('Before(async (I, TodosPage) => {\n');
+    });
+  });
 });
