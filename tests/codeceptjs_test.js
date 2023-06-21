@@ -75,25 +75,38 @@ describe('codeceptjs parser', () => {
       fileAst = parser.parse(fileSource);
     });
 
-    it('should include AfterSuite hook code', () => {
+    it('should include Before hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
-
-      expect(tests[0].code).to.include('AfterSuite(({ I }) => {\n');
-      expect(tests[1].code).to.include('AfterSuite(({ I }) => {\n');
+      // first test
+      expect(tests[0].code).to.include("Before(async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.include("TodosPage.goto();\n");
+      expect(tests[0].code).to.include("TodosPage.enterTodo('foo');\n");
+      expect(tests[0].code).to.include("TodosPage.enterTodo('bar');\n");
+      // second test
+      expect(tests[1].code).to.include("Before(async (I, TodosPage) => {\n");
+      expect(tests[1].code).to.include("TodosPage.goto();\n");
+      expect(tests[1].code).to.include("TodosPage.enterTodo('foo');\n");
+      expect(tests[1].code).to.include("TodosPage.enterTodo('bar');\n");
     });
 
     it('should include BeforeSuite hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
-
-      expect(tests[0].code).to.include('BeforeSuite(({ I }) => {\n');
-      expect(tests[1].code).to.include('BeforeSuite(({ I }) => {\n');
+      // first test
+      expect(tests[0].code).to.include("BeforeSuite(({ I }) => {\n");
+      expect(tests[0].code).to.include("TodosPage.enterTodo('baz');\n");
+      // second test
+      expect(tests[1].code).to.include("BeforeSuite(({ I }) => {\n");
+      expect(tests[1].code).to.include("TodosPage.enterTodo('baz');\n");
     });
 
-    it('should include Before hook code', () => {
+    it('should include AfterSuite hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
-
-      expect(tests[0].code).to.include('Before(async (I, TodosPage) => {\n');
-      expect(tests[1].code).to.include('Before(async (I, TodosPage) => {\n');
+      // first test
+      expect(tests[0].code).to.include("AfterSuite(({ I }) => {\n");
+      expect(tests[0].code).to.include("TodosPage.enterTodo('h&m');\n");
+      // second test
+      expect(tests[1].code).to.include("AfterSuite(({ I }) => {\n");
+      expect(tests[1].code).to.include("TodosPage.enterTodo('h&m');\n");
     });
   });
 });

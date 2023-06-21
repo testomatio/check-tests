@@ -30,7 +30,10 @@ module.exports = (ast, file = '', source = '') => {
         updatePoint: getUpdatePoint(path.container),
         line: getLineNumber(path),
         code:
-          beforeSuiteCode + beforeCode + getCode(source, getLineNumber(path), getEndLineNumber(path)) + afterSuiteCode,
+          beforeSuiteCode + 
+          beforeCode + 
+          getCode(source, getLineNumber(path), getEndLineNumber(path)) + 
+          afterSuiteCode,
         file,
       });
       return;

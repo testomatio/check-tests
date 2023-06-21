@@ -2,7 +2,6 @@ Feature('Get test description - Todos @step-11');
 
 Before(async (I, TodosPage) => {
   TodosPage.goto();
-
   TodosPage.enterTodo('foo');
   TodosPage.enterTodo('bar');
 });
