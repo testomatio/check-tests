@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.8.16",
+  "version": "0.8.17-beta-hooks",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "keywords": [
     "testing",
@@ -68,7 +68,7 @@
   "scripts": {
     "check": "node -r dotenv/config bin/check.js",
     "run": "node -r dotenv/config index.js",
-    "test": "mocha tests/**_test.js -R ./node_modules/@testomatio/reporter/lib/adapter/mocha.js",
+    "test": "mocha tests/**_test.js",
     "lint": "eslint 'src/**/*.js' --fix",
     "pretty-quick": "pretty-quick --staged",
     "prepare": "husky install",
