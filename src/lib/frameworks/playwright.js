@@ -9,6 +9,8 @@ const {
   getCode,
 } = require('../utils');
 
+const withHooks = process.env.TESTOMATIO_WITH_HOOKS;
+
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = [];
@@ -43,9 +45,11 @@ module.exports = (ast, file = '', source = '') => {
         afterCode = '';
         afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
 
-        for (const test of tests) {
-          if (!test.code.includes(afterCode)) {
-            test.code += afterCode;
+        if (withHooks && afterCode) {
+          for (const test of tests) {
+            if (!test.code.includes(afterCode)) {
+              test.code += afterCode;
+            }
           }
         }
       }
@@ -56,9 +60,9 @@ module.exports = (ast, file = '', source = '') => {
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -156,9 +160,18 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'test' }) || path.isIdentifier({ name: 'it' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
+        let code = '';
+
         beforeCode = beforeCode !== undefined ? beforeCode : '';
         beforeEachCode = beforeEachCode !== undefined ? beforeEachCode : '';
         afterCode = afterCode !== undefined ? afterCode : '';
+
+        code = withHooks
+          ? beforeEachCode +
+            beforeCode +
+            getCode(source, getLineNumber(path), getEndLineNumber(path)) +
+            afterCode
+          : getCode(source, getLineNumber(path), getEndLineNumber(path))
 
         const testName = getStringValue(path.parent);
 
@@ -169,11 +182,7 @@ module.exports = (ast, file = '', source = '') => {
             .map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
-          code: 
-            beforeCode + 
-            beforeEachCode + 
-            getCode(source, getLineNumber(path), getEndLineNumber(path)) +
-            afterCode,
+          code,
           file,
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });

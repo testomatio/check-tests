@@ -9,6 +9,8 @@ const {
   hasStringOrTemplateArgument,
 } = require('../utils');
 
+const withHooks = process.env.TESTOMATIO_WITH_HOOKS;
+
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = '';
@@ -17,9 +19,18 @@ module.exports = (ast, file = '', source = '') => {
   let afterSuiteCode = '';
 
   const getScenario = path => {
+    let code = '';
+
     beforeCode = beforeCode !== undefined ? beforeCode : '';
     beforeSuiteCode = beforeSuiteCode !== undefined ? beforeSuiteCode : '';
     afterSuiteCode = afterSuiteCode !== undefined ? afterSuiteCode : '';
+
+    code = withHooks
+      ? beforeSuiteCode +
+        beforeCode +
+        getCode(source, getLineNumber(path), getEndLineNumber(path)) +
+        afterSuiteCode
+      : getCode(source, getLineNumber(path), getEndLineNumber(path))
 
     if (hasStringOrTemplateArgument(path.container)) {
       const testName = getStringValue(path.container);
@@ -29,11 +40,7 @@ module.exports = (ast, file = '', source = '') => {
         suites: [currentSuite],
         updatePoint: getUpdatePoint(path.container),
         line: getLineNumber(path),
-        code:
-          beforeSuiteCode + 
-          beforeCode + 
-          getCode(source, getLineNumber(path), getEndLineNumber(path)) + 
-          afterSuiteCode,
+        code,
         file,
       });
       return;
@@ -110,9 +117,11 @@ module.exports = (ast, file = '', source = '') => {
         afterSuiteCode = '';
         afterSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
 
-        for (const test of tests) {
-          if (!test.code.includes(afterSuiteCode)) {
-            test.code += afterSuiteCode;
+        if (withHooks && afterSuiteCode) {
+          for (const test of tests) {
+            if (!test.code.includes(afterSuiteCode)) {
+              test.code += afterSuiteCode;
+            }
           }
         }
       }
