@@ -12,6 +12,9 @@ const {
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = [];
+  let beforeCode = '';
+  let beforeEachCode = '';
+  let afterCode = '';
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
@@ -24,6 +27,27 @@ module.exports = (ast, file = '', source = '') => {
         if (!path.parentPath && !path.parentPath.container) return;
         if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
         addSuite(path.parentPath.container);
+      }
+
+      if (path.isIdentifier({ name: 'beforeAll' })) {
+        beforeCode = '';
+        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+      }
+
+      if (path.isIdentifier({ name: 'beforeEach' })) {
+        beforeEachCode = '';
+        beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+      }
+
+      if (path.isIdentifier({ name: 'afterAll' })) {
+        afterCode = '';
+        afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+
+        for (const test of tests) {
+          if (!test.code.includes(afterCode)) {
+            test.code += afterCode;
+          }
+        }
       }
 
       // forbid only
@@ -132,6 +156,10 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'test' }) || path.isIdentifier({ name: 'it' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
+        beforeCode = beforeCode !== undefined ? beforeCode : '';
+        beforeEachCode = beforeEachCode !== undefined ? beforeEachCode : '';
+        afterCode = afterCode !== undefined ? afterCode : '';
+
         const testName = getStringValue(path.parent);
 
         tests.push({
@@ -141,7 +169,11 @@ module.exports = (ast, file = '', source = '') => {
             .map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
-          code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+          code: 
+            beforeCode + 
+            beforeEachCode + 
+            getCode(source, getLineNumber(path), getEndLineNumber(path)) +
+            afterCode,
           file,
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });

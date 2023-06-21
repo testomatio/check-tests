@@ -157,4 +157,49 @@ describe('playwright parser', () => {
     expect(tests[7].skipped).to.be.true;
     expect(tests[8].skipped).to.be.false;
   });
+
+  context('Parse Playwright hooks code', () => {
+    let fileSource,
+      fileAst;
+    before(() => {
+      fileSource = fs.readFileSync('./example/playwright/hooks.js').toString();
+      fileAst = jsParser.parse(fileSource, { sourceType: 'unambiguous' });
+    });
+
+    it('should include beforeAll hook code', () => {
+      const tests = playwrightParser(fileAst, '', fileSource);
+      // first test
+      expect(tests[0].code).to.include("test.beforeAll('run before', async () => {\n");
+      expect(tests[0].code).to.include("console.log('Ran before');\n");
+      expect(tests[0].code).to.include("await page.locator('#btnBeforeAll').click();\n");
+      // second test 
+      expect(tests[1].code).to.include("test.beforeAll('run before', async () => {\n");
+      expect(tests[1].code).to.include("console.log('Ran before');\n");
+      expect(tests[1].code).to.include("await page.locator('#btnBeforeAll').click();\n");
+    });
+
+    it('should include beforeEach hook code', () => {
+      const tests = playwrightParser(fileAst, '', fileSource);
+      // first test
+      expect(tests[0].code).to.include("test.beforeEach(async ({ page }) => {\n");
+      expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
+      expect(tests[0].code).to.include("await page.locator('#btnBeforeEach').click();\n");
+      // second test
+      expect(tests[1].code).to.include("test.beforeEach(async ({ page }) => {\n");
+      expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
+      expect(tests[1].code).to.include("await page.locator('#btnBeforeEach').click();\n");
+    });
+
+    it('should include afterAll hook code', () => {
+      const tests = playwrightParser(fileAst, '', fileSource);
+      // first test
+      expect(tests[0].code).to.include("test.afterAll(async () => {\n");
+      expect(tests[0].code).to.include("console.log('Ran afterAll');\n");
+      expect(tests[0].code).to.include("await page.locator('#btnafterAll').click();\n");
+      // second test
+      expect(tests[1].code).to.include("test.afterAll(async () => {\n");
+      expect(tests[1].code).to.include("console.log('Ran afterAll');\n");
+      expect(tests[1].code).to.include("await page.locator('#btnafterAll').click();\n");
+    });
+  });
 });
