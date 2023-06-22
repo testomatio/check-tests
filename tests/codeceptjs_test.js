@@ -1,7 +1,6 @@
 const parser = require('@babel/parser');
 const fs = require('fs');
 const { expect } = require('chai');
-// const mockedEnv = require('mocked-env'); //TODO:
 const codeceptParser = require('../src/lib/frameworks/codeceptjs');
 
 let source;
@@ -67,85 +66,81 @@ describe('codeceptjs parser', () => {
       expect(actualTests).to.include('Search on Google @product-search @classic-test');
     });
   });
-
-  context('[without TESTOMATIO-WITH-HOOKS env] Parse CodeceptJS hooks code', () => {
-    let fileSource,
-      fileAst = '';
-    before(() => {
-      fileSource = fs.readFileSync('./example/codeceptjs/test_hooks_description.js').toString();
-      fileAst = parser.parse(fileSource);
-    });
-
-    it('should exclude Before hook code', () => {
-      const tests = codeceptParser(fileAst, '', fileSource);
-      // first test
-      expect(tests[0].code).to.not.include('Before(async (I, TodosPage) => {\n');
-      // second test
-      expect(tests[1].code).to.not.include('Before(async (I, TodosPage) => {\n');
-    });
-
-    it('should exclude BeforeSuite hook code', () => {
-      const tests = codeceptParser(fileAst, '', fileSource);
-      // first test
-      expect(tests[0].code).to.not.include('BeforeSuite(({ I }) => {\n');
-      // second test
-      expect(tests[1].code).to.not.include('BeforeSuite(({ I }) => {\n');
-    });
-
-    it('should exclude AfterSuite hook code', () => {
-      const tests = codeceptParser(fileAst, '', fileSource);
-      // first test
-      expect(tests[0].code).to.not.include('AfterSuite(({ I }) => {\n');
-      // second test
-      expect(tests[1].code).to.not.include('AfterSuite(({ I }) => {\n');
-    });
-  });
-  //TODO: need SET "TESTOMATIO_WITH_HOOKS": "1" in test
-  // context('[with TESTOMATIO-WITH-HOOKS env] Parse CodeceptJS hooks code', () => {
+  //TODO: need SET "TESTOMATIO_IMPORT_WITHOUT_HOOKS": "1" in test
+  // context('[without TESTOMATIO-WITH-HOOKS env] Parse CodeceptJS hooks code', () => {
   //   let fileSource,
   //     fileAst = '';
-
-  //   before(function () {
-  //     restore = mockedEnv({
-  //       "TESTOMATIO_WITH_HOOKS": "1",
-  //     })
-
+  //   before(() => {
   //     fileSource = fs.readFileSync('./example/codeceptjs/test_hooks_description.js').toString();
   //     fileAst = parser.parse(fileSource);
   //   });
 
-  //   it('should include Before hook code', () => {
-  //     const tests = codeceptParser(fileAst, '', fileSource);
-  //     // first test
-  //     expect(tests[0].code).to.include("Before(async (I, TodosPage) => {\n");
-  //     expect(tests[0].code).to.include("TodosPage.goto();\n");
-  //     expect(tests[0].code).to.include("TodosPage.enterTodo('foo');\n");
-  //     expect(tests[0].code).to.include("TodosPage.enterTodo('bar');\n");
-  //     // second test
-  //     expect(tests[1].code).to.include("Before(async (I, TodosPage) => {\n");
-  //     expect(tests[1].code).to.include("TodosPage.goto();\n");
-  //     expect(tests[1].code).to.include("TodosPage.enterTodo('foo');\n");
-  //     expect(tests[1].code).to.include("TodosPage.enterTodo('bar');\n");
-  //   });
-
-  //   it('should include BeforeSuite hook code', () => {
-  //     const tests = codeceptParser(fileAst, '', fileSource);
-  //     // first test
-  //     expect(tests[0].code).to.include("BeforeSuite(({ I }) => {\n");
-  //     expect(tests[0].code).to.include("TodosPage.enterTodo('baz');\n");
-  //     // second test
-  //     expect(tests[1].code).to.include("BeforeSuite(({ I }) => {\n");
-  //     expect(tests[1].code).to.include("TodosPage.enterTodo('baz');\n");
-  //   });
-
-  //   it('should include AfterSuite hook code', () => {
-  //     const tests = codeceptParser(fileAst, '', fileSource);
-  //     // first test
-  //     expect(tests[0].code).to.include("AfterSuite(({ I }) => {\n");
-  //     expect(tests[0].code).to.include("TodosPage.enterTodo('h&m');\n");
-  //     // second test
-  //     expect(tests[1].code).to.include("AfterSuite(({ I }) => {\n");
-  //     expect(tests[1].code).to.include("TodosPage.enterTodo('h&m');\n");
-  //   });
+  // it('should exclude Before hook code', () => {
+  //   const tests = codeceptParser(fileAst, '', fileSource);
+  //   // first test
+  //   expect(tests[0].code).to.not.include('Before(async (I, TodosPage) => {\n');
+  //   // second test
+  //   expect(tests[1].code).to.not.include('Before(async (I, TodosPage) => {\n');
   // });
+
+  // it('should exclude BeforeSuite hook code', () => {
+  //   const tests = codeceptParser(fileAst, '', fileSource);
+  //   // first test
+  //   expect(tests[0].code).to.not.include('BeforeSuite(({ I }) => {\n');
+  //   // second test
+  //   expect(tests[1].code).to.not.include('BeforeSuite(({ I }) => {\n');
+  // });
+
+  // it('should exclude AfterSuite hook code', () => {
+  //   const tests = codeceptParser(fileAst, '', fileSource);
+  //   // first test
+  //   expect(tests[0].code).to.not.include('AfterSuite(({ I }) => {\n');
+  //   // second test
+  //   expect(tests[1].code).to.not.include('AfterSuite(({ I }) => {\n');
+  // });
+  // });
+
+  context('Parse CodeceptJS hooks code - default opts', () => {
+    let fileSource,
+      fileAst = '';
+
+    before(function () {
+      fileSource = fs.readFileSync('./example/codeceptjs/test_hooks_description.js').toString();
+      fileAst = parser.parse(fileSource);
+    });
+
+    it('should include Before hook code', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+      // first test
+      expect(tests[0].code).to.include('Before(async (I, TodosPage) => {\n');
+      expect(tests[0].code).to.include('TodosPage.goto();\n');
+      expect(tests[0].code).to.include("TodosPage.enterTodo('foo');\n");
+      expect(tests[0].code).to.include("TodosPage.enterTodo('bar');\n");
+      // second test
+      expect(tests[1].code).to.include('Before(async (I, TodosPage) => {\n');
+      expect(tests[1].code).to.include('TodosPage.goto();\n');
+      expect(tests[1].code).to.include("TodosPage.enterTodo('foo');\n");
+      expect(tests[1].code).to.include("TodosPage.enterTodo('bar');\n");
+    });
+
+    it('should include BeforeSuite hook code', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+      // first test
+      expect(tests[0].code).to.include('BeforeSuite(({ I }) => {\n');
+      expect(tests[0].code).to.include("TodosPage.enterTodo('baz');\n");
+      // second test
+      expect(tests[1].code).to.include('BeforeSuite(({ I }) => {\n');
+      expect(tests[1].code).to.include("TodosPage.enterTodo('baz');\n");
+    });
+
+    it('should include AfterSuite hook code', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+      // first test
+      expect(tests[0].code).to.include('AfterSuite(({ I }) => {\n');
+      expect(tests[0].code).to.include("TodosPage.enterTodo('h&m');\n");
+      // second test
+      expect(tests[1].code).to.include('AfterSuite(({ I }) => {\n');
+      expect(tests[1].code).to.include("TodosPage.enterTodo('h&m');\n");
+    });
+  });
 });

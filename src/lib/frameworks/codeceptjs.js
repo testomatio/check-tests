@@ -9,7 +9,7 @@ const {
   hasStringOrTemplateArgument,
 } = require('../utils');
 
-const withHooks = process.env.TESTOMATIO_WITH_HOOKS;
+const withoutHooks = process.env.TESTOMATIO_IMPORT_WITHOUT_HOOKS;
 
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
@@ -25,12 +25,12 @@ module.exports = (ast, file = '', source = '') => {
     beforeSuiteCode = beforeSuiteCode !== undefined ? beforeSuiteCode : '';
     afterSuiteCode = afterSuiteCode !== undefined ? afterSuiteCode : '';
 
-    code = withHooks
-      ? beforeSuiteCode +
+    code = withoutHooks
+      ? getCode(source, getLineNumber(path), getEndLineNumber(path))
+      : beforeSuiteCode +
         beforeCode +
         getCode(source, getLineNumber(path), getEndLineNumber(path)) +
         afterSuiteCode
-      : getCode(source, getLineNumber(path), getEndLineNumber(path))
 
     if (hasStringOrTemplateArgument(path.container)) {
       const testName = getStringValue(path.container);
@@ -117,7 +117,7 @@ module.exports = (ast, file = '', source = '') => {
         afterSuiteCode = '';
         afterSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
 
-        if (withHooks && afterSuiteCode) {
+        if (afterSuiteCode && !withoutHooks) {
           for (const test of tests) {
             if (!test.code.includes(afterSuiteCode)) {
               test.code += afterSuiteCode;

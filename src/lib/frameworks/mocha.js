@@ -6,8 +6,9 @@ const {
   hasStringOrTemplateArgument,
   getLineNumber,
   getEndLineNumber,
-  getCode
+  getCode,
 } = require('../utils');
+
 const withoutHooks = process.env.TESTOMATIO_IMPORT_WITHOUT_HOOKS;
 
 module.exports = (ast, file = '', source = '') => {

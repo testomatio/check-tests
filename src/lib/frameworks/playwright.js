@@ -9,7 +9,7 @@ const {
   getCode,
 } = require('../utils');
 
-const withHooks = process.env.TESTOMATIO_WITH_HOOKS;
+const withoutHooks = process.env.TESTOMATIO_IMPORT_WITHOUT_HOOKS;
 
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
@@ -45,7 +45,7 @@ module.exports = (ast, file = '', source = '') => {
         afterCode = '';
         afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
 
-        if (withHooks && afterCode) {
+        if (afterCode && !withoutHooks) {
           for (const test of tests) {
             if (!test.code.includes(afterCode)) {
               test.code += afterCode;
@@ -166,12 +166,12 @@ module.exports = (ast, file = '', source = '') => {
         beforeEachCode = beforeEachCode !== undefined ? beforeEachCode : '';
         afterCode = afterCode !== undefined ? afterCode : '';
 
-        code = withHooks
-          ? beforeEachCode +
+        code = withoutHooks
+          ? getCode(source, getLineNumber(path), getEndLineNumber(path))
+          : beforeEachCode +
             beforeCode +
             getCode(source, getLineNumber(path), getEndLineNumber(path)) +
-            afterCode
-          : getCode(source, getLineNumber(path), getEndLineNumber(path))
+            afterCode;
 
         const testName = getStringValue(path.parent);
 
