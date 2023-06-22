@@ -66,4 +66,47 @@ describe('mocha parser', () => {
       // assert.equal(tests.length, 3);
     });
   });
+
+  context('Cypress: hooks tests', () => {
+    before(() => {
+      source = fs.readFileSync('./example/mocha/cypress_hooks.spec.js').toString();
+      ast = parser.parse(source, { sourceType: 'unambiguous' });
+    });
+
+    it('should include before hook code by default', () => {
+      const tests = mochaParser(ast, '', source);
+      // first test
+      expect(tests[0].code).to.include("before(() => {\n");
+      expect(tests[0].code).to.include("console.log('Ran before');\n");
+      expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+      // second test
+      expect(tests[1].code).to.include("before(() => {\n");
+      expect(tests[1].code).to.include("console.log('Ran before');\n");
+      expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+    });
+
+    it('should include beforeEach hook code by default', () => {
+      const tests = mochaParser(ast, '', source);
+      // first test
+      expect(tests[0].code).to.include("beforeEach(() => {\n");
+      expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
+      expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+      // second test
+      expect(tests[1].code).to.include("beforeEach(() => {\n");
+      expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
+      expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+    });
+
+    it('should include after hook code by default', () => {
+      const tests = mochaParser(ast, '', source);
+      // first test
+      expect(tests[0].code).to.include("after(async () => {\n");
+      expect(tests[0].code).to.include("console.log('Ran after');\n");
+      expect(tests[0].code).to.include("cy.get('.action-disabled');\n");
+      // second test
+      expect(tests[1].code).to.include("after(async () => {\n");
+      expect(tests[1].code).to.include("console.log('Ran after');\n");
+      expect(tests[1].code).to.include("cy.get('.action-disabled');\n");
+    });
+  });
 });
