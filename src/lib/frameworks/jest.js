@@ -9,9 +9,14 @@ const {
   getCode,
 } = require('../utils');
 
+const withoutHooks = process.env.TESTOMATIO_IMPORT_WITHOUT_HOOKS;
+
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = [];
+  let beforeCode = '';
+  let beforeEachCode = '';
+  let afterCode = '';
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
@@ -23,6 +28,29 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'describe' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;
         addSuite(path.parent);
+      }
+
+      if (path.isIdentifier({ name: 'beforeAll' })) {
+        beforeCode = '';
+        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+      }
+
+      if (path.isIdentifier({ name: 'beforeEach' })) {
+        beforeEachCode = '';
+        beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+      }
+
+      if (path.isIdentifier({ name: 'afterAll' })) {
+        afterCode = '';
+        afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+
+        if (afterCode && !withoutHooks) {
+          for (const test of tests) {
+            if (!test.code.includes(afterCode)) {
+              test.code += afterCode;
+            }
+          }
+        }
       }
 
       // forbid only
@@ -96,13 +124,26 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'test' }) || path.isIdentifier({ name: 'it' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
+        let code = '';
+
+        beforeCode = beforeCode !== undefined ? beforeCode : '';
+        beforeEachCode = beforeEachCode !== undefined ? beforeEachCode : '';
+        afterCode = afterCode !== undefined ? afterCode : '';
+
+        code = withoutHooks
+          ? getCode(source, getLineNumber(path), getEndLineNumber(path))
+          : beforeEachCode +
+            beforeCode +
+            getCode(source, getLineNumber(path), getEndLineNumber(path)) +
+            afterCode;
+
         const testName = getStringValue(path.parent);
         tests.push({
           name: testName,
           suites: currentSuite.map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
-          code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+          code,
           file,
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });
