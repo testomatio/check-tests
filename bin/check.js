@@ -46,12 +46,13 @@ program
     opts.framework = framework;
     opts.pattern = files;
     const isPattern = checkPattern(files);
+    const frameworkOpts = {};
 
     if (!opts.hooks) {
-      process.env.TESTOMATIO_IMPORT_WITHOUT_HOOKS = '1';
+      frameworkOpts.noHooks = true;
     }
 
-    const analyzer = new Analyzer(framework, opts.dir || process.cwd());
+    const analyzer = new Analyzer(framework, opts.dir || process.cwd(), frameworkOpts);
     try {
       if (opts.typescript) {
         try {

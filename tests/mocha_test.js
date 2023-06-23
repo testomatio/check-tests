@@ -76,11 +76,11 @@ describe('mocha parser', () => {
     it('should include before hook code by default', () => {
       const tests = mochaParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include("before(() => {\n");
+      expect(tests[0].code).to.include('before(() => {\n');
       expect(tests[0].code).to.include("console.log('Ran before');\n");
       expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
       // second test
-      expect(tests[1].code).to.include("before(() => {\n");
+      expect(tests[1].code).to.include('before(() => {\n');
       expect(tests[1].code).to.include("console.log('Ran before');\n");
       expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
     });
@@ -88,11 +88,11 @@ describe('mocha parser', () => {
     it('should include beforeEach hook code by default', () => {
       const tests = mochaParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include("beforeEach(() => {\n");
+      expect(tests[0].code).to.include('beforeEach(() => {\n');
       expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
       expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
       // second test
-      expect(tests[1].code).to.include("beforeEach(() => {\n");
+      expect(tests[1].code).to.include('beforeEach(() => {\n');
       expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
       expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
     });
@@ -100,13 +100,46 @@ describe('mocha parser', () => {
     it('should include after hook code by default', () => {
       const tests = mochaParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include("after(async () => {\n");
+      expect(tests[0].code).to.include('after(async () => {\n');
       expect(tests[0].code).to.include("console.log('Ran after');\n");
       expect(tests[0].code).to.include("cy.get('.action-disabled');\n");
       // second test
-      expect(tests[1].code).to.include("after(async () => {\n");
+      expect(tests[1].code).to.include('after(async () => {\n');
       expect(tests[1].code).to.include("console.log('Ran after');\n");
       expect(tests[1].code).to.include("cy.get('.action-disabled');\n");
+    });
+  });
+
+  context('[with noHooks] Cypress: hooks code', () => {
+    let fileSource, fileAst;
+
+    before(() => {
+      fileSource = fs.readFileSync('./example/mocha/cypress_hooks.spec.js').toString();
+      fileAst = parser.parse(source, { sourceType: 'unambiguous' });
+    });
+
+    it('should exclude before hook code', () => {
+      const tests = mochaParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('before(() => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('before(() => {\n');
+    });
+
+    it('should exclude beforeEach hook code', () => {
+      const tests = mochaParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('beforeEach(() => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('beforeEach(() => {\n');
+    });
+
+    it('should exclude after hook code', () => {
+      const tests = mochaParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('after(async () => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('after(async () => {\n');
     });
   });
 });

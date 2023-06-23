@@ -157,38 +157,6 @@ describe('playwright parser', () => {
     expect(tests[7].skipped).to.be.true;
     expect(tests[8].skipped).to.be.false;
   });
-  //TODO: need SET "TESTOMATIO_IMPORT_WITHOUT_HOOKS": "1" in test
-  // context('[with TESTOMATIO_IMPORT_WITHOUT_HOOKS env] Parse Playwright hooks code', () => {
-  //   let fileSource, fileAst;
-  //   before(() => {
-  //     fileSource = fs.readFileSync('./example/playwright/hooks.js').toString();
-  //     fileAst = jsParser.parse(fileSource, { sourceType: 'unambiguous' });
-  //   });
-
-  //   it('should exclude beforeAll hook code', () => {
-  //     const tests = playwrightParser(fileAst, '', fileSource);
-  //     // first test
-  //     expect(tests[0].code).to.not.include("test.beforeAll('run before', async () => {\n");
-  //     // second test
-  //     expect(tests[1].code).to.not.include("test.beforeAll('run before', async () => {\n");
-  //   });
-
-  //   it('should exclude beforeEach hook code', () => {
-  //     const tests = playwrightParser(fileAst, '', fileSource);
-  //     // first test
-  //     expect(tests[0].code).to.not.include('test.beforeEach(async ({ page }) => {\n');
-  //     // second test
-  //     expect(tests[1].code).to.not.include('test.beforeEach(async ({ page }) => {\n');
-  //   });
-
-  //   it('should exclude afterAll hook code', () => {
-  //     const tests = playwrightParser(fileAst, '', fileSource);
-  //     // first test
-  //     expect(tests[0].code).to.not.include('test.afterAll(async () => {\n');
-  //     // second test
-  //     expect(tests[1].code).to.not.include('test.afterAll(async () => {\n');
-  //   });
-  // });
 
   context('Parse Playwright hooks code - default opts', () => {
     let fileSource, fileAst;
@@ -231,6 +199,38 @@ describe('playwright parser', () => {
       expect(tests[1].code).to.include('test.afterAll(async () => {\n');
       expect(tests[1].code).to.include("console.log('Ran afterAll');\n");
       expect(tests[1].code).to.include("await page.locator('#btnafterAll').click();\n");
+    });
+  });
+
+  context('[with noHooks] Parse Playwright hooks code', () => {
+    let fileSource, fileAst;
+    before(() => {
+      fileSource = fs.readFileSync('./example/playwright/hooks.js').toString();
+      fileAst = jsParser.parse(fileSource, { sourceType: 'unambiguous' });
+    });
+
+    it('should exclude beforeAll hook code', () => {
+      const tests = playwrightParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include("test.beforeAll('run before', async () => {\n");
+      // second test
+      expect(tests[1].code).to.not.include("test.beforeAll('run before', async () => {\n");
+    });
+
+    it('should exclude beforeEach hook code', () => {
+      const tests = playwrightParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('test.beforeEach(async ({ page }) => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('test.beforeEach(async ({ page }) => {\n');
+    });
+
+    it('should exclude afterAll hook code', () => {
+      const tests = playwrightParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('test.afterAll(async () => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('test.afterAll(async () => {\n');
     });
   });
 });
