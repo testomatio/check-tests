@@ -443,6 +443,16 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 
 ```
 
+### Test code
+
+By default, check-test sends the code of the test hooks to the "client": before, beforeEach and after. 
+In the "Codes" section you can see all the additional "context" of the test (Testomat.io).
+
+To exclude hook code from a client test, use the --no-hooks option
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-hooks
+```
+
 ## Import Parametrized Tests
 
 It is possible to import parametrized tests if they use template literals with variables in thier names:
