@@ -49,7 +49,7 @@ program
     const frameworkOpts = {};
 
     if (!opts.hooks) {
-      frameworkOpts.noHooks = true;
+      frameworkOpts.noHooks = !opts.hooks;
     }
 
     const analyzer = new Analyzer(framework, opts.dir || process.cwd(), frameworkOpts);
