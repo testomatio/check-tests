@@ -21,9 +21,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
   const getScenario = path => {
     let code = '';
 
-    beforeCode = beforeCode !== undefined ? beforeCode : '';
-    beforeSuiteCode = beforeSuiteCode !== undefined ? beforeSuiteCode : '';
-    afterSuiteCode = afterSuiteCode !== undefined ? afterSuiteCode : '';
+    beforeCode = beforeCode ?? '';
+    beforeSuiteCode = beforeSuiteCode ?? '';
+    afterSuiteCode = afterSuiteCode ?? '';
 
     code = noHooks
       ? getCode(source, getLineNumber(path), getEndLineNumber(path))

@@ -162,9 +162,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
         let code = '';
 
-        beforeCode = beforeCode !== undefined ? beforeCode : '';
-        beforeEachCode = beforeEachCode !== undefined ? beforeEachCode : '';
-        afterCode = afterCode !== undefined ? afterCode : '';
+        beforeCode = beforeCode ?? '';
+        beforeEachCode = beforeEachCode ?? '';
+        afterCode = afterCode ?? '';
 
         code = noHooks
           ? getCode(source, getLineNumber(path), getEndLineNumber(path))
