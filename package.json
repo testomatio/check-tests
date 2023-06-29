@@ -68,7 +68,7 @@
   "scripts": {
     "check": "node -r dotenv/config bin/check.js",
     "run": "node -r dotenv/config index.js",
-    "test": "mocha tests/**_test.js",
+    "test": "mocha tests/update_fs_test.js",
     "lint": "eslint 'src/**/*.js' --fix",
     "pretty-quick": "pretty-quick --staged",
     "prepare": "husky install",

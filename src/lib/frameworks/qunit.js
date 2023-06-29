@@ -33,9 +33,9 @@ module.exports = (ast, file = '', source = '') => {
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in ' +
-              `${file}:${line}\n` +
-              'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in '
+              + `${file}:${line}\n`
+              + 'Remove `.only` to restore test checks',
           );
         }
       }
