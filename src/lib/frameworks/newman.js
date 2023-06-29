@@ -1,6 +1,7 @@
 const debug = require('debug')('check-tests:newman');
 
 // ast and file will be ignored
+// if you need to expand the adapter with options, use opts = {}
 module.exports = (ast = '', file = '', source = '') => {
   const collection = JSON.parse(source);
   debug('Collection:\n', collection);

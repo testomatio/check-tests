@@ -7,17 +7,19 @@ const Decorator = require('./decorator');
 let parser;
 
 /**
+ * @typedef {import('../types').Analyzer} Analyzer
  * @typedef {import('../types').Test} TestData
  */
 
 class Analyzer {
-  constructor(framework, workDir = '.') {
+  constructor(framework, workDir = '.', opts = {}) {
     this.framework = framework.toLowerCase();
     this.workDir = workDir;
     this.typeScript = false;
     this.plugins = [];
     this.presets = [];
     this.rawTests = [];
+    this.opts = opts;
 
     parser = require('@babel/parser');
 
@@ -144,7 +146,7 @@ class Analyzer {
        * Assigns the array of TestData objects to the `tests` variable.
        * @type {TestData[]}
        */
-      const testsData = this.frameworkParser(ast, fileName, source);
+      const testsData = this.frameworkParser(ast, fileName, source, this.opts);
       this.rawTests.push(testsData);
       const tests = new Decorator(testsData);
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());

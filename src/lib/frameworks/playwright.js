@@ -9,9 +9,14 @@ const {
   getCode,
 } = require('../utils');
 
-module.exports = (ast, file = '', source = '') => {
+module.exports = (ast, file = '', source = '', opts = {}) => {
   const tests = [];
   let currentSuite = [];
+  // hooks variables
+  const noHooks = opts?.noHooks;
+  let beforeCode = '';
+  let beforeEachCode = '';
+  let afterCode = '';
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
@@ -26,15 +31,35 @@ module.exports = (ast, file = '', source = '') => {
         addSuite(path.parentPath.container);
       }
 
+      if (path.isIdentifier({ name: 'beforeAll' })) {
+        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+      }
+
+      if (path.isIdentifier({ name: 'beforeEach' })) {
+        beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+      }
+
+      if (path.isIdentifier({ name: 'afterAll' })) {
+        afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+
+        if (afterCode && !noHooks) {
+          for (const test of tests) {
+            if (!test.code.includes(afterCode)) {
+              test.code += afterCode;
+            }
+          }
+        }
+      }
+
       // forbid only
       if (path.isIdentifier({ name: 'only' })) {
         const name = path.parent.object.name || path.parent.object.callee.object.name;
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -132,6 +157,19 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'test' }) || path.isIdentifier({ name: 'it' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
+        let code = '';
+
+        beforeCode = beforeCode ?? '';
+        beforeEachCode = beforeEachCode ?? '';
+        afterCode = afterCode ?? '';
+
+        code = noHooks
+          ? getCode(source, getLineNumber(path), getEndLineNumber(path))
+          : beforeEachCode +
+            beforeCode +
+            getCode(source, getLineNumber(path), getEndLineNumber(path)) +
+            afterCode;
+
         const testName = getStringValue(path.parent);
 
         tests.push({
@@ -141,7 +179,7 @@ module.exports = (ast, file = '', source = '') => {
             .map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
-          code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+          code,
           file,
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });

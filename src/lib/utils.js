@@ -82,6 +82,13 @@ function getEndLineNumber(path) {
 function getCode(source, start, end) {
   if (!start || !end || !source) return '';
   const lines = source.split('\n');
+
+  for (let i = start - 1; i < end; i++) {
+    if (lines[i].trim().endsWith('})') || lines[i].trim().endsWith('});')) {
+      lines[i] += '\n';
+    }
+  }
+
   return lines.slice(start - 1, end).join('\n');
 }
 
@@ -111,7 +118,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }

@@ -33,3 +33,12 @@ export type ImportTests = {
   // list of test data
   tests: Test[];
 };
+
+export type Analyzer = {
+  // name of a framework
+  framework: string;
+  // path to test dir
+  workDir?: string;
+  // options (as {noHooks: true})
+  opts?: object;
+};

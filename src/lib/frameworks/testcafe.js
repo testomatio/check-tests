@@ -10,6 +10,7 @@ const {
   getQuasiArgument,
 } = require('../utils');
 
+// if you need to expand the adapter with options, use opts = {}
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = '';
@@ -22,10 +23,7 @@ module.exports = (ast, file = '', source = '') => {
       }
 
       if (path.isIdentifier({ name: 'test' })) {
-        if (
-          !hasStringArgument(path.parent)
-          && !hasTemplateArgument(path.parent)
-        ) return;
+        if (!hasStringArgument(path.parent) && !hasTemplateArgument(path.parent)) return;
 
         let testName = path.parent.arguments[0].value;
         if (!testName) {
@@ -49,10 +47,7 @@ module.exports = (ast, file = '', source = '') => {
 
         if (path.parent.object.name === 'test') {
           // test
-          if (
-            !hasStringArgument(path.parentPath.container)
-            && !hasTemplateArgument(path.parentPath.container)
-          ) return;
+          if (!hasStringArgument(path.parentPath.container) && !hasTemplateArgument(path.parentPath.container)) return;
 
           const testName = path.parentPath.container.arguments[0].value;
           tests.push({
@@ -60,11 +55,7 @@ module.exports = (ast, file = '', source = '') => {
             suites: [currentSuite],
             updatePoint: getUpdatePoint(path.parent),
             line: getLineNumber(path),
-            code: getCode(
-              source,
-              getLineNumber(path.parentPath),
-              getEndLineNumber(path.parentPath),
-            ),
+            code: getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath)),
             file,
             skipped: true,
           });

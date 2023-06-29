@@ -54,4 +54,80 @@ describe('jest parser', () => {
       );
     });
   });
+
+  context('hooks tests - default opts', () => {
+    before(() => {
+      source = fs.readFileSync('./example/jest/hooks.spec.js').toString();
+      ast = parser.parse(source);
+    });
+
+    it('should include beforeAll hook code', () => {
+      const tests = jestParser(ast, '', source);
+      // first test
+      expect(tests[0].code).to.include('beforeAll(() => {\n');
+      expect(tests[0].code).to.include("console.log('Ran beforeAll');\n");
+      expect(tests[0].code).to.include('expect(foods[1]).toBeTruthy();\n');
+      // second test
+      expect(tests[1].code).to.include('beforeAll(() => {\n');
+      expect(tests[1].code).to.include("console.log('Ran beforeAll');\n");
+      expect(tests[1].code).to.include('expect(foods[1]).toBeTruthy();\n');
+    });
+
+    it('should include beforeEach hook code', () => {
+      const tests = jestParser(ast, '', source);
+      // first test
+      expect(tests[0].code).to.include('beforeEach(() => {\n');
+      expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
+      expect(tests[0].code).to.include('expect(foods[2]).toBeTruthy();\n');
+      // second test
+      expect(tests[1].code).to.include('beforeEach(() => {\n');
+      expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
+      expect(tests[1].code).to.include('expect(foods[2]).toBeTruthy();\n');
+    });
+
+    it('should include afterAll hook code', () => {
+      const tests = jestParser(ast, '', source);
+      // first test
+      expect(tests[0].code).to.include('afterAll(() => {\n');
+      expect(tests[0].code).to.include("console.log('Ran afterAll');\n");
+      expect(tests[0].code).to.include('expect(foods[0]).toBeTruthy();\n');
+      // second test
+      expect(tests[1].code).to.include('afterAll(() => {\n');
+      expect(tests[1].code).to.include("console.log('Ran afterAll');\n");
+      expect(tests[1].code).to.include('expect(foods[0]).toBeTruthy();\n');
+    });
+  });
+
+  context('[with noHooks] hooks tests', () => {
+    let fileSource, fileAst;
+
+    before(() => {
+      fileSource = fs.readFileSync('./example/jest/hooks.spec.js').toString();
+      fileAst = parser.parse(source);
+    });
+
+    it('should exclude beforeAll hook code', () => {
+      const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('beforeAll(() => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('before(() => {\n');
+    });
+
+    it('should exclude beforeEach hook code', () => {
+      const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('beforeEach(() => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('beforeEach(() => {\n');
+    });
+
+    it('should exclude after hook code', () => {
+      const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
+      // first test
+      expect(tests[0].code).to.not.include('afterAll(() => {\n');
+      // second test
+      expect(tests[1].code).to.not.include('afterAll(() => {\n');
+    });
+  });
 });

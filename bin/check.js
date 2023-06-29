@@ -41,11 +41,18 @@ program
   .option('--no-empty', 'Remove empty suites after import')
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
+  .option('--no-hooks', 'Exclude test hooks code from the code on the client')
   .action(async (framework, files, opts) => {
     opts.framework = framework;
     opts.pattern = files;
     const isPattern = checkPattern(files);
-    const analyzer = new Analyzer(framework, opts.dir || process.cwd());
+    const frameworkOpts = {};
+
+    if (!opts.hooks) {
+      frameworkOpts.noHooks = !opts.hooks;
+    }
+
+    const analyzer = new Analyzer(framework, opts.dir || process.cwd(), frameworkOpts);
     try {
       if (opts.typescript) {
         try {
