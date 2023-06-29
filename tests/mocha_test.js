@@ -110,7 +110,7 @@ describe('mocha parser', () => {
     });
   });
 
-  context('[with noHooks] Cypress: hooks code', () => {
+  context('[opts.noHooks = true] Cypress: hooks code', () => {
     let fileSource, fileAst;
 
     before(() => {
@@ -140,6 +140,44 @@ describe('mocha parser', () => {
       expect(tests[0].code).to.not.include('after(async () => {\n');
       // second test
       expect(tests[1].code).to.not.include('after(async () => {\n');
+    });
+  });
+
+  context('Cypress: test with --line-numbers option', () => {
+    let fileSource, fileAst;
+
+    before(() => {
+      fileSource = fs.readFileSync('./example/mocha/cypress_hooks.spec.js').toString();
+      fileAst = parser.parse(source, { sourceType: 'unambiguous' });
+    });
+
+    it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
+      const tests = mochaParser(fileAst, '', fileSource, { lineNumbers: true });
+      // first test only
+      expect(tests[0].code).to.include("13:     it('.type() - type into a DOM element', () => {\n");
+      // by default hooks include line number too
+      expect(tests[0].code).to.include('4:     beforeEach(() => {\n');
+      expect(tests[0].code).to.include('8:     before(() => {\n');
+      expect(tests[0].code).to.include('24:     after(async () => {\n');
+      // second test
+      expect(tests[1].code).to.include("20:     it('.click() - click on a DOM element', () => {\n");
+    });
+
+    it('[no SET the lineNumbers opts] should exclude line-number', () => {
+      const tests = mochaParser(fileAst, '', fileSource);
+      // first test only
+      expect(tests[0].code).to.not.include("13:     it('.type() - type into a DOM element', () => {\n");
+      // no lines
+      expect(tests[0].code).to.include("it('.type() - type into a DOM element', () => {\n");
+    });
+
+    // multiple options
+    it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
+      const tests = mochaParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
+      // first test only
+      expect(tests[0].code).to.include("13:     it('.type() - type into a DOM element', () => {\n");
+      // no includes hook code
+      expect(tests[0].code).to.not.include('8:     before(() => {\n');
     });
   });
 });

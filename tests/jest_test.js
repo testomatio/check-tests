@@ -98,7 +98,7 @@ describe('jest parser', () => {
     });
   });
 
-  context('[with noHooks] hooks tests', () => {
+  context('[opts.noHooks = true] hooks tests', () => {
     let fileSource, fileAst;
 
     before(() => {
@@ -110,8 +110,10 @@ describe('jest parser', () => {
       const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
       // first test
       expect(tests[0].code).to.not.include('beforeAll(() => {\n');
+      expect(tests[0].code).to.include("test('Vienna <3 veal', async () => {\n");
       // second test
       expect(tests[1].code).to.not.include('before(() => {\n');
+      expect(tests[1].code).to.include("test('San Juan <3 plantains', async () => {\n");
     });
 
     it('should exclude beforeEach hook code', () => {
@@ -128,6 +130,45 @@ describe('jest parser', () => {
       expect(tests[0].code).to.not.include('afterAll(() => {\n');
       // second test
       expect(tests[1].code).to.not.include('afterAll(() => {\n');
+    });
+  });
+
+  context('test with --line-numbers option', () => {
+    let fileSource, fileAst;
+
+    before(() => {
+      fileSource = fs.readFileSync('./example/jest/hooks.spec.js').toString();
+      fileAst = parser.parse(source);
+    });
+
+    it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
+      const tests = jestParser(fileAst, '', fileSource, { lineNumbers: true });
+      // first test only
+      expect(tests[0].code).to.include("14:     test('Vienna <3 veal', async () => {\n");
+      expect(tests[0].code).to.include('15:         const { foods, pkg } = await generateWithPlugin({\n');
+      // by default hooks include line number too
+      expect(tests[0].code).to.include('9:     beforeEach(() => {\n');
+      expect(tests[0].code).to.include('4:     beforeAll(() => {\n');
+      expect(tests[0].code).to.include('30:     afterAll(() => {\n');
+      // second test
+      expect(tests[1].code).to.include("24:     test('San Juan <3 plantains', async () => {\n");
+    });
+
+    it('[no SET the lineNumbers opts] should exclude line-number', () => {
+      const tests = jestParser(fileAst, '', fileSource);
+      // first test only
+      expect(tests[0].code).to.not.include("14:     test('Vienna <3 veal', async () => {\n");
+      // no lines
+      expect(tests[0].code).to.include("test('Vienna <3 veal', async () => {\n");
+    });
+
+    // multiple options
+    it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
+      const tests = jestParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
+      // first test only
+      expect(tests[0].code).to.include("14:     test('Vienna <3 veal', async () => {\n");
+      // no includes hook code
+      expect(tests[0].code).to.not.include('4:     beforeAll(() => {\n');
     });
   });
 });
