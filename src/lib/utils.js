@@ -79,13 +79,17 @@ function getEndLineNumber(path) {
   return line;
 }
 
-function getCode(source, start, end) {
+function getCode(source, start, end, isLineNumber = false) {
   if (!start || !end || !source) return '';
-  const lines = source.split('\n');
+  let lines = source.split('\n');
+
+  if (isLineNumber) {
+    lines = lines.map((line, index) => `${index + 1}: ${line}`);
+  }
 
   for (let i = start - 1; i < end; i++) {
     if (lines[i].trim().endsWith('})') || lines[i].trim().endsWith('});')) {
-      lines[i] += '\n';
+      lines[i] += '\n\n';
     }
   }
 
