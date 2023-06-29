@@ -36,17 +36,14 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'before' })) {
-        beforeCode = '';
         beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
       }
 
       if (path.isIdentifier({ name: 'beforeEach' })) {
-        beforeEachCode = '';
         beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
       }
 
       if (path.isIdentifier({ name: 'after' })) {
-        afterCode = '';
         afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
 
         if (afterCode && !noHooks) {

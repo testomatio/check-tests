@@ -68,12 +68,10 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'Before' })) {
-        beforeCode = '';
         beforeCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
       }
 
       if (path.isIdentifier({ name: 'BeforeSuite' })) {
-        beforeSuiteCode = '';
         beforeSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
       }
 
@@ -114,7 +112,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'AfterSuite' })) {
-        afterSuiteCode = '';
         afterSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
 
         if (afterSuiteCode && !noHooks) {

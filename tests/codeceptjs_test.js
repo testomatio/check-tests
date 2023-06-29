@@ -111,8 +111,7 @@ describe('codeceptjs parser', () => {
     });
   });
 
-  //TODO: need SET "TESTOMATIO_IMPORT_WITHOUT_HOOKS": "1" in test
-  context('[without TESTOMATIO-WITH-HOOKS env] Parse CodeceptJS hooks code', () => {
+  context('[without noHooks=true] Parse CodeceptJS hooks code', () => {
     let fileSource,
       fileAst = '';
     before(() => {
