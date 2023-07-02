@@ -97,6 +97,42 @@ describe('update ids tests(playwright adapter)', () => {
       expect(updatedFile).to.include("test('basic test case #1.1 @T1d52b111'");
       expect(updatedFile).to.include("test('basic test case #1.2 @T1d52b112'");
     });
+
+    it('[ts file]: test file test.describe.parallel mode should returns updated title.', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+      analyzer.withTypeScript();
+      require('@babel/core');
+
+      const idMap = {
+        tests: {
+          'basic test case #1': '@T1d52b111',
+        },
+        suites: {
+          'Main suite parallel option': '@Sf3d245a7',
+        },
+      };
+
+      mock({
+        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
+        virtual_dir: {
+          'test.ts': `
+          test.describe.parallel('Main suite parallel option', () => {          
+            test('basic test case #1', async ({ page }) => {
+              await test.step('[Check 1] Open page and confirm title', async () => {
+                await page.goto("https://todomvc.com/examples/vanilla-es6/");
+              });
+            });
+          });`,
+        },
+      });
+
+      analyzer.analyze('test.ts');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.ts', 'utf-8').toString();
+
+      expect(updatedFile).to.include("test.describe.parallel('Main suite parallel option @Sf3d245a7', ()");
+    });
   });
 
   describe('[Playwright examples] lines processing', () => {

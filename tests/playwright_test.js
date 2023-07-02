@@ -13,7 +13,7 @@ describe('playwright parser', () => {
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
     expect(tests[0]).to.include.key('code');
-    expect(tests.length).to.equal(1);
+    expect(tests.length).to.equal(3);
     expect(tests[0].code).to.include("test('basic");
     expect(tests[0].name).to.equal('basic test');
   });
@@ -255,4 +255,20 @@ describe('playwright parser', () => {
       expect(tests[0].name).to.equal('should allow me to mark all items as completed');
     });
   })
+  it('should return suite name if used test.describe without parallel mode', () => {
+    source = fs.readFileSync('./example/playwright/basic.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = playwrightParser(ast, '', source);
+
+    expect(tests[1].suites[0]).to.equal('Main suite no parallel');
+  });
+
+  it('should return suite name if used test.describe.parallel mode', () => {
+    source = fs.readFileSync('./example/playwright/basic.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = playwrightParser(ast, '', source);
+    console.log("T", tests)
+
+    expect(tests[2].suites[0]).to.equal('Main suite parallel option');
+  });
 });
