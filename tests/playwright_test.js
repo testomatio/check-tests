@@ -233,4 +233,26 @@ describe('playwright parser', () => {
       expect(tests[1].code).to.not.include('test.afterAll(async () => {\n');
     });
   });
+
+  context('Default playwright file parsing ', () => {
+    it('should parse basic playwright-ts DEMO tests ("todo" name as part of inner function args)', () => {
+      const fileSource = fs.readFileSync('./example/playwright/demo-todo.ts').toString();
+      const program = tsParser.parse(fileSource, {
+        sourceType: 'unambiguous',
+        loc: true,
+        range: true,
+        tokens: true,
+      });
+      const fileAst = {
+        program,
+        type: 'File',
+      };
+
+      const tests = playwrightParser(fileAst, '', fileSource);
+  
+      expect(tests[0]).to.include.key('code');
+      expect(tests[0].suites[0]).to.equal('Mark all as completed');
+      expect(tests[0].name).to.equal('should allow me to mark all items as completed');
+    });
+  })
 });

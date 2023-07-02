@@ -53,6 +53,10 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
       // forbid only
       if (path.isIdentifier({ name: 'only' })) {
+        if (!path.parent || !path.parent.object) {
+          return;
+        }
+
         const name = path.parent.object.name || path.parent.object.callee.object.name;
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
@@ -69,7 +73,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name = 
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -104,7 +109,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -135,6 +141,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'todo' })) {
+        if (!path.parent || !path.parent.object) {
+          return;
+        }
         // todo tests => skipped tests
         if (path.parent.object.name === 'test') {
           // test
