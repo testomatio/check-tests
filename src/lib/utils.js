@@ -87,13 +87,9 @@ function getCode(source, start, end, isLineNumber = false) {
     lines = lines.map((line, index) => `${index + 1}: ${line}`);
   }
 
-  for (let i = start - 1; i < end; i++) {
-    if (lines[i].trim().endsWith('})') || lines[i].trim().endsWith('});')) {
-      lines[i] += '\n\n';
-    }
-  }
+  const block = lines.slice(start - 1, end).join('\n') + '\n\n';
 
-  return lines.slice(start - 1, end).join('\n');
+  return block;
 }
 
 function parseComments(source) {
