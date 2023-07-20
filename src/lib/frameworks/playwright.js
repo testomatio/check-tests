@@ -53,7 +53,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           }
         }
       }
-      
+
       if (path.isIdentifier({ name: 'parallel' })) {
         if (!path.parentPath && !path.parentPath.container) return;
         if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
@@ -82,8 +82,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name =
-          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -118,8 +117,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name =
-          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it

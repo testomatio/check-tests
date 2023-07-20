@@ -88,7 +88,6 @@ function getCode(source, start, end, isLineNumber = false) {
   }
 
   const block = lines.slice(start - 1, end).join('\n') + '\n\n';
-
   return block;
 }
 
