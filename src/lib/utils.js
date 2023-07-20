@@ -79,17 +79,17 @@ function getEndLineNumber(path) {
   return line;
 }
 
-function getCode(source, start, end) {
+function getCode(source, start, end, isLineNumber = false) {
   if (!start || !end || !source) return '';
-  const lines = source.split('\n');
+  let lines = source.split('\n');
 
-  for (let i = start - 1; i < end; i++) {
-    if (lines[i].trim().endsWith('})') || lines[i].trim().endsWith('});')) {
-      lines[i] += '\n';
-    }
+  if (isLineNumber) {
+    lines = lines.map((line, index) => `${index + 1}: ${line}`);
   }
 
-  return lines.slice(start - 1, end).join('\n');
+  const block = lines.slice(start - 1, end).join('\n') + '\n\n';
+
+  return block;
 }
 
 function parseComments(source) {
@@ -118,8 +118,7 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] =
-      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }

@@ -202,7 +202,7 @@ describe('playwright parser', () => {
     });
   });
 
-  context('[with noHooks] Parse Playwright hooks code', () => {
+  context('[opts.noHooks = true] Parse Playwright hooks code', () => {
     let fileSource, fileAst;
     before(() => {
       fileSource = fs.readFileSync('./example/playwright/hooks.js').toString();
@@ -249,26 +249,64 @@ describe('playwright parser', () => {
       };
 
       const tests = playwrightParser(fileAst, '', fileSource);
-  
+
       expect(tests[0]).to.include.key('code');
       expect(tests[0].suites[0]).to.equal('Mark all as completed');
       expect(tests[0].name).to.equal('should allow me to mark all items as completed');
     });
-  })
-  it('should return suite name if used test.describe without parallel mode', () => {
-    source = fs.readFileSync('./example/playwright/basic.js').toString();
-    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
-    const tests = playwrightParser(ast, '', source);
 
-    expect(tests[1].suites[0]).to.equal('Main suite no parallel');
+    it('should return suite name if used test.describe without parallel mode', () => {
+      source = fs.readFileSync('./example/playwright/basic.js').toString();
+      ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[1].suites[0]).to.equal('Main suite no parallel');
+    });
+
+    it('should return suite name if used test.describe.parallel mode', () => {
+      source = fs.readFileSync('./example/playwright/basic.js').toString();
+      ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[2].suites[0]).to.equal('Main suite parallel option');
+    });
   });
 
-  it('should return suite name if used test.describe.parallel mode', () => {
-    source = fs.readFileSync('./example/playwright/basic.js').toString();
-    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
-    const tests = playwrightParser(ast, '', source);
-    console.log("T", tests)
+  context('test with --line-numbers option', () => {
+    let fileSource, fileAst;
 
-    expect(tests[2].suites[0]).to.equal('Main suite parallel option');
+    before(() => {
+      fileSource = fs.readFileSync('./example/playwright/hooks.js').toString();
+      fileAst = jsParser.parse(fileSource, { sourceType: 'unambiguous' });
+    });
+
+    it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
+      const tests = playwrightParser(fileAst, '', fileSource, { lineNumbers: true });
+      // first test only
+      expect(tests[0].code).to.include("13:     test('my test #1', async ({ page }) => {\n");
+      expect(tests[0].code).to.include("14:         expect(page.url()).toBe('https://www.programsbuzz.com/');\n");
+      // by default hooks include line number too
+      expect(tests[0].code).to.include('8:     test.beforeEach(async ({ page }) => {\n');
+      expect(tests[0].code).to.include("3:     test.beforeAll('run before', async () => {\n");
+      expect(tests[0].code).to.include('21:     test.afterAll(async () => {\n');
+      // second test
+      expect(tests[1].code).to.include("17:     test('my test #2', async ({ page }) => {\n");
+    });
+
+    it('[no SET the lineNumbers opts] should exclude line-number', () => {
+      const tests = playwrightParser(fileAst, '', fileSource);
+      // first test only
+      expect(tests[0].code).to.not.include("13:     test('my test #1', async ({ page }) => {\n");
+      // no lines
+      expect(tests[0].code).to.include("test('my test #1', async ({ page }) => {\n");
+    });
+    // multiple options
+    it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
+      const tests = playwrightParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
+      // first test only
+      expect(tests[0].code).to.include("13:     test('my test #1', async ({ page }) => {\n");
+      // no includes hook code
+      expect(tests[0].code).to.not.include('8:     test.beforeEach(async ({ page }) => {\n');
+    });
   });
 });

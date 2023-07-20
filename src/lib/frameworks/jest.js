@@ -14,6 +14,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
   let currentSuite = [];
   // hooks variables
   const noHooks = opts?.noHooks;
+  // line-numbers opt
+  const isLineNumber = opts?.lineNumbers;
+
   let beforeCode = '';
   let beforeEachCode = '';
   let afterCode = '';
@@ -31,15 +34,15 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'beforeAll' })) {
-        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
       }
 
       if (path.isIdentifier({ name: 'beforeEach' })) {
-        beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+        beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
       }
 
       if (path.isIdentifier({ name: 'afterAll' })) {
-        afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath));
+        afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
 
         if (afterCode && !noHooks) {
           for (const test of tests) {
@@ -83,7 +86,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             name: testName,
             suites: currentSuite.map(s => getStringValue(s)),
             line: getLineNumber(path),
-            code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+            code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
             skipped: true,
           });
@@ -111,7 +114,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             name: testName,
             suites: currentSuite.map(s => getStringValue(s)),
             line: getLineNumber(path),
-            code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+            code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
             skipped: true,
           });
@@ -128,11 +131,11 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         afterCode = afterCode ?? '';
 
         code = noHooks
-          ? getCode(source, getLineNumber(path), getEndLineNumber(path))
-          : beforeEachCode +
-            beforeCode +
-            getCode(source, getLineNumber(path), getEndLineNumber(path)) +
-            afterCode;
+          ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
+          : beforeEachCode
+            + beforeCode
+            + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
+            + afterCode;
 
         const testName = getStringValue(path.parent);
         tests.push({
@@ -156,7 +159,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           suites: currentSuite.map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(currentPath),
-          code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath)),
+          code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath), isLineNumber),
           file,
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });

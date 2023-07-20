@@ -111,7 +111,7 @@ describe('codeceptjs parser', () => {
     });
   });
 
-  context('[without noHooks=true] Parse CodeceptJS hooks code', () => {
+  context('[opts.noHooks = true] Parse CodeceptJS hooks code', () => {
     let fileSource,
       fileAst = '';
     before(() => {
@@ -123,8 +123,10 @@ describe('codeceptjs parser', () => {
       const tests = codeceptParser(fileAst, '', fileSource, { noHooks: true });
       // first test
       expect(tests[0].code).to.not.include('Before(async (I, TodosPage) => {\n');
+      expect(tests[0].code).to.include("Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
       // second test
       expect(tests[1].code).to.not.include('Before(async (I, TodosPage) => {\n');
+      expect(tests[1].code).to.include("Data(examples).Scenario('Todos containing weird characters', async (I, current, TodosPage) => {\n");
     });
 
     it('should exclude BeforeSuite hook code', () => {
@@ -141,6 +143,45 @@ describe('codeceptjs parser', () => {
       expect(tests[0].code).to.not.include('AfterSuite(({ I }) => {\n');
       // second test
       expect(tests[1].code).to.not.include('AfterSuite(({ I }) => {\n');
+    });
+  });
+
+  context('Parse CodeceptJS test with --line-numbers option', () => {
+    let fileSource,
+      fileAst = '';
+    before(() => {
+      fileSource = fs.readFileSync('./example/codeceptjs/test_hooks_description.js').toString();
+      fileAst = parser.parse(fileSource);
+    });
+
+    it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
+      const tests = codeceptParser(fileAst, '', fileSource, { lineNumbers: true });
+      // first test only
+      expect(tests[0].code).to.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.include("19:   I.say('Then I see that the todo text has been changed');\n");
+      expect(tests[0].code).to.include("20:   await TodosPage.seeNthTodoEquals(1, 'boom');\n");
+      // by default hooks include line number too
+      expect(tests[0].code).to.include("3: Before(async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.include("9: BeforeSuite(({ I }) => {\n");
+      expect(tests[0].code).to.include("45: AfterSuite(({ I }) => {\n");
+    });
+
+    it('[no SET the lineNumbers opts] should exclude line-number', () => {
+      const tests = codeceptParser(fileAst, '', fileSource);
+      // first test only
+      expect(tests[0].code).to.not.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+      // no lines
+      expect(tests[0].code).to.include("Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+    });
+
+    // multiple options
+    it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
+      const tests = codeceptParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
+      // first test only
+      expect(tests[0].code).to.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.include("19:   I.say('Then I see that the todo text has been changed');\n");
+      // no includes hook code
+      expect(tests[0].code).to.not.include('3: Before(async (I, TodosPage) => {\n');
     });
   });
 });

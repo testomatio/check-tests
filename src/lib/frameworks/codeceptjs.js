@@ -14,6 +14,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
   let currentSuite = '';
   // hooks variables
   const noHooks = opts?.noHooks;
+  // line-numbers opt
+  const isLineNumber = opts?.lineNumbers;
+
   let beforeCode = '';
   let beforeSuiteCode = '';
   let afterSuiteCode = '';
@@ -26,11 +29,11 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     afterSuiteCode = afterSuiteCode ?? '';
 
     code = noHooks
-      ? getCode(source, getLineNumber(path), getEndLineNumber(path))
-      : beforeSuiteCode +
-        beforeCode +
-        getCode(source, getLineNumber(path), getEndLineNumber(path)) +
-        afterSuiteCode
+      ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
+      : beforeSuiteCode
+        + beforeCode
+        + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
+        + afterSuiteCode;
 
     if (hasStringOrTemplateArgument(path.container)) {
       const testName = getStringValue(path.container);
@@ -53,7 +56,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         suites: [currentSuite],
         updatePoint: getUpdatePoint(path.container),
         line: getLineNumber(path),
-        code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+        code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
         file,
       });
     }
@@ -68,11 +71,11 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'Before' })) {
-        beforeCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
+        beforeCode = getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber);
       }
 
       if (path.isIdentifier({ name: 'BeforeSuite' })) {
-        beforeSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
+        beforeSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber);
       }
 
       if (path.isIdentifier({ name: 'only' })) {
@@ -80,9 +83,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (['Scenario'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in ' +
-              `${file}:${line}\n` +
-              'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in '
+              + `${file}:${line}\n`
+              + 'Remove `.only` to restore test checks',
           );
         }
       }
@@ -95,7 +98,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             suites: [currentSuite],
             updatePoint: getUpdatePoint(path.container),
             line: getLineNumber(path),
-            code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
+            code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             skipped: true,
             file,
           });
@@ -112,7 +115,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'AfterSuite' })) {
-        afterSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path));
+        afterSuiteCode = getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber);
 
         if (afterSuiteCode && !noHooks) {
           for (const test of tests) {
@@ -125,9 +128,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
       if (path.isIdentifier({ name: 'tag' })) {
         if (
-          !path.parentPath.container ||
-          !path.parentPath.container.arguments ||
-          !path.parentPath.container.arguments[0]
+          !path.parentPath.container
+          || !path.parentPath.container.arguments
+          || !path.parentPath.container.arguments[0]
         ) {
           return;
         }

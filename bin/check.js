@@ -42,11 +42,16 @@ program
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
+  .option('--line-numbers', 'Adding an extra line number to each block of code')
   .action(async (framework, files, opts) => {
     opts.framework = framework;
     opts.pattern = files;
     const isPattern = checkPattern(files);
     const frameworkOpts = {};
+
+    if (opts.lineNumbers) {
+      frameworkOpts.lineNumbers = true;
+    }
 
     if (!opts.hooks) {
       frameworkOpts.noHooks = !opts.hooks;

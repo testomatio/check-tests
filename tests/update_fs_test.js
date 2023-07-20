@@ -45,7 +45,7 @@ const createTestFiles = folderName => {
 
 const cleanFiles = folderName => {
   const targetPath = path.join(__dirname, '..', folderName);
-  fs.rmdirSync(targetPath, { recursive: true, force: true });
+  fs.rmSync(targetPath, { recursive: true, force: true });
 };
 
 beforeEach(() => {

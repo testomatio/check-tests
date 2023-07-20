@@ -449,9 +449,20 @@ By default, check-test sends the code of the test hooks to the "client": before,
 In the "Codes" section you can see all the additional "context" of the test (Testomat.io).
 
 To exclude hook code from a client test, use the --no-hooks option
+
 ```
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-hooks
 ```
+
+### Additional line number to the test code
+
+To include line number code from a client test, use --line-numbers option.
+_(By default Code section exclude "line number")_
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --line-numbers
+```
+
 
 ## Import Parametrized Tests
 
