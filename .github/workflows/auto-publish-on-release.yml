@@ -34,7 +34,7 @@
 #           push_options: '--force'
 #           file_pattern: dist/**/*.js
 
-name: Autopublish to npm when release created
+name: Autopublish to npm on release creation
 on:
   release:
     types: [published]
