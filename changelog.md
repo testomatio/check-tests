@@ -1,3 +1,20 @@
+# 0.8.17
+
+- Added `--line-numbers` option to push the Code line number to the Testomat.io
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --line-numbers
+```
+
+- Added `--no-hooks` option to exclude hooks code from the the Code in Testomat.io
+
+```
+TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-hooks
+```
+
+- Added support for `test.describe.parallel` annotation in Playwright
+- Fixed issue for he default Playwright project import
+
 # 0.8.8
 
 - Added support for `test.fixme` annotation in Playwright
