@@ -11,10 +11,14 @@ jobs:
           ref: ${{ github.event.release.target_commitish }}
       - uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 18
+      - run: node -v
+      - run: npm -v
+      - run: git status
       - run: npm i
       - run: git config --global user.name "GitHub CD bot"
       - run: git config --global user.email "github-cd-bot@example.com"
+      - run: git status
       - run: npm version ${{ github.event.release.tag_name }}
       - uses: JS-DevTools/npm-publish@v1
         with:
