@@ -1,4 +1,3 @@
-const { error } = require('@actions/core');
 const hash = require('object-hash');
 const CommentError = require('./errors/comment.error');
 
