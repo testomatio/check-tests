@@ -59,8 +59,14 @@ class Reporter {
     return new Promise((resolve, reject) => {
       console.log('\n 🚀 Sending data to testomat.io\n');
 
+      // unify path to use slashes (prevent backslashes on windows)
+      const tests = this.tests.map(test => {
+        test.file = test.file?.replace(/\\/g, '/');
+        return test;
+      });
+      this.tests = tests;
       const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
-
+      debug('Sending test data to Testomat.io', data);
       const req = request(
         `${URL.trim()}/api/load?api_key=${this.apiKey}`,
         {

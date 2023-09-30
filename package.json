@@ -44,7 +44,8 @@
     "glob": "^7.2.0",
     "insert-line": "^1.1.0",
     "object-hash": "^2.2.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "upath": "^2.0.1"
   },
   "devDependencies": {
     "@actions/core": "^1.6.0",
