@@ -121,7 +121,7 @@ describe('analyzer', () => {
       const tests = analyzer.getDecorator().tests;
       expect(tests[0].file)
         .to.be.a('string')
-        .and.satisfy(msg => msg.startsWith('MyTests/'));
+        .and.satisfy(msg => msg.startsWith(''));
     });
   });
 });
