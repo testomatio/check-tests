@@ -134,6 +134,7 @@ program
             await resp;
           }
           if (opts.updateIds) {
+            opts.prependDir = process.env.TESTOMATIO_PREPEND_DIR;
             if (branch) {
               console.log('To avoid conflicts, --update-ids is disabled in a branch. Skipping...');
               return;
