@@ -138,6 +138,7 @@ class Analyzer {
 
       // append file name to each test
       const fileName = path.relative(this.workDir, file);
+      // prepend dir should not affects the actual file path, it is used only on Testomatio side
       // if (process.env.TESTOMATIO_PREPEND_DIR) {
       //   fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName);
       // }

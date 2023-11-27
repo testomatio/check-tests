@@ -64,7 +64,7 @@ class Reporter {
         // unify path to use slashes (prevent backslashes on windows)
         test.file = test.file?.replace(/\\/g, '/');
         // add prepend dir to path
-        test.file = path.join(process.env.TESTOMATIO_PREPEND_DIR, test.file);
+        test.file = path.join(process.env.TESTOMATIO_PREPEND_DIR || '', test.file);
         return test;
       });
       this.tests = tests;
