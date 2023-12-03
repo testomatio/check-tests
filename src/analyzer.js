@@ -118,7 +118,7 @@ class Analyzer {
             // const program = parser.createProgram(path.join(__dirname, '../tsconfig.json'))
             const program = parser.parse(source, {
               sourceType: 'unambiguous',
-              filePath: file,
+              filePath: file.replace(/\\/g, '/'),
               loc: true,
               range: true,
               tokens: true,
