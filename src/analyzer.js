@@ -155,6 +155,7 @@ class Analyzer {
       this.stats.files.push(file);
 
       this.decorator.append(testsData);
+      tests.validate();
     }
   }
 

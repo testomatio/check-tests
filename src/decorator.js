@@ -1,4 +1,5 @@
 const hash = require('object-hash');
+const ValidateError = require('./errors/validation.error');
 
 class Decorator {
   /**
@@ -14,6 +15,37 @@ class Decorator {
     this.fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
     this.isCommentEnabled = false;
     this.comments = {};
+  }
+
+  validate() {
+    const errors = [];
+
+    this.getSuiteNames()
+      .map(s => s.split(':'))
+      .flat()
+      .filter(t => {
+        if (!t) return false;
+        return !t.replace(/(@[\w:-]+)/g, '').trim();
+      })
+      .forEach(t => {
+        errors.push(`Suite name is empty: '${t}'`);
+      });
+
+    this.getTests()
+      .filter(t => {
+        return !t.name.replace(/(@[\w:-]+)/g, '').trim();
+      })
+      .forEach(t => {
+        errors.push(`Test name is empty: '${t.name}' at ${t.file}:${t.line}`);
+      });
+
+    if (errors.length) {
+      throw new ValidateError(
+        `Tests validation failed:\n\n- ${errors.join(
+          '\n- ',
+        )}\n\nPlease check your test files and make sure that all tests have names.`,
+      );
+    }
   }
 
   enableComment() {

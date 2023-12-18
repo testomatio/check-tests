@@ -172,8 +172,12 @@ program
         throw new Error('Skipped tests found, failing...');
       }
     } catch (err) {
-      console.error(chalk.red(err));
-      console.error(err.stack);
+      console.log();
+      console.error(chalk.bold.red(err));
+
+      if (!err.name == 'ValidationError') {
+        console.error(err.stack);
+      }
       process.exit(1);
     }
   });
