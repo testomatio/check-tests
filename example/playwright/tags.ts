@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
 
-// test('test with no tags', async () => {
-//   // test code
-// });
+test('test with no tags', async () => {
+  // test code
+});
 
 test(
   'test with single tag',
@@ -27,7 +27,11 @@ test(
 test(
   'test with multiple tags on multiple lines',
   {
-    tag: ['@smoke', '@regression', '@windows'],
+    tag: [
+      '@smoke',
+      '@regression',
+      '@windows'
+    ],
   },
   async () => {
     // test code

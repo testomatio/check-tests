@@ -203,7 +203,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           line: getLineNumber(path),
           code,
           file,
-          tags: playwright.getTags(path.parentPath),
+          tags: playwright.getTestTags(path.parentPath),
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });
       }

@@ -96,7 +96,7 @@ describe('playwright parser', () => {
       };
       const tests = playwrightParser(ast, '', source);
 
-      expect(tests[0].tags).to.have.all.members(['@smoke']);
+      expect(tests[1].tags).to.have.all.members(['smoke']);
     });
 
     it('should parse playwright-js test with multiple tags', () => {
@@ -113,7 +113,7 @@ describe('playwright parser', () => {
       };
       const tests = playwrightParser(ast, '', source);
 
-      expect(tests[1].tags).to.have.all.members(['@smoke', '@regression']);
+      expect(tests[2].tags).to.have.all.members(['smoke', 'regression']);
     });
 
     it('should parse playwright-js test with multiple tags on multiple lines', () => {
@@ -130,11 +130,11 @@ describe('playwright parser', () => {
       };
       const tests = playwrightParser(ast, '', source);
 
-      expect(tests[2].tags).to.have.all.members(['@smoke', '@regression', '@windows']);
+      expect(tests[3].tags).to.have.all.members(['smoke', 'regression', 'windows']);
     });
   });
 
-  it.only('should parse playwright-js tests with annotation', () => {
+  it('should parse playwright-js tests with annotation', () => {
     source = fs.readFileSync('./example/playwright/annotations.js').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);

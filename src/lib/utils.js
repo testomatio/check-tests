@@ -118,7 +118,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }
@@ -131,7 +132,7 @@ function cleanAtPoint(subject, replaceAt, cleanSubject) {
 }
 
 const playwright = {
-  getTags: path => {
+  getTestTags: path => {
     const argumentsList = path.parent.expression.arguments;
     if (!argumentsList?.length) return [];
     const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
@@ -142,7 +143,7 @@ const playwright = {
     if (!propertiesWithTags.length) return [];
 
     // prop value could be a string or an array of strings
-    const tags = propertiesWithTags
+    let tags = propertiesWithTags
       .map(prop => {
         if (prop.value.type === 'ArrayExpression') {
           return prop.value.elements.map(el => el.value);
@@ -150,6 +151,10 @@ const playwright = {
         return prop.value.value;
       })
       .flat();
+    // remove @ at start of each tag
+    tags = tags.map(tag => {
+      return tag.startsWith('@') ? tag.substring(1) : tag;
+    });
 
     return tags;
   },
