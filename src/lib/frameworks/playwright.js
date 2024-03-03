@@ -199,7 +199,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           suites: currentSuite
             .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
             .map(s => getStringValue(s)),
-          updatePoint: getUpdatePoint(path.parent),
+          updatePoint: playwright.getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code,
           file,
@@ -218,7 +218,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           suites: currentSuite
             .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
             .map(s => getStringValue(s)),
-          updatePoint: getUpdatePoint(path.parent),
+          updatePoint: playwright.getUpdatePoint(path.parent),
           line: getLineNumber(currentPath),
           code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath), isLineNumber),
           file,

@@ -118,7 +118,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }
@@ -156,6 +157,29 @@ const playwright = {
     });
 
     return tags;
+  },
+
+  getUpdatePoint: path => {
+    return getUpdatePoint(path);
+    // if (!path) return;
+    // const argumentsList = path.arguments;
+    // if (!argumentsList.length) return;
+
+    // let point = path.arguments[0].loc.end;
+
+    // const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
+    // const propertiesWithTags = argumentsWithTags.map(arg => arg.properties.find(prop => prop.key.name === 'tag'));
+    // if (propertiesWithTags.length) {
+    //   point = propertiesWithTags[0].loc.end;
+    //   // point.column--;
+    //   // return point;
+    // }
+    // // single tag
+    // // multiple tags
+    // // multiple tags in multiple lines of code
+
+    // point.column--;
+    // return point;
   },
 };
 
