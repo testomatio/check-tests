@@ -76,9 +76,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -88,7 +88,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -123,7 +124,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -187,10 +189,10 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
         code = noHooks
           ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-          : beforeEachCode
-            + beforeCode
-            + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-            + afterCode;
+          : beforeEachCode +
+            beforeCode +
+            getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber) +
+            afterCode;
 
         const testName = getStringValue(path.parent);
 
@@ -199,7 +201,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           suites: currentSuite
             .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
             .map(s => getStringValue(s)),
-          updatePoint: playwright.getUpdatePoint(path.parent),
+          updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code,
           file,
@@ -218,7 +220,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           suites: currentSuite
             .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
             .map(s => getStringValue(s)),
-          updatePoint: playwright.getUpdatePoint(path.parent),
+          updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(currentPath),
           code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath), isLineNumber),
           file,

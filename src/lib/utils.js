@@ -158,29 +158,6 @@ const playwright = {
 
     return tags;
   },
-
-  getUpdatePoint: path => {
-    return getUpdatePoint(path);
-    // if (!path) return;
-    // const argumentsList = path.arguments;
-    // if (!argumentsList.length) return;
-
-    // let point = path.arguments[0].loc.end;
-
-    // const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
-    // const propertiesWithTags = argumentsWithTags.map(arg => arg.properties.find(prop => prop.key.name === 'tag'));
-    // if (propertiesWithTags.length) {
-    //   point = propertiesWithTags[0].loc.end;
-    //   // point.column--;
-    //   // return point;
-    // }
-    // // single tag
-    // // multiple tags
-    // // multiple tags in multiple lines of code
-
-    // point.column--;
-    // return point;
-  },
 };
 
 module.exports = {
