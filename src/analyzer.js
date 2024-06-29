@@ -30,6 +30,7 @@ class Analyzer {
         break;
       case 'jest':
       case 'jestio':
+      case 'vitest':
         this.frameworkParser = require('./lib/frameworks/jest');
         break;
       case 'newman':
