@@ -1,4 +1,6 @@
+const { error } = require('@actions/core');
 const hash = require('object-hash');
+const CommentError = require('./errors/comment.error');
 
 class Decorator {
   /**
@@ -14,6 +16,34 @@ class Decorator {
     this.fileLink = `https://github.com/${process.env.GITHUB_REPOSITORY}/tree/${process.env.GITHUB_SHA}`;
     this.isCommentEnabled = false;
     this.comments = {};
+  }
+
+  validate() {
+    const errors = [];
+
+    this.getSuiteNames()
+      .map(s => s.split(':'))
+      .flat()
+      .filter(t => {
+        if (!t) return false;
+        return !t.replace(/(@[\w:-]+)/g, '').trim();
+      })
+      .forEach(t => {
+        errors.push(`Suite name is empty: '${t}'`);
+      });
+
+    this.getTests()
+      .filter(t => {
+        if (!t.name) return false;
+        return !t.name.replace(/(@[\w:-]+)/g, '').trim();
+      })
+      .forEach(t => {
+        errors.push(`Test name is empty: '${t.name}' at ${t.file}:${t.line}`);
+      });
+
+    if (errors.length) {
+      throw new CommentError(`Tests validation failed:\n- ${errors.join('\n- ')}`);
+    }
   }
 
   enableComment() {
