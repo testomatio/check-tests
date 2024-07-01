@@ -1,6 +1,5 @@
-const { error } = require('@actions/core');
 const hash = require('object-hash');
-const CommentError = require('./errors/comment.error');
+const ValidateError = require('./errors/validation.error');
 
 class Decorator {
   /**
@@ -34,7 +33,6 @@ class Decorator {
 
     this.getTests()
       .filter(t => {
-        if (!t.name) return false;
         return !t.name.replace(/(@[\w:-]+)/g, '').trim();
       })
       .forEach(t => {
@@ -42,7 +40,11 @@ class Decorator {
       });
 
     if (errors.length) {
-      throw new CommentError(`Tests validation failed:\n- ${errors.join('\n- ')}`);
+      throw new ValidateError(
+        `Tests validation failed:\n\n- ${errors.join(
+          '\n- ',
+        )}\n\nPlease check your test files and make sure that all tests have names.`,
+      );
     }
   }
 
