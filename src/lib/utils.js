@@ -66,6 +66,7 @@ function getLineNumber(path) {
 function getUpdatePoint(path) {
   if (!path) return;
   if (!path.arguments) return;
+  if (!path.arguments[0].loc) throw new Error('No loc (lines of code)');
   const point = path.arguments[0].loc.end;
   point.column--;
   return point;
@@ -117,7 +118,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }
@@ -128,6 +130,35 @@ function cleanAtPoint(subject, replaceAt, cleanSubject) {
   lines[replaceAt.line - 1] = lines[replaceAt.line - 1].replace(` ${cleanSubject}`, '');
   return lines.join('\n');
 }
+
+const playwright = {
+  getTestTags: path => {
+    const argumentsList = path.parent.expression.arguments;
+    if (!argumentsList?.length) return [];
+    const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
+    if (!argumentsWithTags.length) return [];
+    const properties = argumentsWithTags.map(arg => arg.properties);
+    if (!properties.length) return [];
+    const propertiesWithTags = properties.flat().filter(prop => prop.key.name === 'tag');
+    if (!propertiesWithTags.length) return [];
+
+    // prop value could be a string or an array of strings
+    let tags = propertiesWithTags
+      .map(prop => {
+        if (prop.value.type === 'ArrayExpression') {
+          return prop.value.elements.map(el => el.value);
+        }
+        return prop.value.value;
+      })
+      .flat();
+    // remove @ at start of each tag
+    tags = tags.map(tag => {
+      return tag.startsWith('@') ? tag.substring(1) : tag;
+    });
+
+    return tags;
+  },
+};
 
 module.exports = {
   hasStringArgument,
@@ -143,4 +174,5 @@ module.exports = {
   getUpdatePoint,
   replaceAtPoint,
   cleanAtPoint,
+  playwright,
 };

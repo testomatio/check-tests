@@ -7,6 +7,7 @@ const {
   getLineNumber,
   getEndLineNumber,
   getCode,
+  playwright,
 } = require('../utils');
 
 module.exports = (ast, file = '', source = '', opts = {}) => {
@@ -39,7 +40,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'beforeEach' })) {
-        beforeEachCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
+        beforeEachCode = getCode(
+          source,
+          getLineNumber(path.parentPath),
+          getEndLineNumber(path.parentPath),
+          isLineNumber,
+        );
       }
 
       if (path.isIdentifier({ name: 'afterAll' })) {
@@ -70,9 +76,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
@@ -82,7 +88,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -117,7 +124,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
@@ -181,10 +189,10 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
         code = noHooks
           ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-          : beforeEachCode
-            + beforeCode
-            + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-            + afterCode;
+          : beforeEachCode +
+            beforeCode +
+            getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber) +
+            afterCode;
 
         const testName = getStringValue(path.parent);
 
@@ -197,6 +205,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           line: getLineNumber(path),
           code,
           file,
+          tags: playwright.getTestTags(path.parentPath),
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });
       }

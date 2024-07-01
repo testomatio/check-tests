@@ -30,6 +30,7 @@ class Analyzer {
         break;
       case 'jest':
       case 'jestio':
+      case 'vitest':
         this.frameworkParser = require('./lib/frameworks/jest');
         break;
       case 'newman':
@@ -118,7 +119,7 @@ class Analyzer {
             // const program = parser.createProgram(path.join(__dirname, '../tsconfig.json'))
             const program = parser.parse(source, {
               sourceType: 'unambiguous',
-              filePath: file,
+              filePath: file.replace(/\\/g, '/'),
               loc: true,
               range: true,
               tokens: true,
@@ -137,10 +138,11 @@ class Analyzer {
       }
 
       // append file name to each test
-      let fileName = path.relative(this.workDir, file);
-      if (process.env.TESTOMATIO_PREPEND_DIR) {
-        fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName);
-      }
+      const fileName = path.relative(this.workDir, file);
+      // prepend dir should not affect the actual file path, it is used only on Testomatio side
+      // if (process.env.TESTOMATIO_PREPEND_DIR) {
+      //   fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName);
+      // }
 
       /**
        * Assigns the array of TestData objects to the `tests` variable.

@@ -2,6 +2,7 @@ const URL = process.env.TESTOMATIO_URL || 'https://app.testomat.io';
 const isHttps = URL.startsWith('https');
 const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
+const path = require('path');
 
 class Reporter {
   constructor(apiKey, framework) {
@@ -59,8 +60,16 @@ class Reporter {
     return new Promise((resolve, reject) => {
       console.log('\n 🚀 Sending data to testomat.io\n');
 
+      const tests = this.tests.map(test => {
+        // unify path to use slashes (prevent backslashes on windows)
+        test.file = test.file?.replace(/\\/g, '/');
+        // add prepend dir to path
+        test.file = path.join(process.env.TESTOMATIO_PREPEND_DIR || '', test.file || '');
+        return test;
+      });
+      this.tests = tests;
       const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
-
+      debug('Sending test data to Testomat.io', data);
       const req = request(
         `${URL.trim()}/api/load?api_key=${this.apiKey}`,
         {
