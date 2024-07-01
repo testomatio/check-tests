@@ -167,6 +167,22 @@ describe('playwright parser', () => {
       expect(tests[4].tags).to.have.all.members(['smoke', 'regression', 'windows']);
     });
   });
+  it('should parse playwright-ts tests with params', () => {
+    source = fs.readFileSync('./example/playwright/params.ts').toString();
+    const program = tsParser.parse(source, {
+      sourceType: 'unambiguous',
+      loc: true,
+      range: true,
+      tokens: true,
+    });
+    ast = {
+      program,
+      type: 'File',
+    };
+    const tests = playwrightParser(ast, '', source);
+
+    expect(tests[0].name).to.equal('check ${i} on "${pageUrl}" page');
+  });
 
   it('should parse playwright-js tests with annotation', () => {
     source = fs.readFileSync('./example/playwright/annotations.js').toString();
