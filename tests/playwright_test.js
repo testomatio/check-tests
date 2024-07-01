@@ -72,13 +72,100 @@ describe('playwright parser', () => {
   });
 
   it('should update playwright suite if no suite set', () => {
-    source = fs.readFileSync('./example/playwright/tags.js').toString();
+    source = fs.readFileSync('./example/playwright/tags-in-title.js').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
     expect(tests[0]).to.include.key('code');
     expect(tests.length).to.equal(5);
     const lastTest = tests[tests.length - 1];
     expect(lastTest.suites.length).to.eql(0);
+  });
+
+  describe('tags', () => {
+    it('should parse playwright-ts test with signle tag on the same line', () => {
+      source = fs.readFileSync('./example/playwright/tags.ts').toString();
+      const program = tsParser.parse(source, {
+        sourceType: 'unambiguous',
+        loc: true,
+        range: true,
+        tokens: true,
+      });
+      ast = {
+        program,
+        type: 'File',
+      };
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[0].tags).to.have.all.members(['smoke']);
+    });
+
+    it('should parse playwright-ts test with opening brace on the same line and signle tag on the next line', () => {
+      source = fs.readFileSync('./example/playwright/tags.ts').toString();
+      const program = tsParser.parse(source, {
+        sourceType: 'unambiguous',
+        loc: true,
+        range: true,
+        tokens: true,
+      });
+      ast = {
+        program,
+        type: 'File',
+      };
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[1].tags).to.have.all.members(['smoke']);
+    });
+
+    it('should parse playwright-ts test with signle tag on the next line', () => {
+      source = fs.readFileSync('./example/playwright/tags.ts').toString();
+      const program = tsParser.parse(source, {
+        sourceType: 'unambiguous',
+        loc: true,
+        range: true,
+        tokens: true,
+      });
+      ast = {
+        program,
+        type: 'File',
+      };
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[2].tags).to.have.all.members(['smoke']);
+    });
+
+    it('should parse playwright-js test with multiple tags', () => {
+      source = fs.readFileSync('./example/playwright/tags.ts').toString();
+      const program = tsParser.parse(source, {
+        sourceType: 'unambiguous',
+        loc: true,
+        range: true,
+        tokens: true,
+      });
+      ast = {
+        program,
+        type: 'File',
+      };
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[3].tags).to.have.all.members(['smoke', 'regression']);
+    });
+
+    it('should parse playwright-js test with multiple tags on multiple lines', () => {
+      source = fs.readFileSync('./example/playwright/tags.ts').toString();
+      const program = tsParser.parse(source, {
+        sourceType: 'unambiguous',
+        loc: true,
+        range: true,
+        tokens: true,
+      });
+      ast = {
+        program,
+        type: 'File',
+      };
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[4].tags).to.have.all.members(['smoke', 'regression', 'windows']);
+    });
   });
 
   it('should parse playwright-js tests with annotation', () => {

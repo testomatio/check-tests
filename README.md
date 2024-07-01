@@ -374,11 +374,6 @@ TESTOMATIO_URL=http://local.testomat.io
 
 ### Example
 
-To generate test document
-
-```
-check-tests mocha "tests/*_test.js" -g Test-doc.md -u https://github.com/testomatio/check-tests/tree/master
-```
 
 Check tests for CodeceptJS
 
