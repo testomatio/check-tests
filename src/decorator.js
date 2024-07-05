@@ -20,17 +20,6 @@ class Decorator {
   validate() {
     const errors = [];
 
-    this.getSuiteNames()
-      .map(s => s.split(':'))
-      .flat()
-      .filter(t => {
-        if (!t) return false;
-        return !t.replace(/(@[\w:-]+)/g, '').trim();
-      })
-      .forEach(t => {
-        errors.push(`Suite name is empty: '${t}'`);
-      });
-
     this.getTests()
       .filter(t => {
         return !t.name.replace(/(@[\w:-]+)/g, '').trim();
