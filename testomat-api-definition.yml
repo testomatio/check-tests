@@ -105,6 +105,11 @@ components:
         file:
           description: a file name where this test is located. Path is relative to current directory.
           type: string
+        labels:
+          description: Assign labels to tests (labels must be created before)
+          type: array
+          items:
+            type: string
       required:
         - name
         - suites
