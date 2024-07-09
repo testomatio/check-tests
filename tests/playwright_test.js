@@ -3,6 +3,7 @@ const tsParser = require('@typescript-eslint/typescript-estree');
 const fs = require('fs');
 const { expect } = require('chai');
 const playwrightParser = require('../src/lib/frameworks/playwright');
+const { assert } = require('console');
 
 let source;
 let ast;
@@ -13,9 +14,36 @@ describe('playwright parser', () => {
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
     expect(tests[0]).to.include.key('code');
-    expect(tests.length).to.equal(3);
+    expect(tests.length).to.equal(4);
     expect(tests[0].code).to.include("test('basic");
     expect(tests[0].name).to.equal('basic test');
+  });
+
+  it('should forbid describe.only tests', () => {
+    source = `
+test.describe.only('my test', () => {
+  test('my test', async ({ page }) => {
+    await page.goto('https://playwright.dev/');
+  });
+}); 
+    `;
+
+    const program = tsParser.parse(source, {
+      sourceType: 'unambiguous',
+      loc: true,
+      range: true,
+      tokens: true,
+    });
+    ast = {
+      program,
+      type: 'File',
+    };
+    try {
+      playwrightParser(ast, '', source);
+      assert.fail('Expected an error');
+    } catch (err) {
+      expect(err.message).to.include('Exclusive tests detected');
+    }
   });
 
   it('should parse basic playwright-ts tests', () => {
@@ -356,6 +384,13 @@ describe('playwright parser', () => {
       const tests = playwrightParser(ast, '', source);
 
       expect(tests[2].suites[0]).to.equal('Main suite parallel option');
+    });
+    it('should return suite name if used test.describe.serial mode', () => {
+      source = fs.readFileSync('./example/playwright/basic.js').toString();
+      ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+      const tests = playwrightParser(ast, '', source);
+
+      expect(tests[3].suites[0]).to.equal('Main suite serial option');
     });
   });
 
