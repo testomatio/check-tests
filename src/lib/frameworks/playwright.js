@@ -66,13 +66,23 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         addSuite(path.parentPath.container);
       }
 
+      if (path.isIdentifier({ name: 'serial' })) {
+        if (!path.parentPath && !path.parentPath.container) return;
+        if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
+        addSuite(path.parentPath.container);
+      }
+
       // forbid only
       if (path.isIdentifier({ name: 'only' })) {
         if (!path.parent || !path.parent.object) {
           return;
         }
 
-        const name = path.parent.object.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent?.object?.name ||
+          path.parent?.object?.callee?.object?.name ||
+          path.container?.object?.property?.name;
+
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
