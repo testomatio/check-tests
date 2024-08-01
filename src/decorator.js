@@ -1,6 +1,6 @@
+const debug = require('debug')('check-tests:decorator');
 const hash = require('object-hash');
 const ValidateError = require('./errors/validation.error');
-const debug = require('debug')('check-tests:decorator');
 
 class Decorator {
   /**
