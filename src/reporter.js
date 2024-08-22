@@ -63,12 +63,16 @@ class Reporter {
       const tests = this.tests.map(test => {
         // unify path to use slashes (prevent backslashes on windows)
         test.file = test.file?.replace(/\\/g, '/');
-        // add prepend dir to path
-        test.file = path.join(process.env.TESTOMATIO_PREPEND_DIR || '', test.file || '');
         return test;
       });
       this.tests = tests;
+
+      if (process.env.TESTOMATIO_PREPEND_DIR) opts.dir = process.env.TESTOMATIO_PREPEND_DIR;
+      if (process.env.TESTOMATIO_SUITE) opts.suite = process.env.TESTOMATIO_SUITE;
+
       const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
+
+
       debug('Sending test data to Testomat.io', data);
       const req = request(
         `${URL.trim()}/api/load?api_key=${this.apiKey}`,
