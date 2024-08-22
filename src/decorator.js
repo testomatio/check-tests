@@ -1,3 +1,4 @@
+const debug = require('debug')('check-tests:decorator');
 const hash = require('object-hash');
 const ValidateError = require('./errors/validation.error');
 
@@ -20,20 +21,10 @@ class Decorator {
   validate() {
     const errors = [];
 
-    this.getSuiteNames()
-      .map(s => s.split(':'))
-      .flat()
-      .filter(t => {
-        if (!t) return false;
-        return !t.replace(/(@[\w:-]+)/g, '').trim();
-      })
-      .forEach(t => {
-        errors.push(`Suite name is empty: '${t}'`);
-      });
-
     this.getTests()
       .filter(t => {
-        return !t.name.replace(/(@[\w:-]+)/g, '').trim();
+        if (!t.name) debug('Empty name for test:', t);
+        return !t.name?.replace(/(@[\w:-]+)/g, '').trim();
       })
       .forEach(t => {
         errors.push(`Test name is empty: '${t.name}' at ${t.file}:${t.line}`);

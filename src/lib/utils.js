@@ -40,16 +40,16 @@ function getQuasiArgument(path) {
   for (const node of nodes) {
     if (node.type === 'MemberExpression') {
       if (node.property && node.property.type === 'Identifier') {
-        quasiValue += ' ${' + node.property.name + '} '; // eslint-disable-line prefer-template
+        quasiValue += '${' + node.property.name + '}'; // eslint-disable-line prefer-template
         continue;
       }
     }
     if (node.type === 'Identifier') {
-      quasiValue += ' ${' + node.name + '} '; // eslint-disable-line prefer-template
+      quasiValue += '${' + node.name + '}'; // eslint-disable-line prefer-template
       continue;
     }
     if (!node.value) continue;
-    if (node.value.raw) quasiValue += node.value.raw.trim();
+    if (node.value.raw) quasiValue += node.value.raw;
   }
 
   return quasiValue;
@@ -118,8 +118,7 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    lines[replaceAt.line - 1] =
-      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }

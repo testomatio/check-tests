@@ -33,7 +33,7 @@ describe('Decorator', () => {
 
   it('should validate tests with empty titles', () => {
     const decorator = new Decorator([
-      { name: 'test1', suites: ['Appium', '@suiteTag', 'second'] },
+      { name: 'test1', suites: ['Appium', 'second'] },
       { name: '@first-Tag', suites: ['Appium'] },
       { name: '@tag1 @tag2', suites: ['Appium'] },
       { name: 'word @tag1 @tag2', suites: ['Appium'] },
@@ -48,7 +48,6 @@ describe('Decorator', () => {
       // console.log(err.message)
       expect(err.message).to.include('@first-Tag');
       expect(err.message).to.include('@tag1 @tag2');
-      expect(err.message).to.include('@suiteTag');
       expect(err.message).not.to.include('@tag1 word @tag2');
       expect(err.message).not.to.include('word @tag1 @tag2');
       expect(err.message).not.to.include('okword');
