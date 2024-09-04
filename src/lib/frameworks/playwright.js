@@ -105,7 +105,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
           const testName = getStringValue(path.parentPath.container);
           tests.push({
-            name: `${testName} @skip`,
+            name: testName,
             suites: currentSuite
               .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
               .map(s => getStringValue(s)),
@@ -113,6 +113,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
+            tags: ['@skip'],
             skipped: false,
           });
         }
@@ -141,7 +142,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
           const testName = getStringValue(path.parentPath.container);
           tests.push({
-            name: `${testName} @fixme`,
+            name: testName,
             suites: currentSuite
               .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
               .map(s => getStringValue(s)),
@@ -149,6 +150,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
+            tags: ['@fixme'],
             skipped: false,
           });
         }
@@ -175,7 +177,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
           const testName = getStringValue(path.parentPath.container);
           tests.push({
-            name: `${testName} @todo`,
             name: testName,
             suites: currentSuite
               .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
@@ -184,6 +185,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
+            tags: ['@todo'],
             skipped: false,
           });
         }

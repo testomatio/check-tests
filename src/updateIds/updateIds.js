@@ -81,7 +81,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         duplicateTests++;
         continue;
       }
-      
+
       if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
         fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
         fs.writeFileSync(file, fileContent);
@@ -90,6 +90,13 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testWithoutTags]}`);
         fs.writeFileSync(file, fileContent);
         delete testomatioMap.tests[testWithoutTags];
+      }
+
+      // Add tags from test.tags
+      if (test.tags && test.tags.length > 0) {
+        const tags = test.tags.map(tag => `${tag}`).join(' ');
+        fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${tags}`);
+        fs.writeFileSync(file, fileContent);
       }
     }
     files.push(file);
@@ -141,8 +148,13 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
       debug('  cleaning test: ', test.name);
 
       if (testIds.includes(testId) || (dangerous && testId)) {
-        fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
+      fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
       }
+
+      // Remove tags @fixme, @tod0, @skip
+      fileContent = fileContent.replace(/ @fixme/g, '');
+      fileContent = fileContent.replace(/ @todo/g, '');
+      fileContent = fileContent.replace(/ @skip/g, '');
     }
     files.push(file);
     fs.writeFileSync(file, fileContent, err => {
