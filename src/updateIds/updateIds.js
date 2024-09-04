@@ -26,41 +26,45 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
     const file = `${workDir}/${testArr[0].file}`;
     debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
+    const processedSuites = new Set(); // Keep track of processed suites
 
-    const suite = testArr[0].suites[0] || '';
+    for (const data of testArr) {
+      for (const suite of data.suites) {
+        const suiteIndex = suite;
+        const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
-    if (suite) {
-      const suiteIndex = suite;
-      const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
+        const currentSuiteId = parseSuite(suiteIndex);
+        if (
+          currentSuiteId &&
+          (testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` ||
+          testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`)
+        ) {
+          debug(`   Previous ID detected in suite '${suiteIndex}'`);
+          duplicateSuites++;
+          continue;
+        }
 
-      const currentSuiteId = parseSuite(suiteIndex);
-      if (
-        currentSuiteId
-        && testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}`
-        && testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
-      ) {
-        debug(`   Previous ID detected in suite '${suiteIndex}'`);
-        duplicateSuites++;
-        continue;
-      }
-
-      if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-        fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
-        fs.writeFileSync(file, fileContent);
-      } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-        fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-        fs.writeFileSync(file, fileContent);
+        if (!processedSuites.has(suiteIndex)) {
+          if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
+          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+          fs.writeFileSync(file, fileContent);
+          processedSuites.add(suiteIndex);
+          } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
+          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
+          fs.writeFileSync(file, fileContent);
+          processedSuites.add(suiteIndex);
+          }
+        }
       }
     }
 
     for (const test of testArr) {
-      let testIndex = `${test.suites[0] || ''}#${test.name}`;
+      let testIndex = `${test.suites.join(' > ')}#${test.name}`;
       debug('testIndex', testIndex);
 
-      let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
-        TAG_REGEX,
-        '',
-      )}`.trim();
+      let testWithoutTags = `${test.suites
+        .map((suite) => suite.replace(TAG_REGEX, '').trim())
+        .join(' > ')}#${test.name.replace(TAG_REGEX, '')}`.trim();
 
       if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
         testIndex = test.name; // if no suite title provided
@@ -69,15 +73,15 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
 
       const currentTestId = parseTest(testIndex);
       if (
-        currentTestId
-        && testomatioMap.tests[testIndex] !== `@T${currentTestId}`
-        && testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+        currentTestId &&
+        (testomatioMap.tests[testIndex] !== `@T${currentTestId}` ||
+          testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`)
       ) {
         debug(`Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
         continue;
       }
-
+      
       if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
         fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
         fs.writeFileSync(file, fileContent);
@@ -120,21 +124,21 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
     debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
-    const suite = testArr[0].suites[0];
+    for (const data of testArr) {
+      for (const suite of data.suites) {
+        const suiteId = `@S${parseSuite(suite)}`;
+        debug('  cleaning suite: ', suite);
 
-    if (suite) {
-      const suiteId = `@S${parseSuite(suite)}`;
-      debug('  clenaing suite: ', suite);
-
-      if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
-        const newTitle = suite.slice().replace(suiteId, '').trim();
-        fileContent = fileContent.replace(suite, newTitle);
+        if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
+          const newTitle = suite.slice().replace(suiteId, '').trim();
+          fileContent = fileContent.replace(suite, newTitle);
+        }
       }
     }
 
     for (const test of testArr) {
       const testId = `@T${parseTest(test.name)}`;
-      debug('  clenaing test: ', test.name);
+      debug('  cleaning test: ', test.name);
 
       if (testIds.includes(testId) || (dangerous && testId)) {
         fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
