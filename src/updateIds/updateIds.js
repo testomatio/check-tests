@@ -37,7 +37,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         if (
           currentSuiteId &&
           (testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` ||
-          testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`)
+            testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`)
         ) {
           debug(`   Previous ID detected in suite '${suiteIndex}'`);
           duplicateSuites++;
@@ -46,13 +46,16 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
 
         if (!processedSuites.has(suiteIndex)) {
           if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
-          fs.writeFileSync(file, fileContent);
-          processedSuites.add(suiteIndex);
-          } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-          fs.writeFileSync(file, fileContent);
-          processedSuites.add(suiteIndex);
+            fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+            fs.writeFileSync(file, fileContent);
+            processedSuites.add(suiteIndex);
+          } else if (
+            testomatioMap.suites[suiteWithoutTags] &&
+            !suite.includes(testomatioMap.suites[suiteWithoutTags])
+          ) {
+            fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
+            fs.writeFileSync(file, fileContent);
+            processedSuites.add(suiteIndex);
           }
         }
       }
@@ -63,7 +66,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
       debug('testIndex', testIndex);
 
       let testWithoutTags = `${test.suites
-        .map((suite) => suite.replace(TAG_REGEX, '').trim())
+        .map(suite => suite.replace(TAG_REGEX, '').trim())
         .join(' > ')}#${test.name.replace(TAG_REGEX, '')}`.trim();
 
       if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
@@ -148,13 +151,8 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
       debug('  cleaning test: ', test.name);
 
       if (testIds.includes(testId) || (dangerous && testId)) {
-      fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
+        fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
       }
-
-      // Remove tags @fixme, @tod0, @skip
-      fileContent = fileContent.replace(/ @fixme/g, '');
-      fileContent = fileContent.replace(/ @todo/g, '');
-      fileContent = fileContent.replace(/ @skip/g, '');
     }
     files.push(file);
     fs.writeFileSync(file, fileContent, err => {
