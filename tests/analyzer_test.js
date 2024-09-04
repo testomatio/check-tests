@@ -48,7 +48,7 @@ describe('analyzer', () => {
 
     const tests = analyzer.getDecorator().getTests();
     expect(tests.length).to.be.above(0);
-    expect(tests[0].file.startsWith('mocha/')).to.be.false;
+    expect(tests[0].file.startsWith('mocha/')).to.be.true;
   });
 
   it('should include full dir in file name', () => {
