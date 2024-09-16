@@ -165,24 +165,24 @@ const arrayCompare = function (a, b, id) {
   const found = [];
   let added = [];
 
-  // If 'a' is an object, take the corresponding fields
-  if (R.is(Object, a)) {
+  // If 'a' is an object, extract fields a, b, and id
+  if (typeof a === 'object' && !Array.isArray(a)) {
     ({ a, b, id } = a);
   }
 
-  // Copy of 'b' for modification
-  let bCopy = R.clone(b);
+  // Create a copy of 'b' for modification
+  const bCopy = [...b];
 
   // Iterate over array 'a' to find matches
-  R.forEach(aItem => {
+  a.forEach(aItem => {
     let bIndex = -1;
 
     if (id) {
-      // If an identifier is provided, look for an object with the same 'id'
-      bIndex = R.findIndex(R.propEq(id, aItem[id]), bCopy);
+      // If an identifier is specified, find an object with the same 'id'
+      bIndex = bCopy.findIndex(bItem => bItem[id] === aItem[id]);
     } else {
-      // If no identifier is provided, look for a direct match
-      bIndex = R.indexOf(aItem, bCopy);
+      // If no identifier is specified, find an exact match
+      bIndex = bCopy.indexOf(aItem);
     }
 
     if (bIndex !== -1) {
@@ -191,15 +191,15 @@ const arrayCompare = function (a, b, id) {
         a: aItem,
         b: bCopy[bIndex],
       });
-      bCopy = R.remove(bIndex, 1, bCopy);
+      bCopy.splice(bIndex, 1); // Remove element from bCopy
     } else {
-      // Add to 'missing' if not found
+      // Add to 'missing' if the element is not found
       missing.push({ a: aItem });
     }
-  }, a);
+  });
 
   // Everything left in bCopy is added to 'added'
-  added = R.map(bItem => ({ b: bItem }), bCopy);
+  added = bCopy.map(bItem => ({ b: bItem }));
 
   return {
     found,

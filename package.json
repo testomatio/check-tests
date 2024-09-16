@@ -42,7 +42,6 @@
     "glob": "^7.2.0",
     "insert-line": "^1.1.0",
     "object-hash": "^2.2.0",
-    "ramda": "^0.30.1",
     "typescript": "^4.4.4"
   },
   "devDependencies": {
