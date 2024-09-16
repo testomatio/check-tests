@@ -165,40 +165,40 @@ const arrayCompare = function (a, b, id) {
   const found = [];
   let added = [];
 
-  // Якщо 'a' є об'єктом, беремо відповідні поля
+  // If 'a' is an object, take the corresponding fields
   if (R.is(Object, a)) {
     ({ a, b, id } = a);
   }
 
-  // Копія 'b' для модифікації
+  // Copy of 'b' for modification
   let bCopy = R.clone(b);
 
-  // Перебір по масиву 'a' для пошуку співпадінь
+  // Iterate over array 'a' to find matches
   R.forEach(aItem => {
     let bIndex = -1;
 
     if (id) {
-      // Якщо надано ідентифікатор, шукаємо об'єкт з таким самим 'id'
+      // If an identifier is provided, look for an object with the same 'id'
       bIndex = R.findIndex(R.propEq(id, aItem[id]), bCopy);
     } else {
-      // Якщо ідентифікатор не надано, шукаємо пряме співпадіння
+      // If no identifier is provided, look for a direct match
       bIndex = R.indexOf(aItem, bCopy);
     }
 
     if (bIndex !== -1) {
-      // Додаємо до 'found' і видаляємо знайдений елемент з bCopy
+      // Add to 'found' and remove the found element from bCopy
       found.push({
         a: aItem,
         b: bCopy[bIndex],
       });
       bCopy = R.remove(bIndex, 1, bCopy);
     } else {
-      // Додаємо до 'missing', якщо не знайдено
+      // Add to 'missing' if not found
       missing.push({ a: aItem });
     }
   }, a);
 
-  // Все, що залишилося в bCopy, додається в 'added'
+  // Everything left in bCopy is added to 'added'
   added = R.map(bItem => ({ b: bItem }), bCopy);
 
   return {
