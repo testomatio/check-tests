@@ -118,6 +118,7 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
+    /* prettier-ignore */
     lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
@@ -159,6 +160,54 @@ const playwright = {
   },
 };
 
+const arrayCompare = function (a, b, id) {
+  const missing = [];
+  const found = [];
+  let added = [];
+
+  // Якщо 'a' є об'єктом, беремо відповідні поля
+  if (R.is(Object, a)) {
+    ({ a, b, id } = a);
+  }
+
+  // Копія 'b' для модифікації
+  let bCopy = R.clone(b);
+
+  // Перебір по масиву 'a' для пошуку співпадінь
+  R.forEach(aItem => {
+    let bIndex = -1;
+
+    if (id) {
+      // Якщо надано ідентифікатор, шукаємо об'єкт з таким самим 'id'
+      bIndex = R.findIndex(R.propEq(id, aItem[id]), bCopy);
+    } else {
+      // Якщо ідентифікатор не надано, шукаємо пряме співпадіння
+      bIndex = R.indexOf(aItem, bCopy);
+    }
+
+    if (bIndex !== -1) {
+      // Додаємо до 'found' і видаляємо знайдений елемент з bCopy
+      found.push({
+        a: aItem,
+        b: bCopy[bIndex],
+      });
+      bCopy = R.remove(bIndex, 1, bCopy);
+    } else {
+      // Додаємо до 'missing', якщо не знайдено
+      missing.push({ a: aItem });
+    }
+  }, a);
+
+  // Все, що залишилося в bCopy, додається в 'added'
+  added = R.map(bItem => ({ b: bItem }), bCopy);
+
+  return {
+    found,
+    missing,
+    added,
+  };
+};
+
 module.exports = {
   hasStringArgument,
   hasTemplateQuasi,
@@ -174,4 +223,5 @@ module.exports = {
   replaceAtPoint,
   cleanAtPoint,
   playwright,
+  arrayCompare,
 };
