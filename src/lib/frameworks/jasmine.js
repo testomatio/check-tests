@@ -1,4 +1,4 @@
-const traverse = require('babel-traverse');
+const traverse = require('@babel/traverse');
 const CommentError = require('../../errors/comment.error');
 const {
   getUpdatePoint,
@@ -36,18 +36,20 @@ module.exports = (ast, file = '', source = '') => {
       if (path.isIdentifier({ name: 'fdescribe' })) {
         const line = getLineNumber(path);
         throw new CommentError(
+          /* prettier-ignore */
           'Exclusive tests detected. `fdescribe` call found in '
-            + `${file}:${line}\n`
-            + 'Remove `fdescibe` to restore test checks',
+          + `${file}:${line}\n`
+          + 'Remove `fdescibe` to restore test checks',
         );
       }
 
       if (path.isIdentifier({ name: 'fit' })) {
         const line = getLineNumber(path);
         throw new CommentError(
+          /* prettier-ignore */
           'Exclusive tests detected. `fit` call found in '
-            + `${file}:${line}\n`
-            + 'Remove `fit` to restore test checks',
+          + `${file}:${line}\n`
+          + 'Remove `fit` to restore test checks',
         );
       }
 

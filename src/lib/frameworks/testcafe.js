@@ -1,4 +1,4 @@
-const traverse = require('babel-traverse');
+const traverse = require('@babel/traverse');
 const {
   getLineNumber,
   getEndLineNumber,
