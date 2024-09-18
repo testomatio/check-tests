@@ -374,7 +374,6 @@ TESTOMATIO_URL=http://local.testomat.io
 
 ### Example
 
-
 Check tests for CodeceptJS
 
 ```
@@ -440,7 +439,7 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 
 ### Test code
 
-By default, check-test sends the code of the test hooks to the "client": before, beforeEach and after. 
+By default, check-test sends the code of the test hooks to the "client": before, beforeEach and after.
 In the "Codes" section you can see all the additional "context" of the test (Testomat.io).
 
 To exclude hook code from a client test, use the --no-hooks option
@@ -457,7 +456,6 @@ _(By default Code section exclude "line number")_
 ```
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --line-numbers
 ```
-
 
 ## Import Parametrized Tests
 
@@ -576,6 +574,21 @@ To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PRE
 
 ```
 TESTOMATIO_PREPEND_DIR="MyTESTS" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+```
+
+This will use "MyTests" folder in a root of a project or create it if it doesn't exist.
+
+It is also possible to specify a suite by its SID:
+
+```
+TESTOMATIO_SUITE="1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+```
+
+or use SID with prefix:
+
+```
+TESTOMATIO_SUITE="S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+TESTOMATIO_SUITE="@S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 ```
 
 ## TypeScript
