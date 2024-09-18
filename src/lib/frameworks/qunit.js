@@ -1,4 +1,4 @@
-const traverse = require('babel-traverse');
+const traverse = require('@babel/traverse');
 const CommentError = require('../../errors/comment.error');
 const {
   getStringValue,
@@ -33,9 +33,10 @@ module.exports = (ast, file = '', source = '') => {
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
+            /* prettier-ignore */
             'Exclusive tests detected. `.only` call found in '
-              + `${file}:${line}\n`
-              + 'Remove `.only` to restore test checks',
+            + `${file}:${line}\n`
+            + 'Remove `.only` to restore test checks',
           );
         }
       }
