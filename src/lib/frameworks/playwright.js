@@ -1,4 +1,4 @@
-const traverse = require('babel-traverse');
+const traverse = require('@babel/traverse');
 const CommentError = require('../../errors/comment.error');
 const {
   getStringValue,
@@ -96,7 +96,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (!path.parent || !path.parent.object) {
           return;
         }
-
         const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
@@ -133,7 +132,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (!path.parent || !path.parent.object) {
           return;
         }
-
         const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
@@ -199,7 +197,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         beforeCode = beforeCode ?? '';
         beforeEachCode = beforeEachCode ?? '';
         afterCode = afterCode ?? '';
-
         code = noHooks
           ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
           : beforeEachCode

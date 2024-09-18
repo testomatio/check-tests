@@ -118,6 +118,7 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
+    /* prettier-ignore */
     lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
@@ -159,6 +160,54 @@ const playwright = {
   },
 };
 
+const arrayCompare = function (a, b, id) {
+  const missing = [];
+  const found = [];
+  let added = [];
+
+  // If 'a' is an object, extract fields a, b, and id
+  if (typeof a === 'object' && !Array.isArray(a)) {
+    ({ a, b, id } = a);
+  }
+
+  // Create a copy of 'b' for modification
+  const bCopy = [...b];
+
+  // Iterate over array 'a' to find matches
+  a.forEach(aItem => {
+    let bIndex = -1;
+
+    if (id) {
+      // If an identifier is specified, find an object with the same 'id'
+      bIndex = bCopy.findIndex(bItem => bItem[id] === aItem[id]);
+    } else {
+      // If no identifier is specified, find an exact match
+      bIndex = bCopy.indexOf(aItem);
+    }
+
+    if (bIndex !== -1) {
+      // Add to 'found' and remove the found element from bCopy
+      found.push({
+        a: aItem,
+        b: bCopy[bIndex],
+      });
+      bCopy.splice(bIndex, 1); // Remove element from bCopy
+    } else {
+      // Add to 'missing' if the element is not found
+      missing.push({ a: aItem });
+    }
+  });
+
+  // Everything left in bCopy is added to 'added'
+  added = bCopy.map(bItem => ({ b: bItem }));
+
+  return {
+    found,
+    missing,
+    added,
+  };
+};
+
 module.exports = {
   hasStringArgument,
   hasTemplateQuasi,
@@ -174,4 +223,5 @@ module.exports = {
   replaceAtPoint,
   cleanAtPoint,
   playwright,
+  arrayCompare,
 };
