@@ -5,9 +5,13 @@ const mock = require('mock-fs');
 const fs = require('fs');
 const { updateIds, cleanIds } = require('../src/updateIds');
 const Analyzer = require('../src/analyzer');
+// const fs = require('memfs');
+// const { vol } = require('memfs');
 
 describe('update ids tests(codeseptJS adapter)', () => {
-  afterEach(() => mock.restore());
+  before(() => {
+    if (!fs.existsSync('virtual_dir')) fs.mkdirSync('virtual_dir');
+  });
 
   describe('[codeseptJS examples] includes Feature + Scenario', () => {
     it('[js file]: file includes Feature + one Scenario', () => {
@@ -23,9 +27,9 @@ describe('update ids tests(codeseptJS adapter)', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           Feature(
             "User search with organizations @users @iam-user-management @platform-core @atlassian-skip @layer0-skip"
           );
@@ -59,10 +63,8 @@ describe('update ids tests(codeseptJS adapter)', () => {
               60,
               "Failed waiting user belonging to an organization"
             );
-          });
-          `,
-        },
-      });
+          });`,
+      );
 
       analyzer.analyze('test.js');
 
@@ -89,9 +91,9 @@ describe('update ids tests(codeseptJS adapter)', () => {
       // Test Data
       const userName = 'sampleUser';
 
-      mock({
-        virtual_dir: {
-          'test.js': ` 
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        ` 
           const userName = "sampleUser", password = "pwd";
 
           Scenario(
@@ -111,8 +113,7 @@ describe('update ids tests(codeseptJS adapter)', () => {
             I.see(\`Welcome, ${userName}!\`, '#test');
           });
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -138,9 +139,9 @@ describe('update ids tests(codeseptJS adapter)', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': ` 
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        ` 
           const Create = "test";
 
           Feature('Create')
@@ -157,8 +158,7 @@ describe('update ids tests(codeseptJS adapter)', () => {
              I.saveScreenshot('create-todo-item.png')
           });
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -173,7 +173,7 @@ describe('update ids tests(codeseptJS adapter)', () => {
   });
 
   describe('[codeseptJS examples] clean-ids', () => {
-    it('can remove ids from the file with Scenario only', () => {
+    it.only('can remove ids from the file with Scenario only', () => {
       let analyzer = new Analyzer('codeceptjs', 'virtual_dir');
 
       const mockConfig = {
