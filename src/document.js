@@ -1,6 +1,6 @@
 const fs = require('fs');
 const hash = require('object-hash');
-const Decorator = require('./decorator');
+// const Decorator = require('./decorator');
 const util = require('./lib/utils');
 
 /**
