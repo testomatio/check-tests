@@ -77,41 +77,58 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (!path.parent || !path.parent.object) {
           return;
         }
-        /* prettier-ignore */
-        const name = path.parent?.object?.name || path.parent?.object?.callee?.object?.name || path.container?.object?.property?.name;
+
+        const name =
+          path.parent?.object?.name ||
+          path.parent?.object?.callee?.object?.name ||
+          path.container?.object?.property?.name;
 
         if (['describe', 'it', 'context', 'test'].includes(name)) {
           const line = getLineNumber(path);
           throw new CommentError(
-            /* prettier-ignore */
-            'Exclusive tests detected. `.only` call found in '
-            + `${file}:${line}\n`
-            + 'Remove `.only` to restore test checks',
+            'Exclusive tests detected. `.only` call found in ' +
+              `${file}:${line}\n` +
+              'Remove `.only` to restore test checks',
           );
         }
       }
-
       if (path.isIdentifier({ name: 'skip' })) {
         if (!path.parent || !path.parent.object) {
           return;
         }
-        /* prettier-ignore */
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
           const testName = getStringValue(path.parentPath.container);
+          let existingTest = tests.find(t => t.name === testName); // Change const to let
+          if (existingTest) {
+            // Удаляем дубликаты
+            existingTest.tags = existingTest.tags.filter(tag => tag !== '@skip');
+          } else {
+            existingTest = { tags: [] }; // Инициализируем, если теста нет
+          }
+
+          // Добавляем тег только если его нет
+          if (!existingTest.tags.includes('@skip') && !testName.includes('@skip')) {
+            existingTest.tags.push('@skip');
+          }
+
+          // Добавляем тест
           tests.push({
             name: testName,
             suites: currentSuite
               .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
               .map(s => getStringValue(s)),
+            updatePoint: getUpdatePoint(path.parentPath.container),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
-            skipped: true,
+            tags: existingTest.tags,
+            skipped: false,
           });
         }
 
@@ -130,23 +147,39 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (!path.parent || !path.parent.object) {
           return;
         }
-        /* prettier-ignore */
-        const name = path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+        const name =
+          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
           // test or it
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
           const testName = getStringValue(path.parentPath.container);
+          let existingTest = tests.find(t => t.name === testName); // Change const to let
+          if (existingTest) {
+            // Удаляем дубликаты
+            existingTest.tags = existingTest.tags.filter(tag => tag !== '@fixme');
+          } else {
+            existingTest = { tags: [] }; // Инициализируем, если теста нет
+          }
+
+          // Добавляем тег только если его нет
+          if (!existingTest.tags.includes('@fixme') && !testName.includes('@fixme')) {
+            existingTest.tags.push('@fixme');
+          }
+
+          // Добавляем тест
           tests.push({
             name: testName,
             suites: currentSuite
               .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
               .map(s => getStringValue(s)),
+            updatePoint: getUpdatePoint(path.parentPath.container),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
-            skipped: true,
+            tags: existingTest.tags,
+            skipped: false,
           });
         }
 
@@ -176,10 +209,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             suites: currentSuite
               .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
               .map(s => getStringValue(s)),
+            updatePoint: getUpdatePoint(path.parentPath.container),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
-            skipped: true,
+            tags: ['@todo'],
+            skipped: false,
           });
         }
       }
@@ -192,13 +227,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         beforeCode = beforeCode ?? '';
         beforeEachCode = beforeEachCode ?? '';
         afterCode = afterCode ?? '';
-        /* prettier-ignore */
         code = noHooks
           ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-          : beforeEachCode
-          + beforeCode
-          + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-          + afterCode;
+          : beforeEachCode +
+            beforeCode +
+            getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber) +
+            afterCode;
 
         const testName = getStringValue(path.parent);
 
