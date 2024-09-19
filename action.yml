@@ -4,10 +4,10 @@ branding:
   icon: check-circle
   color: blue
 inputs:
-  framework:  # id of input
+  framework: # id of input
     description: 'Test framework to be used. Supported: mocha, codeceptjs'
     required: true
-  tests:  # id of input
+  tests: # id of input
     description: 'Glob pattern to match tests in a project, example: tests/**_test.js'
     required: true
   token:
@@ -18,19 +18,19 @@ inputs:
     required: false
   no-tests-label:
     description: Add 'no tests' label to PR when it doesn't contain new tests
-    required: false 
+    required: false
   comment-on-empty:
     description: 'Post a comment to PR when no tests added. Can be either boolean (for neutral message) or a custom message within a comment'
     required: false
   close-on-empty:
     description: 'Close PR when no tests added. Use with comment-on-empty to clarify this action'
-    required: false 
+    required: false
   comment-on-skipped:
     description: 'Post a comment to PR when tests were skipped. Can be either boolean (for neutral message) or a custom message within a comment'
-    required: false 
+    required: false
   close-on-skipped:
     description: 'Close PR when no tests added. Use with comment-on-skipped to clarify this action'
-    required: false 
+    required: false
   enable-documentation:
     description: 'If set true test document will be created in wiki'
     required: false
@@ -43,8 +43,7 @@ inputs:
   documentation-branch:
     description: 'Branch to create document on push uses default branch if empty'
     required: false
-  
-    
+
 runs:
-  using: 'node12'
+  using: 'node18'
   main: './dist/index.js'

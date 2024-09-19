@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const exec = require('@actions/exec');
 const github = require('@actions/github');
-const arrayCompare = require('array-compare');
+const { arrayCompare } = require('./src/lib/utils');
 
 const PullRequest = require('./src/pullRequest');
 const Comment = require('./src/comment');
@@ -21,15 +21,15 @@ async function run() {
   const [owner, repo] = repoUrl.split('/');
   const octokit = new github.GitHub(core.getInput('token', { required: true }));
 
-  let nodiff = core.getInput('nodiff');
+  const nodiff = core.getInput('nodiff');
   const framework = core.getInput('framework', { required: true });
   const pattern = core.getInput('tests', { required: true });
   const apiKey = core.getInput('testomatio-key');
   const ghPat = core.getInput('github-pat');
   const enableDocumentation = core.getInput('enable-documentation');
   const wikiFile = core.getInput('wiki-doc-name') || 'Tests';
-  const docBranch =
-    core.getInput('documentation-branch') || (await octokit.repos.get({ owner, repo })).data.default_branch;
+  /* prettier-ignore */
+  const docBranch = core.getInput('documentation-branch') || (await octokit.repos.get({ owner, repo })).data.default_branch;
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
   const analyzer = new Analyzer(framework, mainRepoPath);
 
@@ -89,9 +89,8 @@ async function run() {
     const commentOnSkipped = core.getInput('comment-on-skipped');
     const closeOnEmpty = core.getInput('close-on-empty');
     const closeOnSkipped = core.getInput('close-on-skipped');
-
-    const isEmpty =
-      !diff.added.length && !diff.missing.length && !skippedDiff.added.length && !skippedDiff.missing.length;
+    /* prettier-ignore */
+    const isEmpty = !diff.added.length && !diff.missing.length && !skippedDiff.added.length && !skippedDiff.missing.length;
 
     if (commentOnEmpty && commentOnEmpty !== 'true' && isEmpty) {
       comment.write(commentOnEmpty);
