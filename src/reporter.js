@@ -72,6 +72,7 @@ class Reporter {
 
       const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
 
+
       debug('Sending test data to Testomat.io', data);
       const req = request(
         `${URL.trim()}/api/load?api_key=${this.apiKey}`,
