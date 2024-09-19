@@ -1,12 +1,8 @@
 /* eslint-disable no-template-curly-in-string */
 const { expect } = require('chai');
-const path = require('path');
-const mock = require('mock-fs');
 const fs = require('fs');
 const { updateIds, cleanIds } = require('../src/updateIds');
 const Analyzer = require('../src/analyzer');
-// const fs = require('memfs');
-// const { vol } = require('memfs');
 
 describe('update ids tests(codeseptJS adapter)', () => {
   before(() => {
@@ -173,13 +169,12 @@ describe('update ids tests(codeseptJS adapter)', () => {
   });
 
   describe('[codeseptJS examples] clean-ids', () => {
-    it.only('can remove ids from the file with Scenario only', () => {
+    it('can remove ids from the file with Scenario only', () => {
       let analyzer = new Analyzer('codeceptjs', 'virtual_dir');
 
-      const mockConfig = {
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        `
           const Create = "test";
 
           /**
@@ -189,9 +184,7 @@ describe('update ids tests(codeseptJS adapter)', () => {
              I.say('Given I have an empty todo list')
              I.saveScreenshot('create-todo-item.png')
           });`,
-        },
-      };
-      mock(mockConfig);
+      );
 
       analyzer.analyze('test.js');
 
@@ -207,10 +200,9 @@ describe('update ids tests(codeseptJS adapter)', () => {
     it('can remove ids form the Feature & Scenario', () => {
       let analyzer = new Analyzer('codeceptjs', 'virtual_dir');
 
-      const mockConfig = {
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        `
           const Create = "test";
 
           Feature('@first Create @Sf3d245a7')
@@ -226,9 +218,7 @@ describe('update ids tests(codeseptJS adapter)', () => {
              I.say('Given I have an empty todo list')
              I.saveScreenshot('create-todo-item.png')
           });`,
-        },
-      };
-      mock(mockConfig);
+      );
 
       analyzer.analyze('test.js');
 

@@ -1,13 +1,13 @@
 /* eslint-disable no-template-curly-in-string */
 const { expect } = require('chai');
-const path = require('path');
-const mock = require('mock-fs');
 const fs = require('fs');
 const { updateIds, cleanIds } = require('../src/updateIds');
 const Analyzer = require('../src/analyzer');
 
 describe('update ids tests(playwright adapter)', () => {
-  afterEach(() => mock.restore());
+  before(() => {
+    if (!fs.existsSync('virtual_dir')) fs.mkdirSync('virtual_dir');
+  });
 
   describe('[Playwright examples] includes/no includes main suite', () => {
     it('[ts file]: test file includes suite with tests', () => {
@@ -25,10 +25,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `
           let basic = 'test';
 
           test.describe('Suite main', () => {          
@@ -45,9 +44,7 @@ describe('update ids tests(playwright adapter)', () => {
               });
             });
           });`,
-        },
-      });
-
+      );
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
 
@@ -70,10 +67,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `         
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `         
             test('basic test case #1.1', async ({ page }) => {
               let myVar = "msg";
 
@@ -86,8 +82,7 @@ describe('update ids tests(playwright adapter)', () => {
                 await page.goto("https://todomvc.com/examples/vanilla-es6/");
               });
             });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -112,10 +107,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `
           test.describe.parallel('Main suite parallel option', () => {          
             test('basic test case #1', async ({ page }) => {
               await test.step('[Check 1] Open page and confirm title', async () => {
@@ -123,8 +117,7 @@ describe('update ids tests(playwright adapter)', () => {
               });
             });
           });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -150,10 +143,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `
           import { test, page } from '@playwright/test';
           import Example from '@src/Example';
 
@@ -168,8 +160,7 @@ describe('update ids tests(playwright adapter)', () => {
               });
             });
           });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -197,10 +188,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `
           let Example = 'test';
 
           test.describe('Example', () => {          
@@ -212,8 +202,7 @@ describe('update ids tests(playwright adapter)', () => {
               });
             });
           });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -237,9 +226,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        `
           const { test, expect } = require('@playwright/test');
           const Example2 = require('@src/Example1');
           var Example1 = require('@src/lib/Example2');
@@ -254,8 +243,7 @@ describe('update ids tests(playwright adapter)', () => {
           });
           let str = "some test case message";
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -282,9 +270,9 @@ describe('update ids tests(playwright adapter)', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        `
           const { test, expect } = require('@playwright/test');
 
           test.describe(
@@ -298,8 +286,7 @@ describe('update ids tests(playwright adapter)', () => {
             });
           });
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -320,10 +307,9 @@ describe('update ids tests(playwright adapter)', () => {
       analyzer.withTypeScript();
       require('@babel/core');
 
-      const mockConfig = {
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `
           import { test, expect } from '@playwright/test';
           
           test.describe("basic suite @Sf3d245a7", function () {
@@ -333,10 +319,7 @@ describe('update ids tests(playwright adapter)', () => {
               const inputBox = page.locator('input.new-todo');
             });
           })`,
-        },
-      };
-      mock(mockConfig);
-
+      );
       analyzer.analyze('test.ts');
 
       cleanIds(analyzer.rawTests, {}, 'virtual_dir', {
@@ -358,10 +341,9 @@ describe('update ids tests(playwright adapter)', () => {
       analyzer.withTypeScript();
       require('@babel/core');
 
-      const mockConfig = {
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        'virtual_dir/test.ts',
+        `
           import { test, expect } from '@playwright/test';
 
           test("basic test @T1d6a52b9", async ({ page }) => {
@@ -369,9 +351,7 @@ describe('update ids tests(playwright adapter)', () => {
 
             const inputBox = page.locator('input.new-todo');
           });`,
-        },
-      };
-      mock(mockConfig);
+      );
 
       analyzer.analyze('test.ts');
 

@@ -1,13 +1,13 @@
 /* eslint-disable no-template-curly-in-string */
 const { expect } = require('chai');
-const path = require('path');
-const mock = require('mock-fs');
 const fs = require('fs');
 const { updateIds, cleanIds } = require('../src/updateIds');
 const Analyzer = require('../src/analyzer');
 
 describe('update ids', () => {
-  afterEach(() => mock.restore());
+  before(() => {
+    if (!fs.existsSync('virtual_dir')) fs.mkdirSync('virtual_dir');
+  });
 
   describe('update-ids', () => {
     it('should update id by title', () => {
@@ -22,16 +22,15 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           Feature('simple suite')
           
           Scenario('simple test', async (I, TodosPage) => {
           })        
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -55,9 +54,9 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           Feature('simple suite @dev')
 
           Scenario('simple test @prod', async (I, TodosPage) => {
@@ -66,8 +65,7 @@ describe('update ids', () => {
           Scenario('simple other test @prod', async (I, TodosPage) => {
           })
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -91,16 +89,15 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           Feature('simple suite')
           
           Scenario('simple test', async (I, TodosPage) => {
           })        
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -123,16 +120,15 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           Feature('simple suite @Sf3d245a7')
           
           Scenario('simple test @T1d6a52b9', async (I, TodosPage) => {
           })        
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -155,9 +151,9 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           const layer = 'simple suite';
 
           Feature('simple suite')
@@ -165,8 +161,7 @@ describe('update ids', () => {
           Scenario('simple test', async (I, TodosPage) => {
           })        
           `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -189,9 +184,9 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        virtual_dir: {
-          'test.js': `
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
           Feature('simple suite')
           
           Scenario(
@@ -199,8 +194,7 @@ describe('update ids', () => {
             async (I, TodosPage) => {
             })        
             `,
-        },
-      });
+      );
 
       analyzer.analyze('test.js');
 
@@ -212,6 +206,8 @@ describe('update ids', () => {
     });
 
     it('respects string literals', () => {
+      if (!fs.existsSync('virtual_dir2')) fs.mkdirSync('virtual_dir2');
+
       const idMap = {
         tests: {
           'simple suite#simple test': '@T1d6a52b9',
@@ -222,11 +218,10 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir2');
-      mock({
-        virtual_dir2: {
-          'test.js': '\nFeature(`simple suite`)\n\nScenario(`simple test`, async ({ I }) => { I.doSomething() });',
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir2/test.js',
+        '\nFeature(`simple suite`)\n\nScenario(`simple test`, async ({ I }) => { I.doSomething() });',
+      );
 
       analyzer.analyze('test.js');
 
@@ -248,12 +243,10 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js':
-            '\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test`, async ({ I }) => { I.doSomething() });',
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        '\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test`, async ({ I }) => { I.doSomething() });',
+      );
 
       analyzer.analyze('test.js');
 
@@ -275,12 +268,10 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js':
-            "\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() });",
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        "\nFeature(`simple suite`)\nconst data = 1;\nScenario(`simple ${data} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() });",
+      );
 
       analyzer.analyze('test.js');
 
@@ -302,12 +293,10 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js':
-            "\nFeature(`simple suite`)\nconst data = 1;\n[].each((data2) => Scenario(`simple ${data} and ${data2} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() }));",
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        "\nFeature(`simple suite`)\nconst data = 1;\n[].each((data2) => Scenario(`simple ${data} and ${data2} test | { 'user': 'bob' }`, async ({ I }) => { I.doSomething() }));",
+      );
 
       analyzer.analyze('test.js');
 
@@ -329,11 +318,7 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js': '\n// here was a test',
-        },
-      });
+      fs.writeFileSync('./virtual_dir/test.js', '\n// here was a test');
 
       updateIds(analyzer.rawTests, idMap, 'virtual_dir');
 
@@ -355,10 +340,9 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        './virtual_dir/test.ts',
+        `
           describe("simple suite", function () {
             let ctx: TestBankAccountsCtx = {};
           
@@ -374,8 +358,7 @@ describe('update ids', () => {
               });
             });
           });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -399,10 +382,9 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        './virtual_dir/test.ts',
+        `
           describe("simple suite", function () {
             let ctx: TestBankAccountsCtx = {};
           
@@ -410,8 +392,7 @@ describe('update ids', () => {
               const user: string = "user";
             });
           });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -437,10 +418,9 @@ describe('update ids', () => {
         },
       };
 
-      mock({
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `
+      fs.writeFileSync(
+        './virtual_dir/test.ts',
+        `
         const isEven = (n: number): boolean => n % 2 === 0;
     
         const cases: Array<[number, boolean]> = [
@@ -457,8 +437,7 @@ describe('update ids', () => {
           });
           });
         });`,
-        },
-      });
+      );
 
       analyzer.analyze('test.ts');
       updateIds(analyzer.rawTests, idMap, 'virtual_dir', { typescript: true });
@@ -488,12 +467,10 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js':
-            "\nFeature('simple suite @Sf3d245a7')\nconst data = 1;\nScenario('simple test @T1d6a52b9', async ({ I }) => { I.doSomething() });",
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        "\nFeature('simple suite @Sf3d245a7')\nconst data = 1;\nScenario('simple test @T1d6a52b9', async ({ I }) => { I.doSomething() });",
+      );
 
       analyzer.analyze('test.js');
 
@@ -515,12 +492,10 @@ describe('update ids', () => {
       };
 
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js':
-            '\nFeature(`simple suite @Sf3d245a7`)\nconst data = 1;\nScenario(`simple ${data} test @T1d6a52b9`, async ({ I }) => { I.doSomething() });',
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        '\nFeature(`simple suite @Sf3d245a7`)\nconst data = 1;\nScenario(`simple ${data} test @T1d6a52b9`, async ({ I }) => { I.doSomething() });',
+      );
 
       analyzer.analyze('test.js');
 
@@ -533,12 +508,10 @@ describe('update ids', () => {
 
     it('unsafely cleans up ids from string literals', () => {
       const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
-      mock({
-        virtual_dir: {
-          'test.js':
-            '\nFeature(`simple suite @Sf3d245a7`)\nconst data = 1;\nScenario(`simple ${data} test @T1d6a52b9`, async ({ I }) => { I.doSomething() });',
-        },
-      });
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        '\nFeature(`simple suite @Sf3d245a7`)\nconst data = 1;\nScenario(`simple ${data} test @T1d6a52b9`, async ({ I }) => { I.doSomething() });',
+      );
 
       analyzer.analyze('test.js');
 
@@ -554,10 +527,9 @@ describe('update ids', () => {
       analyzer.withTypeScript();
       require('@babel/core');
 
-      const mockConfig = {
-        node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
-        virtual_dir: {
-          'test.ts': `describe("simple suite @Sf3d245a7", function () {
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `describe("simple suite @Sf3d245a7", function () {
             beforeEach(function () {
               cy.task("db:seed");
               cy.server();
@@ -568,11 +540,7 @@ describe('update ids', () => {
               cy.percySnapshot("Redirect to SignIn");
             });
           })`,
-        },
-      };
-
-      // unsafe clean
-      mock(mockConfig);
+      );
 
       analyzer.analyze('test.ts');
       cleanIds(analyzer.rawTests, {}, 'virtual_dir', {
@@ -588,8 +556,6 @@ describe('update ids', () => {
 
       analyzer = new Analyzer('cypress.io', 'virtual_dir');
       analyzer.withTypeScript();
-      // save clean
-      mock(mockConfig);
 
       const idMap = {
         tests: {
