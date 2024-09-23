@@ -7,7 +7,8 @@ class Decorator {
    * @typedef {import('../types').Test} Test
    * @param {Test[]} tests
    */
-  constructor(tests) {
+  constructor(tests, options = {}) {
+    this.framework = options?.framework;
     this.tests = tests.map(t => {
       if (!t.suites) t.suites = [];
       return t;
@@ -23,6 +24,9 @@ class Decorator {
 
     this.getTests()
       .filter(t => {
+        // processing of skipped tests in playwright; it has "true" as name
+        if (this.framework === 'playwright' && t.name === true && t.skipped === true) return false;
+
         if (!t.name) debug('Empty name for test:', t);
         return !t.name?.replace(/(@[\w:-]+)/g, '').trim();
       })

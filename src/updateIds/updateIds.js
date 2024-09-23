@@ -13,7 +13,7 @@ const { parseTest, parseSuite, replaceSuiteTitle } = require('./helpers');
  * @param {*} opts
  * @returns
  */
-function updateIdsCommon(testData, testomatioMap, workDir) {
+function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
   const files = [];
   let duplicateTests = 0;
   let duplicateSuites = 0;
@@ -56,6 +56,9 @@ function updateIdsCommon(testData, testomatioMap, workDir) {
     for (const test of testArr) {
       let testIndex = `${test.suites[0] || ''}#${test.name}`;
       debug('testIndex', testIndex);
+
+      // this is not test; its test.skip() construction
+      if (opts.framework === 'playwright' && test.name === true) continue;
 
       let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
         TAG_REGEX,
