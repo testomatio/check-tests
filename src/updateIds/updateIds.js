@@ -57,7 +57,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
       let testIndex = `${test.suites[0] || ''}#${test.name}`;
       debug('testIndex', testIndex);
 
-      // this is not test; its test.skip() construction
+      // this is not test; its test.skip() annotation inside a test
       if (opts.framework === 'playwright' && test.name === true) continue;
 
       let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
