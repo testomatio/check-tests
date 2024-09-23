@@ -45,7 +45,7 @@ program
   .option('--line-numbers', 'Adding an extra line number to each block of code')
   .action(async (framework, files, opts) => {
     framework = framework.toLowerCase();
-    opts.framework = framework.toLowerCase();
+    opts.framework = framework;
     opts.pattern = files;
     const isPattern = checkPattern(files);
     const frameworkOpts = {};
