@@ -2,7 +2,6 @@ name: Autopublish to npm on release creation
 on:
   release:
     types: [published]
-  pull_request:
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -19,16 +18,16 @@ jobs:
       - run: git config --global user.email "github-cd-bot@example.com"
       - run: git status
       - run: npm version ${{ github.event.release.tag_name }}
-      # - uses: JS-DevTools/npm-publish@v3
-      #   with:
-      #     token: ${{ secrets.NPM_TOKEN }}
-      #     # use "beta" tag if relevant, otherwise use "latest"
-      #     tag: ${{ contains(github.event.release.tag_name, 'beta') && 'beta' || 'latest' }}
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          # use "beta" tag if relevant, otherwise use "latest"
+          tag: ${{ contains(github.event.release.tag_name, 'beta') && 'beta' || 'latest' }}
 
-      # # push the version changes to GitHub
-      # - run: git push
-      #   env:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      # push the version changes to GitHub
+      - run: git push
+        env:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   show-npm-log:
     runs-on: ubuntu-latest
