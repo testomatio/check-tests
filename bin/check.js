@@ -44,6 +44,7 @@ program
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
   .option('--line-numbers', 'Adding an extra line number to each block of code')
   .action(async (framework, files, opts) => {
+    framework = framework.toLowerCase();
     opts.framework = framework.toLowerCase();
     opts.pattern = files;
     const isPattern = checkPattern(files);
@@ -57,7 +58,7 @@ program
       frameworkOpts.noHooks = !opts.hooks;
     }
 
-    const analyzer = new Analyzer(framework.toLowerCase(), opts.dir || process.cwd(), frameworkOpts);
+    const analyzer = new Analyzer(framework, opts.dir || process.cwd(), frameworkOpts);
     try {
       if (opts.typescript) {
         try {
@@ -80,7 +81,7 @@ program
       if (opts.cleanIds || opts.unsafeCleanIds) {
         let idMap = {};
         if (apiKey) {
-          const reporter = new Reporter(apiKey.trim(), framework.toLowerCase());
+          const reporter = new Reporter(apiKey.trim(), framework);
           idMap = await reporter.getIds();
         } else if (opts.cleanIds) {
           console.log(' ✖️  API key not provided');
@@ -118,7 +119,7 @@ program
             .catch(err => console.log('Error in creating test document', err));
         }
         if (apiKey) {
-          const reporter = new Reporter(apiKey.trim(), framework.toLowerCase());
+          const reporter = new Reporter(apiKey.trim(), framework);
           reporter.addTests(decorator.getTests());
           const resp = reporter.send({
             sync: opts.sync || opts.updateIds,
@@ -143,7 +144,7 @@ program
             analyzer.rawTests = [];
             analyzer.analyze(files);
             if (apiKey) {
-              const reporter = new Reporter(apiKey.trim(), framework.toLowerCase());
+              const reporter = new Reporter(apiKey.trim(), framework);
               const workDir = opts.dir || process.cwd();
               try {
                 const idMap = await reporter.getIds();
