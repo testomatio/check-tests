@@ -13,7 +13,9 @@ const {
 module.exports = (ast, file = '', source = '', opts = {}) => {
   const tests = [];
   let currentSuite = [];
+  // hooks variables
   const noHooks = opts?.noHooks;
+  // line-numbers opt
   const isLineNumber = opts?.lineNumbers;
 
   let beforeCode = '';
@@ -70,6 +72,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         addSuite(path.parentPath.container);
       }
 
+      // forbid only
       if (path.isIdentifier({ name: 'only' })) {
         if (!path.parent || !path.parent.object) {
           return;
@@ -99,6 +102,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (name === 'test' || name === 'it') {
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
+          const testName = getStringValue(path.parentPath.container);
+
           tests.push({
             name: testName,
             suites: currentSuite
@@ -108,18 +113,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
-            tags: existingTest.tags,
             skipped: false,
           });
-        }
-
-        const testName = getStringValue(path.parentPath.container);
-        const existingTest = tests.find(t => t.name === testName);
-        if (!existingTest) return;
-
-        existingTest.tags = existingTest.tags.filter(tag => tag !== '@skip');
-        if (!existingTest.tags.includes('@skip') && !testName.includes('@skip')) {
-          existingTest.tags.push('@skip');
         }
 
         if (name === 'describe') {
@@ -142,6 +137,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (name === 'test' || name === 'it') {
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
+          const testName = getStringValue(path.parentPath.container);
+
           tests.push({
             name: testName,
             suites: currentSuite
@@ -151,18 +148,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
-            tags: existingTest.tags,
             skipped: false,
           });
-        }
-
-        const testName = getStringValue(path.parentPath.container);
-        const existingTest = tests.find(t => t.name === testName);
-        if (!existingTest) return;
-
-        existingTest.tags = existingTest.tags.filter(tag => tag !== '@fixme');
-        if (!existingTest.tags.includes('@fixme') && !testName.includes('@fixme')) {
-          existingTest.tags.push('@fixme');
         }
 
         if (name === 'describe') {

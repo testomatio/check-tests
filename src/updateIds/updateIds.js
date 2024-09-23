@@ -21,7 +21,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
   debug('Test data:', testData);
 
   for (const testArr of testData) {
-    if (!testArr?.length) continue;
+    if (!testArr || !testArr.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
     debug('Updating file: ', file);
@@ -106,12 +106,6 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
           fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testWithoutTags]}`);
           fs.writeFileSync(file, fileContent);
           delete testomatioMap.tests[testWithoutTags];
-        }
-
-        if (test.tags && test.tags.length > 0) {
-          const tags = test.tags.map(tag => `${tag}`).join(' ');
-          fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${tags}`);
-          fs.writeFileSync(file, fileContent);
         }
       }
     }
