@@ -11,7 +11,12 @@ const { parseTest } = require('./helpers');
  * @param {*} currentRequestName request name without id
  * @param {*} testId testId to add to request
  */
-addIdToRequestAndUpdateCollection = function (collection, pathToRequestThrouthTheFolders, currentRequestName, testId) {
+const addIdToRequestAndUpdateCollection = function (
+  collection,
+  pathToRequestThrouthTheFolders,
+  currentRequestName,
+  testId,
+) {
   function addIdToRequest(items, pathToRequestThrouthTheFolders) {
     const currentFolder = pathToRequestThrouthTheFolders.shift();
     for (const item of items) {

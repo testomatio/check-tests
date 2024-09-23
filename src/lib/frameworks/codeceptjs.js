@@ -67,7 +67,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       if (path.isIdentifier({ name: 'Feature' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;
         currentSuite = getStringValue(path.parent);
-        currentScenario = null;
+        // currentScenario = null;
       }
 
       if (path.isIdentifier({ name: 'Before' })) {
@@ -155,7 +155,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     if (!path.object.callee) return null;
 
     if (path.object.callee.name === 'Data') {
-      test = tests[tests.length - 1];
+      const test = tests[tests.length - 1];
       if (!test) return;
       test.name = `${test.name.trim()} @${tagName}`;
       return;
@@ -163,7 +163,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
     if (path.object.callee.name === 'Scenario') {
       const scenarioName = getStringValue(path.object);
-      test = tests.filter(t => t.rawName === scenarioName)[0];
+      const test = tests.filter(t => t.rawName === scenarioName)[0];
       if (!test) return;
       test.name = `${test.name.trim()} @${tagName}`;
       return;

@@ -1,7 +1,8 @@
 const fs = require('fs');
 const hash = require('object-hash');
-const Decorator = require('./decorator');
 const util = require('./lib/utils');
+// eslint-disable-next-line no-unused-vars
+const Decorator = require('./decorator');
 
 /**
  *

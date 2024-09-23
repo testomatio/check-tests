@@ -44,6 +44,7 @@ program
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
   .option('--line-numbers', 'Adding an extra line number to each block of code')
   .action(async (framework, files, opts) => {
+    framework = framework.toLowerCase();
     opts.framework = framework;
     opts.pattern = files;
     const isPattern = checkPattern(files);

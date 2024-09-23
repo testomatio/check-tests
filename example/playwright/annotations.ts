@@ -23,4 +23,8 @@ test.describe('feature with skip & fixme annotations', () => {
     // Assertions use the expect API.
     await expect(page).toHaveURL('https://my.start.url/');
   });
+
+  test('test with test.skip annonation inside', async () => {
+    test.skip(1 === 1);
+  });
 });

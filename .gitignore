@@ -9,3 +9,6 @@ update_examples/
 
 # Output of 'npm pack'
 *.tgz
+
+# tests output
+virtual_dir*

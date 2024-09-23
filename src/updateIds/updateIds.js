@@ -13,7 +13,7 @@ const { parseTest, parseSuite, replaceSuiteTitle } = require('./helpers');
  * @param {*} opts
  * @returns
  */
-function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
+function updateIdsCommon(testData, testomatioMap, workDir = {}) {
   const files = [];
   let duplicateTests = 0;
   let duplicateSuites = 0;
@@ -72,7 +72,6 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         continue;
       }
       const testName = test.name || '';
-      const updatePoint = test.updatePoint !== undefined ? test.updatePoint : 0;
 
       if (testName) {
         let testIndex = `${test.suites.join(' > ')}#${test.name}`;

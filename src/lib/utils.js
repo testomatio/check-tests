@@ -118,8 +118,8 @@ function replaceAtPoint(subject, replaceAt, replaceTo) {
   if (updateLine.includes('|')) {
     lines[replaceAt.line - 1] = updateLine.replace(' |', `${replaceTo} |`);
   } else {
-    /* prettier-ignore */
-    lines[replaceAt.line - 1] = updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
+    lines[replaceAt.line - 1] =
+      updateLine.substring(0, replaceAt.column) + replaceTo + updateLine.substring(replaceAt.column);
   }
   return lines.join('\n');
 }
@@ -150,7 +150,11 @@ const playwright = {
         }
         return prop.value.value;
       })
-      .flat();
+      // flatten array of arrays
+      .flat()
+      // remove empty values
+      .filter(Boolean);
+
     // remove @ at start of each tag
     tags = tags.map(tag => {
       return tag.startsWith('@') ? tag.substring(1) : tag;

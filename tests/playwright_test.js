@@ -253,6 +253,24 @@ test.describe.only('my test', () => {
     expect(tests[2].name).to.equal('my fixme test @third');
   });
 
+  it('should parse playwright test with test.skip annotation inside a test', () => {
+    source = fs.readFileSync('./example/playwright/annotations.ts').toString();
+    const program = tsParser.parse(source, {
+      sourceType: 'unambiguous',
+      loc: true,
+      range: true,
+      tokens: true,
+    });
+    ast = {
+      program,
+      type: 'File',
+    };
+    const tests = playwrightParser(ast, '', source);
+
+    expect(tests[3].code).to.include("test('test with test.skip annonation inside', async () => {");
+    expect(tests[3].name).to.equal('test with test.skip annonation inside');
+  });
+
   it('should parse playwright-js tests with skip() annotation for the description and test sections', () => {
     source = fs.readFileSync('./example/playwright/skip.js').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });

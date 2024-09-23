@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.9.6-beta1.prepend",
+  "version": "0.9.6",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "keywords": [
     "testing",
@@ -33,13 +33,14 @@
   "dependencies": {
     "@babel/core": "^7.15.5",
     "@babel/parser": "^7.15.7",
+    "@babel/traverse": "^7.23.2",
     "@typescript-eslint/typescript-estree": "^5.3.1",
     "babel-eslint": "^10.1.0",
-    "@babel/traverse": "^7.23.2",
     "chalk": "^4.1.2",
     "commander": "^8.2.0",
     "debug": "^4.3.4",
     "dotenv": "^10.0.0",
+    "eslint-config-prettier": "^9.1.0",
     "glob": "^7.2.0",
     "insert-line": "^1.1.0",
     "object-hash": "^2.2.0",
@@ -60,7 +61,6 @@
     "eslint-plugin-import": "^2.25.3",
     "husky": "^7.0.2",
     "mocha": "^9.1.2",
-    "mock-fs": "^5.1.1",
     "prettier": "^2.4.1",
     "pretty-quick": "^3.1.3"
   },

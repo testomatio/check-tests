@@ -77,7 +77,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         if (!path.parent || !path.parent.object) {
           return;
         }
-
         const name =
           path.parent?.object?.name ||
           path.parent?.object?.callee?.object?.name ||
