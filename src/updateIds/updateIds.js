@@ -21,21 +21,21 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
   debug('Test data:', testData);
 
   for (const testArr of testData) {
-    if (!testArr || !testArr.length) continue; // Проверка на наличие testArr
+    if (!testArr?.length) continue;
 
     const file = `${workDir}/${testArr[0].file}`;
     debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
-    const processedSuites = new Set(); // Keep track of processed suites
+    const processedSuites = new Set();
 
     for (const data of testArr) {
       if (!data || !data.suites || !Array.isArray(data.suites)) {
-        debug('Invalid data or suites:', data); // Отладочное сообщение
-        continue; // Пропустить, если data или suites недоступны
+        debug('Invalid data or suites:', data);
+        continue;
       }
       for (const suite of data.suites) {
-        if (!suite) continue; // Проверка на наличие suite
-        const suiteIndex = suite || ''; // Обработка случая, если suite неопределен
+        if (!suite) continue;
+        const suiteIndex = suite || '';
         const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
         const currentSuiteId = parseSuite(suiteIndex);
@@ -68,14 +68,13 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
 
     for (const test of testArr) {
       if (!test) {
-        debug('Invalid test:', test); // Отладочное сообщение
-        continue; // Пропустить, если test недоступен
+        debug('Invalid test:', test);
+        continue;
       }
-      const testName = test.name || ''; // Обработка случая, если name неопределен
-      const updatePoint = test.updatePoint !== undefined ? test.updatePoint : 0; // Обработка случая, если updatePoint неопределен
+      const testName = test.name || '';
+      const updatePoint = test.updatePoint !== undefined ? test.updatePoint : 0;
 
       if (testName) {
-        // Проверка на наличие name
         let testIndex = `${test.suites.join(' > ')}#${test.name}`;
         debug('testIndex', testIndex);
 
@@ -84,7 +83,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
           .join(' > ')}#${test.name.replace(TAG_REGEX, '')}`.trim();
 
         if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
-          testIndex = test.name; // if no suite title provided
+          testIndex = test.name;
           testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
         }
 
@@ -109,7 +108,6 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
           delete testomatioMap.tests[testWithoutTags];
         }
 
-        // Add tags from test.tags
         if (test.tags && test.tags.length > 0) {
           const tags = test.tags.map(tag => `${tag}`).join(' ');
           fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${tags}`);

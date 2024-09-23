@@ -13,9 +13,7 @@ const {
 module.exports = (ast, file = '', source = '', opts = {}) => {
   const tests = [];
   let currentSuite = [];
-  // hooks variables
   const noHooks = opts?.noHooks;
-  // line-numbers opt
   const isLineNumber = opts?.lineNumbers;
 
   let beforeCode = '';
@@ -72,7 +70,6 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         addSuite(path.parentPath.container);
       }
 
-      // forbid only
       if (path.isIdentifier({ name: 'only' })) {
         if (!path.parent || !path.parent.object) {
           return;
@@ -100,24 +97,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
-          // test or it
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
-          const testName = getStringValue(path.parentPath.container);
-          let existingTest = tests.find(t => t.name === testName); // Change const to let
-          if (existingTest) {
-            // Удаляем дубликаты
-            existingTest.tags = existingTest.tags.filter(tag => tag !== '@skip');
-          } else {
-            existingTest = { tags: [] }; // Инициализируем, если теста нет
-          }
-
-          // Добавляем тег только если его нет
-          if (!existingTest.tags.includes('@skip') && !testName.includes('@skip')) {
-            existingTest.tags.push('@skip');
-          }
-
-          // Добавляем тест
           tests.push({
             name: testName,
             suites: currentSuite
@@ -132,8 +113,16 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           });
         }
 
+        const testName = getStringValue(path.parentPath.container);
+        const existingTest = tests.find(t => t.name === testName);
+        if (!existingTest) return;
+
+        existingTest.tags = existingTest.tags.filter(tag => tag !== '@skip');
+        if (!existingTest.tags.includes('@skip') && !testName.includes('@skip')) {
+          existingTest.tags.push('@skip');
+        }
+
         if (name === 'describe') {
-          // suite
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
           const suite = path.parentPath.container;
           suite.skipped = true;
@@ -151,24 +140,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
 
         if (name === 'test' || name === 'it') {
-          // test or it
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
-          const testName = getStringValue(path.parentPath.container);
-          let existingTest = tests.find(t => t.name === testName); // Change const to let
-          if (existingTest) {
-            // Удаляем дубликаты
-            existingTest.tags = existingTest.tags.filter(tag => tag !== '@fixme');
-          } else {
-            existingTest = { tags: [] }; // Инициализируем, если теста нет
-          }
-
-          // Добавляем тег только если его нет
-          if (!existingTest.tags.includes('@fixme') && !testName.includes('@fixme')) {
-            existingTest.tags.push('@fixme');
-          }
-
-          // Добавляем тест
           tests.push({
             name: testName,
             suites: currentSuite
@@ -183,8 +156,16 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           });
         }
 
+        const testName = getStringValue(path.parentPath.container);
+        const existingTest = tests.find(t => t.name === testName);
+        if (!existingTest) return;
+
+        existingTest.tags = existingTest.tags.filter(tag => tag !== '@fixme');
+        if (!existingTest.tags.includes('@fixme') && !testName.includes('@fixme')) {
+          existingTest.tags.push('@fixme');
+        }
+
         if (name === 'describe') {
-          // suite
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
           const suite = path.parentPath.container;
           suite.skipped = true;
