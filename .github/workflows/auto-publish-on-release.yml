@@ -24,10 +24,11 @@ jobs:
           # use "beta" tag if relevant, otherwise use "latest"
           tag: ${{ contains(github.event.release.tag_name, 'beta') && 'beta' || 'latest' }}
 
+      # DISABLED: push to master forbidden in this repo
       # push the version changes to GitHub
-      - run: git push
-        env:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      # - run: git push
+      #   env:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
 
   show-npm-log:
     runs-on: ubuntu-latest
