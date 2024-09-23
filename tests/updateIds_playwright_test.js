@@ -299,6 +299,37 @@ describe('update ids tests(playwright adapter)', () => {
       expect(updatedFile).to.include("'suite name @Sf3d245a719',");
       expect(updatedFile).to.include("test('test case #3 @T1d6a52b119', async ({ page }) => {");
     });
+
+    it('test.skip() annotation inside a test is propersly processed', () => {
+      const analyzer = new Analyzer('playwright', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'test case #4': '@T1d6a52b119',
+        },
+        suites: {
+          'suite name': '@Sf3d245a719',
+        },
+      };
+
+      fs.writeFileSync(
+        'virtual_dir/test.js',
+        `
+          const { test, expect } = require('@playwright/test');
+            test('test case #4', async ({ page }) => {
+              test.skip(1 === 1);
+            });
+          `,
+      );
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+
+      expect(updatedFile).to.include("test('test case #4 @T1d6a52b119', async ({ page }) => {");
+    });
   });
 
   describe('[Playwright examples] clean-ids for the --typescript mode', () => {

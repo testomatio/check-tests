@@ -31,7 +31,7 @@ async function run() {
   /* prettier-ignore */
   const docBranch = core.getInput('documentation-branch') || (await octokit.repos.get({ owner, repo })).data.default_branch;
   const pullRequest = new PullRequest(core.getInput('token', { required: true }));
-  const analyzer = new Analyzer(framework, mainRepoPath);
+  const analyzer = new Analyzer(framework, mainRepoPath, { framework });
 
   if (core.getInput('typescript')) analyzer.withTypeScript();
 

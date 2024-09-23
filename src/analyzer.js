@@ -12,14 +12,14 @@ let parser;
  */
 
 class Analyzer {
-  constructor(framework, workDir = '.', opts = {}) {
-    this.framework = framework.toLowerCase();
+  constructor(framework, workDir = '.', opts) {
+    this.framework = framework;
     this.workDir = workDir;
     this.typeScript = false;
     this.plugins = [];
     this.presets = [];
     this.rawTests = [];
-    this.opts = opts;
+    this.opts = opts || {};
 
     parser = require('@babel/parser');
 
@@ -77,7 +77,7 @@ class Analyzer {
   analyze(pattern) {
     if (!this.frameworkParser) throw new Error("No test framework specified. Can't analyze");
 
-    this.decorator = new Decorator([]);
+    this.decorator = new Decorator([], { framework: this.framework });
     this.stats = this.getEmptyStats();
 
     pattern = path.join(path.resolve(this.workDir), pattern);
@@ -150,7 +150,7 @@ class Analyzer {
        */
       const testsData = this.frameworkParser(ast, fileName, source, this.opts);
       this.rawTests.push(testsData);
-      const tests = new Decorator(testsData);
+      const tests = new Decorator(testsData, { framework: this.framework });
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());
       this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
       this.stats.files.push(file);
