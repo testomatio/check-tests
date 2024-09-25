@@ -540,7 +540,7 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --clean
 
 TESTOMATIO is API key of a project with existing test ids.
 
-### Import Into a Branch
+## Import Into a Branch
 
 Tests can be imported into a specific branch if `TESTOMATIO_BRANCH` parameter is used.
 Branch is matched by its id. If branch was not found, it will be created.
@@ -549,7 +549,7 @@ Branch is matched by its id. If branch was not found, it will be created.
 TESTOMATIO_BRANCH=dev TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 ```
 
-### Keep Structure of Source Code
+## Keep Structure of Source Code
 
 When tests in source code have IDs assigned and those tests are imported, Testomat.io uses current structure in a project to put the tests in. If folders in source code doesn't match folders in Testomat.io project, existing structure in source code will be ignored. To force using the structure from the source code, use `--keep-structure` flag on import:
 
@@ -557,7 +557,7 @@ When tests in source code have IDs assigned and those tests are imported, Testom
 TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --keep-structure
 ```
 
-### Delete Empty Suites
+## Delete Empty Suites
 
 If tests were marked with IDs and imported to already created suites in Testomat.io
 newly imported suites may become empty. Use `--no-empty` option to clean them up after import.
@@ -568,7 +568,7 @@ TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-emp
 
 > This prevents usage --keep-structure option.
 
-### Import Into a Specific Suite
+## Import Into a Specific Suite
 
 To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PREPEND_DIR` environment variable:
 
