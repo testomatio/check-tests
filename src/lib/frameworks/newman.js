@@ -38,7 +38,7 @@ module.exports = (ast = '', file = '', source = '') => {
 
         requests.push({
           code,
-          _file: file,
+          file,
           name: item.name,
           suites,
         });
