@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 require('dotenv').config();
 const fs = require('fs');
-const path = require('path');
 const Analyzer = require('../src/analyzer');
 const Reporter = require('../src/reporter');
 const chalk = require('chalk');
 const document = require('../src/document');
 const { cleanIds, updateIds } = require('../src/updateIds');
-const { spawn } = require('child_process');
 const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
@@ -47,7 +45,6 @@ program
     framework = framework.toLowerCase();
     opts.framework = framework;
     opts.pattern = files;
-    const isPattern = checkPattern(files);
     const frameworkOpts = {};
 
     if (opts.lineNumbers) {
@@ -173,8 +170,8 @@ program
         throw new Error('Skipped tests found, failing...');
       }
     } catch (err) {
-      console.log();
       console.error(chalk.bold.red(err));
+      console.error(err);
 
       if (!err.name == 'ValidationError') {
         console.error(err.stack);
