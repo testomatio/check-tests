@@ -469,7 +469,7 @@ test.describe.only('my test', () => {
   it('should parse playwright test with custom alias (fixture/test name)', () => {
     source = fs.readFileSync('./example/playwright/custom-fixture-name.ts').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
-    const tests = playwrightParser(ast, '', source, { alias: ['customTestName'] });
+    const tests = playwrightParser(ast, '', source, { testAlias: ['customTestName'] });
 
     expect(tests.length).to.equal(1);
   });
