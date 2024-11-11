@@ -186,7 +186,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         }
       }
 
-      const fixtureNames = [...['test', 'it'], ...opts?.alias];
+      const fixtureNames = [...['test', 'it'], ...(opts?.alias || [])];
       for (const fiixtureName of fixtureNames || []) {
         if (path.isIdentifier({ name: fiixtureName })) {
           if (!hasStringOrTemplateArgument(path.parent)) return;
