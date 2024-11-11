@@ -12,13 +12,6 @@ const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
-function checkPattern(pattern) {
-  pattern = pattern.trim();
-  if (!pattern) return true;
-  if (pattern == '.') return true;
-  return pattern.includes('*');
-}
-
 process.env.isTestomatioCli = true;
 
 const program = require('commander');
@@ -41,10 +34,13 @@ program
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
   .option('--line-numbers', 'Adding an extra line number to each block of code')
+  .option('--alias <alias>', 'Specify custom test name for Playwright tests')
   .action(async (framework, files, opts) => {
     framework = framework.toLowerCase();
+    opts.alias = opts.alias ? opts.alias.split(',') : [];
     opts.framework = framework;
     opts.pattern = files;
+    opts.pwCustomFixtureNames = opts.pwCustomFixtureNames ? opts.pwCustomFixtureNames.split(',') : [];
     const frameworkOpts = {};
 
     if (opts.lineNumbers) {
@@ -55,7 +51,7 @@ program
       frameworkOpts.noHooks = !opts.hooks;
     }
 
-    const analyzer = new Analyzer(framework, opts.dir || process.cwd(), frameworkOpts);
+    const analyzer = new Analyzer(framework, opts.dir || process.cwd(), { ...opts, ...frameworkOpts });
     try {
       if (opts.typescript) {
         try {

@@ -186,36 +186,42 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         }
       }
 
-      if (path.isIdentifier({ name: 'test' }) || path.isIdentifier({ name: 'it' })) {
-        if (!hasStringOrTemplateArgument(path.parent)) return;
+      const fixtureNames = [...['test', 'it'], ...opts?.alias];
+      for (const fiixtureName of fixtureNames || []) {
+        if (path.isIdentifier({ name: fiixtureName })) {
+          if (!hasStringOrTemplateArgument(path.parent)) return;
 
-        let code = '';
+          let code = '';
 
-        beforeCode = beforeCode ?? '';
-        beforeEachCode = beforeEachCode ?? '';
-        afterCode = afterCode ?? '';
-        /* prettier-ignore */
-        code = noHooks
+          beforeCode = beforeCode ?? '';
+          beforeEachCode = beforeEachCode ?? '';
+          afterCode = afterCode ?? '';
+          /* prettier-ignore */
+          code = noHooks
           ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
           : beforeEachCode
           + beforeCode
           + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
           + afterCode;
 
-        const testName = getStringValue(path.parent);
+          const testName = getStringValue(path.parent);
 
-        tests.push({
-          name: testName,
-          suites: currentSuite
-            .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
-            .map(s => getStringValue(s)),
-          updatePoint: getUpdatePoint(path.parent),
-          line: getLineNumber(path),
-          code,
-          file,
-          tags: playwright.getTestTags(path.parentPath),
-          skipped: !!currentSuite.filter(s => s.skipped).length,
-        });
+          tests.push({
+            name: testName,
+            suites: currentSuite
+              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
+              .map(s => getStringValue(s)),
+            updatePoint: getUpdatePoint(path.parent),
+            line: getLineNumber(path),
+            code,
+            file,
+            tags: playwright.getTestTags(path.parentPath),
+            skipped: !!currentSuite.filter(s => s.skipped).length,
+          });
+
+          // stop the loop if the test is found
+          break;
+        }
       }
 
       if (path.isIdentifier({ name: 'each' })) {
