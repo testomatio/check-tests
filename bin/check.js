@@ -34,13 +34,12 @@ program
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
   .option('--line-numbers', 'Adding an extra line number to each block of code')
-  .option('--test-alias <test-alias>', 'Specify custom fixture names for Playwright tests (separated by commas)')
+  .option('--test-alias <test-alias>', 'Specify custom alias for test/it etc (separated by commas if multiple)')
   .action(async (framework, files, opts) => {
     framework = framework.toLowerCase();
     opts.testAlias = opts.testAlias ? opts.testAlias.split(',') : [];
     opts.framework = framework;
     opts.pattern = files;
-    opts.pwCustomFixtureNames = opts.pwCustomFixtureNames ? opts.pwCustomFixtureNames.split(',') : [];
     const frameworkOpts = {};
 
     if (opts.lineNumbers) {
