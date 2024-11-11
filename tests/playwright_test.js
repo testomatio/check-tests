@@ -465,4 +465,12 @@ test.describe.only('my test', () => {
       expect(tests[0].code).to.not.include('8:     test.beforeEach(async ({ page }) => {\n');
     });
   });
+
+  it('should parse playwright test with custom alias (fixture/test name)', () => {
+    source = fs.readFileSync('./example/playwright/custom-fixture-name.ts').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = playwrightParser(ast, '', source, { alias: ['customTestName'] });
+
+    expect(tests.length).to.equal(1);
+  });
 });
