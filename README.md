@@ -607,6 +607,14 @@ Now tests TypeScript can be imported with `--typescript` option:
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --typescript
 ```
 
+## Test aliases
+
+Test aliases are used to map tests in source code to tests in Testomat.io. By default `test` and `it` are parsed. But if you rename them or use another function to define tests (e.g. created/extended test object in Playwright), you can add alias (or multiple aliases, separated by comma) via `--alias` option:
+
+```
+TESTOMATIO=11111111 npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --alias myTest,myCustomFunction
+```
+
 ## Programmatic API
 
 Import Analyzer from module:
