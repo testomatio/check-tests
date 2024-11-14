@@ -160,7 +160,7 @@ const playwright = {
     // parse ANNOTATIONS
     const annotations = [];
     propertiesWithAnnotations.forEach(prop => {
-      // annotations as array: [{type: 'text, description: 'text'}]
+      // annotations as array: [{type: 'text, description?: 'text'}]
       if (prop.value.type === 'ArrayExpression') {
         const annotationProperties = prop.value.elements.map(el => el.properties);
         annotationProperties.forEach(annotationProp => {
@@ -170,7 +170,7 @@ const playwright = {
           });
           annotations.push(annotation);
         });
-        // single annotation: {type: 'text, description: 'text'}
+        // single annotation: {type: 'text, description?: 'text'}
       } else if (prop.value.type === 'ObjectExpression') {
         const annotation = {};
         prop.value.properties.forEach(prop => {
