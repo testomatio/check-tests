@@ -133,12 +133,13 @@ function cleanAtPoint(subject, replaceAt, cleanSubject) {
 
 const playwright = {
   getTestProps: path => {
+    const testProps = { annotations: [], tags: [] };
     const argumentsList = path.parent.expression.arguments;
-    if (!argumentsList?.length) return [];
+    if (!argumentsList?.length) return testProps;
     const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
-    if (!argumentsWithTags.length) return [];
+    if (!argumentsWithTags.length) return testProps;
     const properties = argumentsWithTags.map(arg => arg.properties);
-    if (!properties.length) return [];
+    if (!properties.length) return testProps;
 
     const propertiesWithTags = properties.flat().filter(prop => prop.key.name === 'tag');
     const propertiesWithAnnotations = properties.flat().filter(prop => prop.key.name === 'annotation');
@@ -158,7 +159,7 @@ const playwright = {
       .filter(Boolean);
 
     // parse ANNOTATIONS
-    const annotations = [];
+
     propertiesWithAnnotations.forEach(prop => {
       // annotations as array: [{type: 'text, description?: 'text'}]
       if (prop.value.type === 'ArrayExpression') {
@@ -168,7 +169,7 @@ const playwright = {
           annotationProp.forEach(prop => {
             annotation[prop.key.name] = prop.value.value;
           });
-          annotations.push(annotation);
+          testProps.annotations.push(annotation);
         });
         // single annotation: {type: 'text, description?: 'text'}
       } else if (prop.value.type === 'ObjectExpression') {
@@ -176,16 +177,16 @@ const playwright = {
         prop.value.properties.forEach(prop => {
           annotation[prop.key.name] = prop.value.value;
         });
-        annotations.push(annotation);
+        testProps.annotations.push(annotation);
       }
     });
 
     // remove @ at start of each tag
-    const tags = tagsList.map(tag => {
+    testProps.tags = tagsList.map(tag => {
       return tag.startsWith('@') ? tag.substring(1) : tag;
     });
 
-    return { annotations, tags };
+    return testProps;
   },
 };
 
