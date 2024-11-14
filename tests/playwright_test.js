@@ -197,7 +197,7 @@ test.describe.only('my test', () => {
   });
 
   describe('annotations', () => {
-    it.only('should parse playwright test with single annotation', () => {
+    it('should parse playwright test with single annotation', () => {
       source = fs.readFileSync('./example/playwright/annotating_test.ts').toString();
       ast = jsParser.parse(source, { sourceType: 'unambiguous' });
       const tests = playwrightParser(ast, '', source);
@@ -209,7 +209,7 @@ test.describe.only('my test', () => {
       ]);
     });
 
-    it.only('should parse playwright test with multiple annotations', () => {
+    it('should parse playwright test with multiple annotations', () => {
       source = fs.readFileSync('./example/playwright/annotating_test.ts').toString();
       ast = jsParser.parse(source, { sourceType: 'unambiguous' });
       const tests = playwrightParser(ast, '', source);
