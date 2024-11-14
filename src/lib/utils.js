@@ -133,11 +133,6 @@ function cleanAtPoint(subject, replaceAt, cleanSubject) {
 
 const playwright = {
   getTestProps: path => {
-    const testProps = {
-      tags: [],
-      annotations: [],
-    };
-
     const argumentsList = path.parent.expression.arguments;
     if (!argumentsList?.length) return [];
     const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
@@ -163,34 +158,34 @@ const playwright = {
       .filter(Boolean);
 
     // parse ANNOTATIONS
-    testProps.annotations = propertiesWithAnnotations.map(prop => {
+    const annotations = [];
+    propertiesWithAnnotations.forEach(prop => {
       // annotations as array: [{type: 'text, description: 'text'}]
       if (prop.value.type === 'ArrayExpression') {
         const annotationProperties = prop.value.elements.map(el => el.properties);
-        const parsedAnnotations = annotationProperties.map(annotationProp => {
+        annotationProperties.forEach(annotationProp => {
           const annotation = {};
           annotationProp.forEach(prop => {
             annotation[prop.key.name] = prop.value.value;
           });
-          return annotation;
+          annotations.push(annotation);
         });
-        return parsedAnnotations;
         // single annotation: {type: 'text, description: 'text'}
       } else if (prop.value.type === 'ObjectExpression') {
         const annotation = {};
         prop.value.properties.forEach(prop => {
           annotation[prop.key.name] = prop.value.value;
         });
-        return [annotation];
+        annotations.push(annotation);
       }
     });
 
     // remove @ at start of each tag
-    testProps.tags = tagsList.map(tag => {
+    const tags = tagsList.map(tag => {
       return tag.startsWith('@') ? tag.substring(1) : tag;
     });
 
-    return testProps;
+    return { annotations, tags };
   },
 };
 
