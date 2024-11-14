@@ -212,12 +212,19 @@ const arrayCompare = function (a, b, id) {
   };
 };
 
+const jest = {
+  isConcurrentTest: path => {
+    return path.property?.name === 'concurrent';
+  },
+};
+
 module.exports = {
   hasStringArgument,
   hasTemplateQuasi,
   getLineNumber,
   getEndLineNumber,
   getCode,
+  jest,
   hasTemplateArgument,
   getQuasiArgument,
   parseComments,

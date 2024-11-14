@@ -7,6 +7,7 @@ const {
   getLineNumber,
   getEndLineNumber,
   getCode,
+  jest,
 } = require('../utils');
 
 module.exports = (ast, file = '', source = '', opts = {}) => {
@@ -128,6 +129,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'test' }) || path.isIdentifier({ name: 'it' })) {
+        if (jest.isConcurrentTest(path.parent)) path = path.parentPath;
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
         let code = '';
