@@ -171,4 +171,23 @@ describe('jest parser', () => {
       expect(tests[0].code).to.not.include('4:     beforeAll(() => {\n');
     });
   });
+
+  context('jest concurrent', () => {
+    let fileSource, fileAst;
+
+    before(() => {
+      fileSource = fs.readFileSync('./example/jest/jest-concurrent.js').toString();
+      fileAst = parser.parse(fileSource);
+    });
+
+    it('shuld parse it.concurrent', () => {
+      const tests = jestParser(fileAst);
+      expect(tests[0].name).to.equal('it concurrent');
+    });
+
+    it('should parse test.concurrent', () => {
+      const tests = jestParser(fileAst);
+      expect(tests[1].name).to.equal('test concurrent');
+    });
+  });
 });
