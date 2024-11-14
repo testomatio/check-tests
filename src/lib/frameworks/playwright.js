@@ -215,7 +215,8 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code,
             file,
-            tags: playwright.getTestTags(path.parentPath),
+            tags: playwright.getTestProps(path.parentPath).tags,
+            annotations: playwright.getTestProps(path.parentPath).annotations,
             skipped: !!currentSuite.filter(s => s.skipped).length,
           });
 
