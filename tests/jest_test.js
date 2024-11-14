@@ -181,13 +181,15 @@ describe('jest parser', () => {
     });
 
     it('shuld parse it.concurrent', () => {
-      const tests = jestParser(fileAst);
+      const tests = jestParser(fileAst, '', fileSource, { lineNumbers: true });
       expect(tests[0].name).to.equal('it concurrent');
+      expect(tests[0].code).to.include("it.concurrent('it concurrent', () => {});");
     });
 
     it('should parse test.concurrent', () => {
-      const tests = jestParser(fileAst);
+      const tests = jestParser(fileAst, '', fileSource, { lineNumbers: true });
       expect(tests[1].name).to.equal('test concurrent');
+      expect(tests[1].code).to.include("test.concurrent('test concurrent', () => {});");
     });
   });
 });
