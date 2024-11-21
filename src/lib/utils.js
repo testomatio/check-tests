@@ -132,18 +132,21 @@ function cleanAtPoint(subject, replaceAt, cleanSubject) {
 }
 
 const playwright = {
-  getTestTags: path => {
+  getTestProps: path => {
+    const testProps = { annotations: [], tags: [] };
     const argumentsList = path.parent.expression.arguments;
-    if (!argumentsList?.length) return [];
+    if (!argumentsList?.length) return testProps;
     const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
-    if (!argumentsWithTags.length) return [];
+    if (!argumentsWithTags.length) return testProps;
     const properties = argumentsWithTags.map(arg => arg.properties);
-    if (!properties.length) return [];
-    const propertiesWithTags = properties.flat().filter(prop => prop.key.name === 'tag');
-    if (!propertiesWithTags.length) return [];
+    if (!properties.length) return testProps;
 
+    const propertiesWithTags = properties.flat().filter(prop => prop.key.name === 'tag');
+    const propertiesWithAnnotations = properties.flat().filter(prop => prop.key.name === 'annotation');
+
+    // parse TAGS
     // prop value could be a string or an array of strings
-    let tags = propertiesWithTags
+    const tagsList = propertiesWithTags
       .map(prop => {
         if (prop.value.type === 'ArrayExpression') {
           return prop.value.elements.map(el => el.value);
@@ -155,12 +158,35 @@ const playwright = {
       // remove empty values
       .filter(Boolean);
 
+    // parse ANNOTATIONS
+
+    propertiesWithAnnotations.forEach(prop => {
+      // annotations as array: [{type: 'text, description?: 'text'}]
+      if (prop.value.type === 'ArrayExpression') {
+        const annotationProperties = prop.value.elements.map(el => el.properties);
+        annotationProperties.forEach(annotationProp => {
+          const annotation = {};
+          annotationProp.forEach(prop => {
+            annotation[prop.key.name] = prop.value.value;
+          });
+          testProps.annotations.push(annotation);
+        });
+        // single annotation: {type: 'text, description?: 'text'}
+      } else if (prop.value.type === 'ObjectExpression') {
+        const annotation = {};
+        prop.value.properties.forEach(prop => {
+          annotation[prop.key.name] = prop.value.value;
+        });
+        testProps.annotations.push(annotation);
+      }
+    });
+
     // remove @ at start of each tag
-    tags = tags.map(tag => {
+    testProps.tags = tagsList.map(tag => {
       return tag.startsWith('@') ? tag.substring(1) : tag;
     });
 
-    return tags;
+    return testProps;
   },
 };
 

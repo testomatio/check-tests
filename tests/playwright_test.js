@@ -195,6 +195,37 @@ test.describe.only('my test', () => {
       expect(tests[4].tags).to.have.all.members(['smoke', 'regression', 'windows']);
     });
   });
+
+  describe('annotations', () => {
+    it('should parse playwright test with single annotation', () => {
+      source = fs.readFileSync('./example/playwright/annotating_test.ts').toString();
+      ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+      const tests = playwrightParser(ast, '', source);
+      expect(tests[0].annotations).to.deep.equal([
+        {
+          type: 'annotation type',
+          description: 'annotation description',
+        },
+      ]);
+    });
+
+    it('should parse playwright test with multiple annotations', () => {
+      source = fs.readFileSync('./example/playwright/annotating_test.ts').toString();
+      ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+      const tests = playwrightParser(ast, '', source);
+      expect(tests[1].annotations).to.deep.equal([
+        {
+          type: 'annotationType1',
+          description: 'annotationDescription1',
+        },
+        {
+          type: 'annotationType2',
+          description: 'annotationDescription2',
+        },
+      ]);
+    });
+  });
+
   it('should parse playwright-ts tests with params', () => {
     source = fs.readFileSync('./example/playwright/params.ts').toString();
     const program = tsParser.parse(source, {
