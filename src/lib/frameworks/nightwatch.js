@@ -4,6 +4,9 @@ const path = require('path');
 module.exports = (ast, file = '', source = '') => {
   let exported;
 
+  let beforeEach = '';
+  let beforeAll = '';
+
   try {
     exported = require(path.join(process.cwd(), file));
   } catch (err) {
@@ -20,14 +23,31 @@ module.exports = (ast, file = '', source = '') => {
 
   for (const testName in exported) {
     if (typeof exported[testName] !== 'function') continue;
+    if (testName == 'beforeEach') {
+      beforeEach = exported[testName].toString();
+      continue;
+    }
+    if (testName == 'beforeAll') {
+      beforeAll = exported[testName].toString();
+      continue;
+    }
+
     if (['beforeEach', 'afterEach', 'before', 'after'].includes(testName)) continue;
 
     const testFn = exported[testName];
 
+    let code = testFn.toString();
+    if (beforeEach) {
+      code = `beforeEach(${beforeEach})\n\n${code}`;
+    }
+    if (beforeAll) {
+      code = `beforeAll(${beforeAll})\n\n${code}`;
+    }
+
     tests.push({
       name: testName,
       suites: [file.split('/').pop()],
-      code: testFn.toString(),
+      code,
       file,
     });
   }
