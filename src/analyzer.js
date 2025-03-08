@@ -49,6 +49,9 @@ class Analyzer {
       case 'qunit':
         this.frameworkParser = require('./lib/frameworks/qunit');
         break;
+      case 'nightwatch':
+        this.frameworkParser = require('./lib/frameworks/nightwatch');
+        break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io':
