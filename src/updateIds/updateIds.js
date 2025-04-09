@@ -27,34 +27,44 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
     debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
-    const suite = testArr[0].suites[0] || '';
+    let suiteId = '';
+    for (const suites of testArr) {
+      for (const suite of suites.suites) {
+        if (suite) {
+          debug('Updating suite: ', suite);
+          const suiteIndex = suite;
+          const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
-    if (suite) {
-      const suiteIndex = suite;
-      const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
-
-      const currentSuiteId = parseSuite(suiteIndex);
-      if (
-        currentSuiteId &&
-        testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
-        testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
-      ) {
-        debug(`   Previous ID detected in suite '${suiteIndex}'`);
-        duplicateSuites++;
-        continue;
-      }
-
-      if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-        fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
-        fs.writeFileSync(file, fileContent);
-      } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-        fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-        fs.writeFileSync(file, fileContent);
+          if (testomatioMap.suites[suiteIndex] == suiteId) continue;
+          if (testomatioMap.suites[suiteWithoutTags] == suiteId) continue;
+          const currentSuiteId = parseSuite(suiteIndex);
+          if (
+            currentSuiteId &&
+            testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+            testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+          ) {
+            debug(`   Previous ID detected in suite '${suiteIndex}'`);
+            duplicateSuites++;
+            continue;
+          }
+          if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
+            fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+            fs.writeFileSync(file, fileContent);
+            suiteId = testomatioMap.suites[suiteIndex];
+          } else if (
+            testomatioMap.suites[suiteWithoutTags] &&
+            !suite.includes(testomatioMap.suites[suiteWithoutTags])
+          ) {
+            fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
+            fs.writeFileSync(file, fileContent);
+            suiteId = testomatioMap.suites[suiteWithoutTags];
+          }
+        }
       }
     }
 
     for (const test of testArr) {
-      let testIndex = `${test.suites[0] || ''}#${test.name}`;
+      let testIndex = `${test.file.replace('\\', '/')}#${test.suites[0] || ''}#${test.name}`;
       debug('testIndex', testIndex);
 
       // this is not test; its test.skip() annotation inside a test
@@ -123,15 +133,17 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
     debug('Updating file: ', file);
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
-    const suite = testArr[0].suites[0];
+    for (const suites of testArr) {
+      for (const suite of suites.suites) {
+        if (suite) {
+          const suiteId = `@S${parseSuite(suite)}`;
+          debug('  clenaing suite: ', suite);
 
-    if (suite) {
-      const suiteId = `@S${parseSuite(suite)}`;
-      debug('  clenaing suite: ', suite);
-
-      if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
-        const newTitle = suite.slice().replace(suiteId, '').trim();
-        fileContent = fileContent.replace(suite, newTitle);
+          if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
+            const newTitle = suite.slice().replace(suiteId, '').trim();
+            fileContent = fileContent.replace(suite, newTitle);
+          }
+        }
       }
     }
 
@@ -148,6 +160,7 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
       if (err) throw err;
     });
   }
+
   return files;
 }
 
