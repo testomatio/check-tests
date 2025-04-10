@@ -453,6 +453,44 @@ describe('update ids', () => {
       expect(updatedFile).to.include('simple suite @Sf3d245a1');
       expect(updatedFile).to.include('simple test @T1d6a52b9');
     });
+
+    it('should update nested scenarios', () => {
+      const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'simple suite#parent test#child test': '@T1d6a52b9',
+          'simple suite#parent test': '@T2e7b63c0',
+        },
+        suites: {
+          'simple suite': '@Sf3d245a7',
+        },
+      };
+
+      fs.writeFileSync(
+        './virtual_dir/test.js',
+        `
+          Feature('simple suite')
+          
+          Scenario('parent test', async ({ I }) => {
+            within('nested', () => {
+              Scenario('child test', async ({ I }) => {
+                I.doSomething();
+              });
+            });
+          })        
+          `,
+      );
+
+      analyzer.analyze('test.js');
+
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
+      expect(updatedFile).to.include("Feature('simple suite @Sf3d245a7')");
+      expect(updatedFile).to.include("Scenario('parent test @T2e7b63c0'");
+      expect(updatedFile).to.include("Scenario('child test @T1d6a52b9'");
+    });
   });
 
   describe('clean-ids', () => {
