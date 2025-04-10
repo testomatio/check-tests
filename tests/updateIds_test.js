@@ -459,26 +459,33 @@ describe('update ids', () => {
 
       const idMap = {
         tests: {
-          'simple suite#parent test#child test': '@T1d6a52b9',
+          'simple suite#child test': '@T1d6a52b9',
           'simple suite#parent test': '@T2e7b63c0',
+          'second suite#child test': '@Tfe7124c0',
+          'second suite#parent test': '@T4ce7sdc0',
         },
         suites: {
           'simple suite': '@Sf3d245a7',
+          'second suite': '@Sf3d245a1',
         },
       };
 
       fs.writeFileSync(
         './virtual_dir/test.js',
-        `
-          Feature('simple suite')
-          
+        `Feature('simple suite')
           Scenario('parent test', async ({ I }) => {
-            within('nested', () => {
-              Scenario('child test', async ({ I }) => {
-                I.doSomething();
-              });
-            });
-          })        
+            I.doSomething();
+          })
+          Scenario('child test', async ({ I }) => {
+            I.doSomething();
+          });
+        Feature('second suite')
+          Scenario('parent test', async ({ I }) => {
+            I.doSomething();
+          })
+          Scenario('child test', async ({ I }) => {
+            I.doSomething();
+          });
           `,
       );
 
