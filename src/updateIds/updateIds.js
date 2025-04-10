@@ -31,35 +31,31 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
     for (const testItem of testArr) {
       for (const suite of testItem.suites) {
         if (!suite) continue;
-        if (suite) {
-          debug('Updating suite: ', suite);
-          const suiteIndex = suite;
-          const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
 
-          if (testomatioMap.suites[suiteIndex] == suiteId) continue;
-          if (testomatioMap.suites[suiteWithoutTags] == suiteId) continue;
-          const currentSuiteId = parseSuite(suiteIndex);
-          if (
-            currentSuiteId &&
-            testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
-            testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
-          ) {
-            debug(`   Previous ID detected in suite '${suiteIndex}'`);
-            duplicateSuites++;
-            continue;
-          }
-          if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-            fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
-            fs.writeFileSync(file, fileContent);
-            suiteId = testomatioMap.suites[suiteIndex];
-          } else if (
-            testomatioMap.suites[suiteWithoutTags] &&
-            !suite.includes(testomatioMap.suites[suiteWithoutTags])
-          ) {
-            fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-            fs.writeFileSync(file, fileContent);
-            suiteId = testomatioMap.suites[suiteWithoutTags];
-          }
+        debug('Updating suite: ', suite);
+        const suiteIndex = suite;
+        const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
+
+        if (testomatioMap.suites[suiteIndex] == suiteId) continue;
+        if (testomatioMap.suites[suiteWithoutTags] == suiteId) continue;
+        const currentSuiteId = parseSuite(suiteIndex);
+        if (
+          currentSuiteId &&
+          testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+          testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+        ) {
+          debug(`   Previous ID detected in suite '${suiteIndex}'`);
+          duplicateSuites++;
+          continue;
+        }
+        if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
+          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+          fs.writeFileSync(file, fileContent);
+          suiteId = testomatioMap.suites[suiteIndex];
+        } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
+          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
+          fs.writeFileSync(file, fileContent);
+          suiteId = testomatioMap.suites[suiteWithoutTags];
         }
       }
     }
@@ -139,14 +135,13 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
     for (const suites of testArr) {
       for (const suite of suites.suites) {
         if (!suite) continue;
-        if (suite) {
-          const suiteId = `@S${parseSuite(suite)}`;
-          debug('  cleaning suite: ', suite);
 
-          if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
-            const newTitle = suite.slice().replace(suiteId, '').trim();
-            fileContent = fileContent.replace(suite, newTitle);
-          }
+        const suiteId = `@S${parseSuite(suite)}`;
+        debug('  cleaning suite: ', suite);
+
+        if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
+          const newTitle = suite.slice().replace(suiteId, '').trim();
+          fileContent = fileContent.replace(suite, newTitle);
         }
       }
     }
