@@ -28,8 +28,9 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     let suiteId = '';
-    for (const suites of testArr) {
-      for (const suite of suites.suites) {
+    for (const testItem of testArr) {
+      for (const suite of testItem.suites) {
+        if (!suite) continue;
         if (suite) {
           debug('Updating suite: ', suite);
           const suiteIndex = suite;
@@ -74,7 +75,9 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         TAG_REGEX,
         '',
       )}`.trim();
-
+      if (!testomatioMap.tests[testIndex]) {
+        testIndex = `${test.suites[0] || ''}#${test.name}`; // if file is not found
+      }
       if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
         testIndex = test.name; // if no suite title provided
         testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
@@ -135,9 +138,10 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
 
     for (const suites of testArr) {
       for (const suite of suites.suites) {
+        if (!suite) continue;
         if (suite) {
           const suiteId = `@S${parseSuite(suite)}`;
-          debug('  clenaing suite: ', suite);
+          debug('  cleaning suite: ', suite);
 
           if (suiteIds.includes(suiteId) || (dangerous && suiteId)) {
             const newTitle = suite.slice().replace(suiteId, '').trim();
@@ -149,7 +153,7 @@ function cleanIdsCommon(testData, testomatioMap = {}, workDir, opts = { dangerou
 
     for (const test of testArr) {
       const testId = `@T${parseTest(test.name)}`;
-      debug('  clenaing test: ', test.name);
+      debug('  cleaning test: ', test.name);
 
       if (testIds.includes(testId) || (dangerous && testId)) {
         fileContent = cleanAtPoint(fileContent, test.updatePoint, testId);
