@@ -455,49 +455,156 @@ describe('update ids', () => {
     });
 
     it('should update nested scenarios', () => {
-      const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
+      const analyzer1 = new Analyzer('mocha', 'virtual_dir');
+      const analyzer2 = new Analyzer('mocha', 'virtual_dir');
 
-      const idMap = {
+      const idMap1 = {
         tests: {
-          'simple suite#child test': '@T1d6a52b9',
-          'simple suite#parent test': '@T2e7b63c0',
-          'second suite#child test': '@Tfe7124c0',
-          'second suite#parent test': '@T4ce7sdc0',
+          'test1.js#Login API by username#Login API should give valid response': '@T2d6a52b9',
+          'test1.js#Create API test cases#Create API test cases': '@T9ca4cb86',
+          'test1.js#Delete API test cases#Create API test cases': '@T23322b0f',
         },
         suites: {
-          'simple suite': '@Sf3d245a7',
-          'second suite': '@Sf3d245a1',
+          'test1.js#Login API by username': '@Secf29ed4',
+          'test1.js#Create API test cases': '@S63dfea36',
+          'test1.js#Delete API test cases': '@S0e1abeb1',
         },
       };
 
+      const idMap2 = {
+        tests: {
+          'test2.js#Login API by username#Login API should give valid response': '@T1d6a52b8',
+          'test2.js#Create API test cases#Create API test cases': '@T7ca4cb35',
+          'test2.js#Delete API test cases#Create API test cases': '@T22233b0f',
+        },
+        suites: {
+          'test2.js#Login API by username': '@Secf29ed9',
+          'test2.js#Create API test cases': '@S63dfea38',
+          'test2.js#Delete API test cases': '@S0e1abeb3',
+        },
+      };
+
+      // Write test1.js
       fs.writeFileSync(
-        './virtual_dir/test.js',
-        `Feature('simple suite')
-          Scenario('parent test', async ({ I }) => {
-            I.doSomething();
-          })
-          Scenario('child test', async ({ I }) => {
-            I.doSomething();
+        './virtual_dir/test1.js',
+        `describe('Login API by username', () => {
+          it('Login API should give valid response', () => {
+            // TODO: Add test logic here
           });
-        Feature('second suite')
-          Scenario('parent test', async ({ I }) => {
-            I.doSomething();
-          })
-          Scenario('child test', async ({ I }) => {
-            I.doSomething();
+        });
+
+        describe('Create API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
           });
-          `,
+        });
+
+        describe('Delete API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
+      `,
       );
 
-      analyzer.analyze('test.js');
+      // Write test2.js
+      fs.writeFileSync(
+        './virtual_dir/test2.js',
+        `describe('Login API by username', () => {
+          it('Login API should give valid response', () => {
+            // TODO: Add test logic here
+          });
+        });
 
-      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+        describe('Create API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
 
-      const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
-      expect(updatedFile).to.include("Feature('simple suite @Sf3d245a7')");
-      expect(updatedFile).to.include("Scenario('parent test @T2e7b63c0'");
-      expect(updatedFile).to.include("Scenario('child test @T1d6a52b9'");
+        describe('Delete API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
+      `,
+      );
+
+      analyzer1.analyze('test1.js');
+      analyzer2.analyze('test2.js');
+
+      updateIds(analyzer1.rawTests, idMap1, 'virtual_dir');
+      updateIds(analyzer2.rawTests, idMap2, 'virtual_dir');
+
+      const updatedFile1 = fs.readFileSync('virtual_dir/test1.js').toString();
+      expect(updatedFile1).to.include("describe('Login API by username @Secf29ed4'");
+      expect(updatedFile1).to.include("it('Login API should give valid response @T2d6a52b9'");
+      expect(updatedFile1).to.include("describe('Create API test cases @S63dfea36'");
+      expect(updatedFile1).to.include("it('Create API test cases @T9ca4cb86'");
+      expect(updatedFile1).to.include("describe('Delete API test cases @S0e1abeb1'");
+      expect(updatedFile1).to.include("it('Create API test cases @T23322b0f'");
+
+      const updatedFile2 = fs.readFileSync('virtual_dir/test2.js').toString();
+      expect(updatedFile2).to.include("describe('Login API by username @Secf29ed9'");
+      expect(updatedFile2).to.include("it('Login API should give valid response @T1d6a52b8'");
+      expect(updatedFile2).to.include("describe('Create API test cases @S63dfea38'");
+      expect(updatedFile2).to.include("it('Create API test cases @T7ca4cb35'");
+      expect(updatedFile2).to.include("describe('Delete API test cases @S0e1abeb3'");
+      expect(updatedFile2).to.include("it('Create API test cases @T22233b0f'");
     });
+
+    // it('should update ids based on filename for suites with the same name in different files', () => {
+    //   const analyzer1 = new Analyzer('codeceptjs', 'virtual_dir');
+    //   const analyzer2 = new Analyzer('codeceptjs', 'virtual_dir');
+
+    //   const idMap = {
+    //     tests: {
+    //       'virtual_dir\\test1.js#my suite#my test': '@T1d6a52b9',
+    //       'virtual_dir\\test2.js#my suite#my test': '@T2e7b63c0',
+    //     },
+    //     suites: {
+    //       'virtual_dir\\test1.js#my suite': '@Sf3d245a7',
+    //       'virtual_dir\\test2.js#my suite': '@Sf3d245a1',
+    //     },
+    //   };
+
+    //   // Write test1.js
+    //   fs.writeFileSync(
+    //     './virtual_dir/test1.js',
+    //     `Feature('my suite')
+    //   Scenario('my test', async ({ I }) => {
+    //     I.doSomething();
+    //   });`,
+    //   );
+
+    //   // Write test2.js
+    //   fs.writeFileSync(
+    //     './virtual_dir/test2.js',
+    //     `Feature('my suite')
+    //   Scenario('my test', async ({ I }) => {
+    //     I.doSomething();
+    //   });`,
+    //   );
+
+    //   // Analyze both files
+    //   analyzer1.analyze('test1.js');
+    //   analyzer2.analyze('test2.js');
+
+    //   // Update IDs for both files
+    //   updateIds(analyzer1.rawTests, idMap, 'virtual_dir');
+    //   updateIds(analyzer2.rawTests, idMap, 'virtual_dir');
+
+    //   // Read and validate updated test1.js
+    //   const updatedFile1 = fs.readFileSync('virtual_dir/test1.js').toString();
+    //   const updatedFile2 = fs.readFileSync('virtual_dir/test2.js').toString();
+    //   expect(updatedFile1).to.include("Feature('my suite @Sf3d245a7')");
+    //   expect(updatedFile1).to.include("Scenario('my test @T1d6a52b9')");
+
+    //   // Read and validate updated test2.js
+    //   // const updatedFile2 = fs.readFileSync('virtual_dir/test2.js').toString();
+    //   expect(updatedFile2).to.include("Feature('my suite @Sf3d245a1')");
+    //   expect(updatedFile2).to.include("Scenario('my test @T2e7b63c0')");
+    // });
   });
 
   describe('clean-ids', () => {

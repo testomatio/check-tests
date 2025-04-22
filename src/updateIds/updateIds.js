@@ -33,9 +33,12 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         if (!suite) continue;
 
         debug('Updating suite: ', suite);
-        const suiteIndex = suite;
+        let suiteIndex = `${testItem.file.replace('\\', '/')}#${suite || ''}`;
+        debug('testIndex', suiteIndex);
+        if (!testomatioMap.suites[suiteIndex]) {
+          suiteIndex = `${suite || ''}`; // if file is not found
+        }
         const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
-
         if (testomatioMap.suites[suiteIndex] == suiteId) continue;
         if (testomatioMap.suites[suiteWithoutTags] == suiteId) continue;
         const currentSuiteId = parseSuite(suiteIndex);
