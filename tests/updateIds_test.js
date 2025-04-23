@@ -123,11 +123,11 @@ describe('update ids', () => {
       fs.writeFileSync(
         './virtual_dir/test.js',
         `
-          Feature('simple suite @Sf3d245a7')
-          
-          Scenario('simple test @T1d6a52b9', async (I, TodosPage) => {
-          })        
-          `,
+        Feature('simple suite @Sf3d245a7')
+        
+        Scenario('simple test @T1d6a52b9', async (I, TodosPage) => {
+        })        
+        `,
       );
 
       analyzer.analyze('test.js');
@@ -553,58 +553,75 @@ describe('update ids', () => {
       expect(updatedFile2).to.include("it('Create API test cases @T22233b0f'");
     });
 
-    // it('should update ids based on filename for suites with the same name in different files', () => {
-    //   const analyzer1 = new Analyzer('codeceptjs', 'virtual_dir');
-    //   const analyzer2 = new Analyzer('codeceptjs', 'virtual_dir');
+    it('should update ids based on filename for suites with included nested suites', () => {
+      const analyzer = new Analyzer('mocha', 'virtual_dir');
 
-    //   const idMap = {
-    //     tests: {
-    //       'virtual_dir\\test1.js#my suite#my test': '@T1d6a52b9',
-    //       'virtual_dir\\test2.js#my suite#my test': '@T2e7b63c0',
-    //     },
-    //     suites: {
-    //       'virtual_dir\\test1.js#my suite': '@Sf3d245a7',
-    //       'virtual_dir\\test2.js#my suite': '@Sf3d245a1',
-    //     },
-    //   };
+      const idMap = {
+        tests: {
+          'test_included.j#Simple included suite#1. First included test': '@T47c6e680',
+          'Simple included suite#1. First included test': '@T47c6e680',
+          '1. First included test': '@T47c6e680',
+          'test_included.j#Simple suite and default values#1. First test': '@T96cd1c70',
+          'Simple suite and default values#1. First test': '@T96cd1c70',
+          '1. First test': '@T96cd1c70',
+          'test_included.j#Simple included suite#2. Second included test': '@Tda299d22',
+          'Simple included suite#2. Second included test': '@Tda299d22',
+          '2. Second included test': '@Tda299d22',
+          'test_included.j#Simple suite and default values#2. Second test': '@T9c32c073',
+          'Simple suite and default values#2. Second test': '@T9c32c073',
+          '2. Second test': '@T9c32c073',
+          'test_included.j#Simple included suite#3. Third included test': '@T1ad7596b',
+          'Simple included suite#3. Third included test': '@T1ad7596b',
+          '3. Third included test': '@T1ad7596b',
+          'test_included.j#Simple suite and default values#3. Third test': '@T68f84b8e',
+          'Simple suite and default values#3. Third test': '@T68f84b8e',
+          '3. Third test': '@T68f84b8e',
+        },
+        suites: {
+          'test_included.js#Simple included suite': '@S4f1651cf',
+          'Simple included suite': '@S4f1651cf',
+          'test_included.js#Simple suite and default values': '@S0a0cd701',
+          'Simple suite and default values': '@S0a0cd701',
+        },
+      };
 
-    //   // Write test1.js
-    //   fs.writeFileSync(
-    //     './virtual_dir/test1.js',
-    //     `Feature('my suite')
-    //   Scenario('my test', async ({ I }) => {
-    //     I.doSomething();
-    //   });`,
-    //   );
+      // Write test1.js
+      fs.writeFileSync(
+        './virtual_dir/test_included.js',
+        `describe('Simple suite and default values', function () {
+            it('1. First test', function () {
+            });
+            it('2. Second test', function () {
+            });
+            it('3. Third test', function () {
+            });
+            describe('Simple included suite', function () {
+                it('1. First included test', function () {
+                });
+                it('2. Second included test', function () {
+                });
+                it('3. Third included test', function () {
+                });
+            });
+        });`,
+      );
 
-    //   // Write test2.js
-    //   fs.writeFileSync(
-    //     './virtual_dir/test2.js',
-    //     `Feature('my suite')
-    //   Scenario('my test', async ({ I }) => {
-    //     I.doSomething();
-    //   });`,
-    //   );
+      // Analyze both files
+      analyzer.analyze('test_included.js');
+      // Update IDs for both files
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
 
-    //   // Analyze both files
-    //   analyzer1.analyze('test1.js');
-    //   analyzer2.analyze('test2.js');
-
-    //   // Update IDs for both files
-    //   updateIds(analyzer1.rawTests, idMap, 'virtual_dir');
-    //   updateIds(analyzer2.rawTests, idMap, 'virtual_dir');
-
-    //   // Read and validate updated test1.js
-    //   const updatedFile1 = fs.readFileSync('virtual_dir/test1.js').toString();
-    //   const updatedFile2 = fs.readFileSync('virtual_dir/test2.js').toString();
-    //   expect(updatedFile1).to.include("Feature('my suite @Sf3d245a7')");
-    //   expect(updatedFile1).to.include("Scenario('my test @T1d6a52b9')");
-
-    //   // Read and validate updated test2.js
-    //   // const updatedFile2 = fs.readFileSync('virtual_dir/test2.js').toString();
-    //   expect(updatedFile2).to.include("Feature('my suite @Sf3d245a1')");
-    //   expect(updatedFile2).to.include("Scenario('my test @T2e7b63c0')");
-    // });
+      // Read and validate updated test1.js
+      const updatedFile1 = fs.readFileSync('virtual_dir/test_included.js').toString();
+      expect(updatedFile1).to.include("describe('Simple suite and default values @S0a0cd701'");
+      expect(updatedFile1).to.include("it('1. First test @T96cd1c70'");
+      expect(updatedFile1).to.include("it('2. Second test @T9c32c073'");
+      expect(updatedFile1).to.include("it('3. Third test @T68f84b8e'");
+      expect(updatedFile1).to.include("describe('Simple included suite @S4f1651cf'");
+      expect(updatedFile1).to.include("it('1. First included test @T47c6e680'");
+      expect(updatedFile1).to.include("it('2. Second included test @Tda299d22'");
+      expect(updatedFile1).to.include("it('3. Third included test @T1ad7596b'");
+    });
   });
 
   describe('clean-ids', () => {

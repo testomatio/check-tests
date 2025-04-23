@@ -33,76 +33,153 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         if (!suite) continue;
 
         debug('Updating suite: ', suite);
-        let suiteIndex = `${testItem.file.replace('\\', '/')}#${suite || ''}`;
+
+        let suiteIndex = `${testItem.file.replace('\\', '/')}` + '#' + suite;
         debug('testIndex', suiteIndex);
+
         if (!testomatioMap.suites[suiteIndex]) {
-          suiteIndex = `${suite || ''}`; // if file is not found
+          suiteIndex = suite;
         }
+
         const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
-        if (testomatioMap.suites[suiteIndex] == suiteId) continue;
-        if (testomatioMap.suites[suiteWithoutTags] == suiteId) continue;
         const currentSuiteId = parseSuite(suiteIndex);
-        if (
-          currentSuiteId &&
-          testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
-          testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
-        ) {
-          debug(`   Previous ID detected in suite '${suiteIndex}'`);
-          duplicateSuites++;
+
+        if (testomatioMap.suites[suiteIndex] === suiteId) continue;
+
+        const existingIds = suite.match(/@S[a-z0-9]+/gi) || [];
+
+        const mappedId = testomatioMap.suites[suiteIndex] || testomatioMap.suites[suiteWithoutTags];
+
+        if (currentSuiteId && mappedId && existingIds.includes(mappedId)) {
+          debug(`   Skipping duplicate for suite '${suiteIndex}'`);
           continue;
         }
-        if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
-          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+
+        if (mappedId && !existingIds.includes(mappedId)) {
+          const updatedSuite = `${suite} ${mappedId}`;
+          fileContent = replaceSuiteTitle(suite, updatedSuite, fileContent);
           fs.writeFileSync(file, fileContent);
-          suiteId = testomatioMap.suites[suiteIndex];
-        } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
-          fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
-          fs.writeFileSync(file, fileContent);
-          suiteId = testomatioMap.suites[suiteWithoutTags];
+
+          suiteId = mappedId;
+          delete testomatioMap.suites[suiteIndex];
+          delete testomatioMap.suites[suiteWithoutTags];
         }
       }
     }
+    // let suiteId = '';
+    // for (const testItem of testArr) {
+    //   for (const suite of testItem.suites) {
+    //     if (!suite) continue;
+
+    //     debug('Updating suite: ', suite);
+    //     let suiteIndex = `${testItem.file.replace('\\', '/')}#${suite || ''}`;
+    //     debug('testIndex', suiteIndex);
+    //     if (!testomatioMap.suites[suiteIndex]) {
+    //       suiteIndex = `${suite || ''}`; // if file is not found
+    //     }
+    //     const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
+    //     const currentSuiteId = parseSuite(suiteIndex);
+    //     if (testomatioMap.suites[suiteIndex] == suiteId) continue;
+    //     if (
+    //       currentSuiteId &&
+    //       testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
+    //       testomatioMap.suites[suiteWithoutTags] !== `@S${currentSuiteId}`
+    //     ) {
+    //       debug(`   Previous ID detected in suite '${suiteIndex}'`);
+    //       duplicateSuites++;
+    //       continue;
+    //     }
+    //     if (testomatioMap.suites[suiteIndex] && !suite.includes(testomatioMap.suites[suiteIndex])) {
+    //       fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteIndex]}`, fileContent);
+    //       fs.writeFileSync(file, fileContent);
+    //       suiteId = testomatioMap.suites[suiteIndex];
+    //       delete testomatioMap.suites[suiteIndex];
+    //     } else if (testomatioMap.suites[suiteWithoutTags] && !suite.includes(testomatioMap.suites[suiteWithoutTags])) {
+    //       fileContent = replaceSuiteTitle(suite, `${suite} ${testomatioMap.suites[suiteWithoutTags]}`, fileContent);
+    //       fs.writeFileSync(file, fileContent);
+    //       suiteId = testomatioMap.suites[suiteWithoutTags];
+    //       delete testomatioMap.suites[suiteWithoutTags];
+    //     }
+    //   }
+    // }
 
     for (const test of testArr) {
-      let testIndex = `${test.file.replace('\\', '/')}#${test.suites[0] || ''}#${test.name}`;
-      debug('testIndex', testIndex);
-
-      // this is not test; its test.skip() annotation inside a test
       if (opts.framework === 'playwright' && test.name === true) continue;
 
-      let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
-        TAG_REGEX,
-        '',
-      )}`.trim();
+      const suite = test.suites[0] || '';
+      const normalizedFile = test.file.replace(/\\/g, '/');
+      const normalizedName = test.name.replace(TAG_REGEX, '').trim();
+      const normalizedSuite = suite.replace(TAG_REGEX, '').trim();
+
+      let testIndex = `${normalizedFile}#${suite}#${test.name}`;
+      let testWithoutTags = `${normalizedSuite}#${normalizedName}`;
+
       if (!testomatioMap.tests[testIndex]) {
-        testIndex = `${test.suites[0] || ''}#${test.name}`; // if file is not found
+        testIndex = `${suite}#${test.name}`;
       }
       if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
-        testIndex = test.name; // if no suite title provided
-        testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
+        testIndex = test.name;
+        testWithoutTags = normalizedName;
       }
 
       const currentTestId = parseTest(testIndex);
-      if (
-        currentTestId &&
-        testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
-        testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
-      ) {
+      const mappedId = testomatioMap.tests[testIndex] || testomatioMap.tests[testWithoutTags];
+      const existingIds = test.name.match(/@T[a-z0-9]+/gi) || [];
+
+      if (currentTestId && mappedId && existingIds.includes(mappedId)) {
         debug(`Previous ID detected in test '${testIndex}'`);
         duplicateTests++;
         continue;
       }
 
-      if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
-        fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
+      if (mappedId && !existingIds.includes(mappedId)) {
+        fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${mappedId}`);
         fs.writeFileSync(file, fileContent);
         delete testomatioMap.tests[testIndex];
-      } else if (testomatioMap.tests[testWithoutTags] && !test.name.includes(testomatioMap.tests[testWithoutTags])) {
-        fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testWithoutTags]}`);
-        fs.writeFileSync(file, fileContent);
         delete testomatioMap.tests[testWithoutTags];
       }
     }
+
+    // for (const test of testArr) {
+    //   let testIndex = `${test.file.replace('\\', '/')}#${test.suites[0] || ''}#${test.name}`;
+    //   debug('testIndex', testIndex);
+
+    //   // this is not test; its test.skip() annotation inside a test
+    //   if (opts.framework === 'playwright' && test.name === true) continue;
+
+    //   let testWithoutTags = `${(test.suites[0] || '').replace(TAG_REGEX, '').trim()}#${test.name.replace(
+    //     TAG_REGEX,
+    //     '',
+    //   )}`.trim();
+    //   if (!testomatioMap.tests[testIndex]) {
+    //     testIndex = `${test.suites[0] || ''}#${test.name}`; // if file is not found
+    //   }
+    //   if (!testomatioMap.tests[testIndex] && !testomatioMap.tests[testWithoutTags]) {
+    //     testIndex = test.name; // if no suite title provided
+    //     testWithoutTags = test.name.replace(TAG_REGEX, '').trim();
+    //   }
+
+    //   const currentTestId = parseTest(testIndex);
+    //   if (
+    //     currentTestId &&
+    //     testomatioMap.tests[testIndex] !== `@T${currentTestId}` &&
+    //     testomatioMap.tests[testWithoutTags] !== `@T${currentTestId}`
+    //   ) {
+    //     debug(`Previous ID detected in test '${testIndex}'`);
+    //     duplicateTests++;
+    //     continue;
+    //   }
+
+    //   if (testomatioMap.tests[testIndex] && !test.name.includes(testomatioMap.tests[testIndex])) {
+    //     fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testIndex]}`);
+    //     fs.writeFileSync(file, fileContent);
+    //     delete testomatioMap.tests[testIndex];
+    //   } else if (testomatioMap.tests[testWithoutTags] && !test.name.includes(testomatioMap.tests[testWithoutTags])) {
+    //     fileContent = replaceAtPoint(fileContent, test.updatePoint, ` ${testomatioMap.tests[testWithoutTags]}`);
+    //     fs.writeFileSync(file, fileContent);
+    //     delete testomatioMap.tests[testWithoutTags];
+    //   }
+    // }
     files.push(file);
   }
   if (duplicateSuites || duplicateTests) {
