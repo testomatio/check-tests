@@ -109,7 +109,7 @@ describe('update ids', () => {
     });
 
     it('ignore duplicates for ids from server', () => {
-      const analyzer = new Analyzer('codeceptjs', 'virtual_dir2');
+      const analyzer = new Analyzer('codeceptjs', 'virtual_dir');
 
       const idMap = {
         tests: {
@@ -121,7 +121,7 @@ describe('update ids', () => {
       };
 
       fs.writeFileSync(
-        './virtual_dir2/test.js',
+        './virtual_dir/test.js',
         `
         Feature('simple suite @Sf3d245a7')
         
@@ -132,7 +132,7 @@ describe('update ids', () => {
 
       analyzer.analyze('test.js');
 
-      updateIds(analyzer.rawTests, idMap, 'virtual_dir2');
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
 
       const updatedFile = fs.readFileSync('virtual_dir/test.js').toString();
       expect(updatedFile).to.include("Feature('simple suite @Sf3d245a7')");
