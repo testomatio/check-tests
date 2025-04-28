@@ -36,7 +36,7 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         debug('Updating suite: ', suite);
         // set suit name with file name to avoid duplicates
         let suiteIndex = `${testItem.file.replace('\\', '/')}` + '#' + suite;
-        debug('testIndex', suiteIndex);
+        debug('Suite index', suiteIndex);
         // if suit name with file name is not exist, set it to the suite name only
         if (!testomatioMap.suites[suiteIndex]) {
           suiteIndex = suite;
