@@ -23,10 +23,8 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
   for (const testArr of testData) {
     if (!testArr.length) continue;
 
-    // getting the file name from the test
     const file = `${workDir}/${testArr[0].file}`;
     debug('Updating file: ', file);
-    //reading the file content
     let fileContent = fs.readFileSync(file, { encoding: 'utf8' });
 
     for (const testItem of testArr) {
@@ -37,19 +35,14 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         // set suit name with file name to avoid duplicates
         let suiteIndex = `${testItem.file.replace('\\', '/')}` + '#' + suite;
         debug('Suite index', suiteIndex);
-        // if suit name with file name is not exist, set it to the suite name only
         if (!testomatioMap.suites[suiteIndex]) {
           suiteIndex = suite;
         }
-        // replace all tags in the suite name
         const suiteWithoutTags = suite.replace(TAG_REGEX, '').trim();
-        // if the suite name consists ID, we will find it
         const currentSuiteId = parseSuite(suiteIndex);
-        // parse presented ID from suite name
         const existingIds = suite.match(/@S[a-z0-9]+/gi) || [];
-        // find suite ID in the testomatioMap
         const mappedId = testomatioMap.suites[suiteIndex] || testomatioMap.suites[suiteWithoutTags];
-        // verify fod duplicate suite ID or the same test
+        // verify for duplicate suite ID or the same test
         if (
           currentSuiteId &&
           testomatioMap.suites[suiteIndex] !== `@S${currentSuiteId}` &&
@@ -77,21 +70,15 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
 
     for (const test of testArr) {
       if (opts.framework === 'playwright' && test.name === true) continue;
-      // find suite name can be nul
       const suite = test.suites[0] || '';
-      // replace backslashes with slashes
       const normalizedFile = test.file.replace(/\\/g, '/');
-      // replace all tags in the test name
       const normalizedName = test.name.replace(TAG_REGEX, '').trim();
-      // replace all tags in the suite name
       const normalizedSuite = suite.replace(TAG_REGEX, '').trim();
 
       // set test name with file name and suite to avoid duplicates
       let testIndex = `${normalizedFile}#${suite}#${test.name}`;
-      // if test name with file name and suite without tags
       let testWithoutTags = `${normalizedSuite}#${normalizedName}`;
 
-      // if test name with file name and suite is not exist, set it to the test name only
       if (!testomatioMap.tests[testIndex]) {
         testIndex = `${suite}#${test.name}`;
       }
@@ -101,11 +88,8 @@ function updateIdsCommon(testData, testomatioMap, workDir, opts = {}) {
         testWithoutTags = normalizedName;
       }
 
-      // parse presented ID from test name
       const currentTestId = parseTest(testIndex);
-      // find test ID in the testomatioMap
       const mappedId = testomatioMap.tests[testIndex] || testomatioMap.tests[testWithoutTags];
-      // verify for duplicate test ID or the same test
       const existingIds = test.name.match(/@T[a-z0-9]+/gi) || [];
 
       // verify for dublicate test ID or the same test
