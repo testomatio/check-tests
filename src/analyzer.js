@@ -84,7 +84,16 @@ class Analyzer {
     this.stats = this.getEmptyStats();
 
     pattern = path.join(path.resolve(this.workDir), pattern);
-    const files = glob.sync(pattern);
+    let files = glob.sync(pattern);
+
+    // Exclude files matching the exclude pattern if provided
+    if (this.opts.exclude) {
+      const excludePattern = path.join(path.resolve(this.workDir), this.opts.exclude);
+      const excludedFiles = glob.sync(excludePattern);
+      files = files.filter(file => !excludedFiles.includes(file));
+      debug('Excluded files:', excludedFiles);
+    }
+
     debug('Files:', files);
 
     for (const file of files) {

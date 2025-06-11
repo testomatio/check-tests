@@ -2,6 +2,7 @@ const URL = process.env.TESTOMATIO_URL || 'https://app.testomat.io';
 const isHttps = URL.startsWith('https');
 const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
+const path = require('path');
 
 class Reporter {
   constructor(apiKey, framework) {
@@ -60,6 +61,13 @@ class Reporter {
       console.log('\n 🚀 Sending data to testomat.io\n');
 
       const tests = this.tests.map(test => {
+        // make file path relative to TESTOMATIO_WORKDIR if provided
+        if (process.env.TESTOMATIO_WORKDIR && test.file) {
+          const workdir = path.resolve(process.env.TESTOMATIO_WORKDIR);
+          const absoluteTestPath = path.resolve(test.file);
+          test.file = path.relative(workdir, absoluteTestPath);
+        }
+
         // unify path to use slashes (prevent backslashes on windows)
         test.file = test.file?.replace(/\\/g, '/');
         return test;
