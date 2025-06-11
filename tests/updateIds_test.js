@@ -123,11 +123,11 @@ describe('update ids', () => {
       fs.writeFileSync(
         './virtual_dir/test.js',
         `
-          Feature('simple suite @Sf3d245a7')
-          
-          Scenario('simple test @T1d6a52b9', async (I, TodosPage) => {
-          })        
-          `,
+        Feature('simple suite @Sf3d245a7')
+        
+        Scenario('simple test @T1d6a52b9', async (I, TodosPage) => {
+        })        
+        `,
       );
 
       analyzer.analyze('test.js');
@@ -452,6 +452,175 @@ describe('update ids', () => {
 
       expect(updatedFile).to.include('simple suite @Sf3d245a1');
       expect(updatedFile).to.include('simple test @T1d6a52b9');
+    });
+
+    it('should update nested scenarios', () => {
+      const analyzer1 = new Analyzer('mocha', 'virtual_dir');
+      const analyzer2 = new Analyzer('mocha', 'virtual_dir');
+
+      const idMap1 = {
+        tests: {
+          'test1.js#Login API by username#Login API should give valid response': '@T2d6a52b9',
+          'test1.js#Create API test cases#Create API test cases': '@T9ca4cb86',
+          'test1.js#Delete API test cases#Create API test cases': '@T23322b0f',
+        },
+        suites: {
+          'test1.js#Login API by username': '@Secf29ed4',
+          'test1.js#Create API test cases': '@S63dfea36',
+          'test1.js#Delete API test cases': '@S0e1abeb1',
+        },
+      };
+
+      const idMap2 = {
+        tests: {
+          'test2.js#Login API by username#Login API should give valid response': '@T1d6a52b8',
+          'test2.js#Create API test cases#Create API test cases': '@T7ca4cb35',
+          'test2.js#Delete API test cases#Create API test cases': '@T22233b0f',
+        },
+        suites: {
+          'test2.js#Login API by username': '@Secf29ed9',
+          'test2.js#Create API test cases': '@S63dfea38',
+          'test2.js#Delete API test cases': '@S0e1abeb3',
+        },
+      };
+
+      // Write test1.js
+      fs.writeFileSync(
+        './virtual_dir/test1.js',
+        `describe('Login API by username', () => {
+          it('Login API should give valid response', () => {
+            // TODO: Add test logic here
+          });
+        });
+
+        describe('Create API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
+
+        describe('Delete API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
+      `,
+      );
+
+      // Write test2.js
+      fs.writeFileSync(
+        './virtual_dir/test2.js',
+        `describe('Login API by username', () => {
+          it('Login API should give valid response', () => {
+            // TODO: Add test logic here
+          });
+        });
+
+        describe('Create API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
+
+        describe('Delete API test cases', () => {
+          it('Create API test cases', () => {
+            // TODO: Add test logic here
+          });
+        });
+      `,
+      );
+
+      analyzer1.analyze('test1.js');
+      analyzer2.analyze('test2.js');
+
+      updateIds(analyzer1.rawTests, idMap1, 'virtual_dir');
+      updateIds(analyzer2.rawTests, idMap2, 'virtual_dir');
+
+      const updatedFile1 = fs.readFileSync('virtual_dir/test1.js').toString();
+      expect(updatedFile1).to.include("describe('Login API by username @Secf29ed4'");
+      expect(updatedFile1).to.include("it('Login API should give valid response @T2d6a52b9'");
+      expect(updatedFile1).to.include("describe('Create API test cases @S63dfea36'");
+      expect(updatedFile1).to.include("it('Create API test cases @T9ca4cb86'");
+      expect(updatedFile1).to.include("describe('Delete API test cases @S0e1abeb1'");
+      expect(updatedFile1).to.include("it('Create API test cases @T23322b0f'");
+
+      const updatedFile2 = fs.readFileSync('virtual_dir/test2.js').toString();
+      expect(updatedFile2).to.include("describe('Login API by username @Secf29ed9'");
+      expect(updatedFile2).to.include("it('Login API should give valid response @T1d6a52b8'");
+      expect(updatedFile2).to.include("describe('Create API test cases @S63dfea38'");
+      expect(updatedFile2).to.include("it('Create API test cases @T7ca4cb35'");
+      expect(updatedFile2).to.include("describe('Delete API test cases @S0e1abeb3'");
+      expect(updatedFile2).to.include("it('Create API test cases @T22233b0f'");
+    });
+
+    it('should update ids based on filename for suites with included nested suites', () => {
+      const analyzer = new Analyzer('mocha', 'virtual_dir');
+
+      const idMap = {
+        tests: {
+          'test_included.j#Simple included suite#1. First included test': '@T47c6e680',
+          'Simple included suite#1. First included test': '@T47c6e680',
+          '1. First included test': '@T47c6e680',
+          'test_included.j#Simple suite and default values#1. First test': '@T96cd1c70',
+          'Simple suite and default values#1. First test': '@T96cd1c70',
+          '1. First test': '@T96cd1c70',
+          'test_included.j#Simple included suite#2. Second included test': '@Tda299d22',
+          'Simple included suite#2. Second included test': '@Tda299d22',
+          '2. Second included test': '@Tda299d22',
+          'test_included.j#Simple suite and default values#2. Second test': '@T9c32c073',
+          'Simple suite and default values#2. Second test': '@T9c32c073',
+          '2. Second test': '@T9c32c073',
+          'test_included.j#Simple included suite#3. Third included test': '@T1ad7596b',
+          'Simple included suite#3. Third included test': '@T1ad7596b',
+          '3. Third included test': '@T1ad7596b',
+          'test_included.j#Simple suite and default values#3. Third test': '@T68f84b8e',
+          'Simple suite and default values#3. Third test': '@T68f84b8e',
+          '3. Third test': '@T68f84b8e',
+        },
+        suites: {
+          'test_included.js#Simple included suite': '@S4f1651cf',
+          'Simple included suite': '@S4f1651cf',
+          'test_included.js#Simple suite and default values': '@S0a0cd701',
+          'Simple suite and default values': '@S0a0cd701',
+        },
+      };
+
+      // Write test1.js
+      fs.writeFileSync(
+        './virtual_dir/test_included.js',
+        `describe('Simple suite and default values', function () {
+            it('1. First test', function () {
+            });
+            it('2. Second test', function () {
+            });
+            it('3. Third test', function () {
+            });
+            describe('Simple included suite', function () {
+                it('1. First included test', function () {
+                });
+                it('2. Second included test', function () {
+                });
+                it('3. Third included test', function () {
+                });
+            });
+        });`,
+      );
+
+      // Analyze both files
+      analyzer.analyze('test_included.js');
+      // Update IDs for both files
+      updateIds(analyzer.rawTests, idMap, 'virtual_dir');
+
+      // Read and validate updated test1.js
+      const updatedFile1 = fs.readFileSync('virtual_dir/test_included.js').toString();
+      expect(updatedFile1).to.include("describe('Simple suite and default values @S0a0cd701'");
+      expect(updatedFile1).to.include("it('1. First test @T96cd1c70'");
+      expect(updatedFile1).to.include("it('2. Second test @T9c32c073'");
+      expect(updatedFile1).to.include("it('3. Third test @T68f84b8e'");
+      expect(updatedFile1).to.include("describe('Simple included suite @S4f1651cf'");
+      expect(updatedFile1).to.include("it('1. First included test @T47c6e680'");
+      expect(updatedFile1).to.include("it('2. Second included test @Tda299d22'");
+      expect(updatedFile1).to.include("it('3. Third included test @T1ad7596b'");
     });
   });
 

@@ -86,12 +86,13 @@ Check that your project uses one of the following testing frameworks (this list 
 
 **Supported testing frameworks**
 
-- mocha
 - codeceptjs
 - cypress.io
-- jest
-- protractor
 - jasmine
+- jest
+- mocha
+- [nigthwatch](https://nightwatchjs.org)
+- protractor
 - testcafe
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
@@ -611,10 +612,10 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --types
 
 ## Test aliases
 
-Test aliases are used to map tests in source code to tests in Testomat.io. By default `test` and `it` are parsed. But if you rename them or use another function to define tests (e.g. created/extended test object in Playwright), you can add alias (or multiple aliases, separated by comma) via `--alias` option:
+Test aliases are used to map tests in source code to tests in Testomat.io. By default `test` and `it` are parsed. But if you rename them or use another function to define tests (e.g. created/extended test object in Playwright), you can add alias (or multiple aliases, separated by comma) via `--test-alias` option:
 
 ```
-TESTOMATIO=11111111 npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --alias myTest,myCustomFunction
+TESTOMATIO=11111111 npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myCustomFunction
 ```
 
 ## Programmatic API
