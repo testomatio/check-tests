@@ -65,58 +65,12 @@ npx check-tests <framework> <files> [options]
 | Variable                 | Description                               | Required                              |
 | ------------------------ | ----------------------------------------- | ------------------------------------- |
 | `TESTOMATIO`             | API key for Testomat.io                   | Yes (for sync operations)             |
-| `INPUT_TESTOMATIO-KEY`   | Alternative API key for GitHub Actions    | No                                    |
 | `TESTOMATIO_URL`         | Testomat.io server URL                    | No (default: https://app.testomat.io) |
 | `TESTOMATIO_BRANCH`      | Branch name for Testomat.io               | No                                    |
 | `TESTOMATIO_WORKDIR`     | Working directory for relative file paths | No                                    |
 | `TESTOMATIO_PREPEND_DIR` | Directory to prepend to test paths        | No                                    |
 | `TESTOMATIO_SUITE`       | Suite name for tests                      | No                                    |
 | `TESTOMATIO_NO_DETACHED` | Don't mark unmatched tests as detached    | No                                    |
-
-### GitHub Integration
-
-| Variable            | Description                | Required |
-| ------------------- | -------------------------- | -------- |
-| `GITHUB_WORKSPACE`  | GitHub workspace directory | No       |
-| `GITHUB_REPOSITORY` | GitHub repository name     | No       |
-| `GITHUB_REF`        | GitHub reference           | No       |
-| `GITHUB_SHA`        | GitHub commit SHA          | No       |
-
-### System Configuration
-
-| Variable          | Description                      | Required      |
-| ----------------- | -------------------------------- | ------------- |
-| `isTestomatioCli` | Set to true when running via CLI | No (auto-set) |
-
-## GitHub Action Inputs
-
-When using as a GitHub Action, these inputs are available:
-
-### Required Inputs
-
-| Input       | Description                              |
-| ----------- | ---------------------------------------- |
-| `framework` | Test framework to be used                |
-| `tests`     | Glob pattern to match tests in a project |
-
-### Optional Inputs
-
-| Input                  | Description                                                  | Default |
-| ---------------------- | ------------------------------------------------------------ | ------- |
-| `token`                | GitHub token to post comment with summary                    | -       |
-| `testomatio-key`       | API key for Testomat.io                                      | -       |
-| `typescript`           | Enable TypeScript support                                    | false   |
-| `nodiff`               | Skip diff calculation                                        | false   |
-| `has-tests-label`      | Add 'has tests' label to PR when it contains new tests       | -       |
-| `no-tests-label`       | Add 'no tests' label to PR when it doesn't contain new tests | -       |
-| `comment-on-empty`     | Post a comment to PR when no tests added                     | false   |
-| `close-on-empty`       | Close PR when no tests added                                 | false   |
-| `comment-on-skipped`   | Post a comment to PR when tests were skipped                 | false   |
-| `close-on-skipped`     | Close PR when tests were skipped                             | false   |
-| `enable-documentation` | Create test document in wiki                                 | false   |
-| `wiki-doc-name`        | Name of the wiki document                                    | "Tests" |
-| `github-pat`           | GitHub Private access token to create document in wiki       | -       |
-| `documentation-branch` | Branch to create document on push                            | -       |
 
 ## Examples
 
