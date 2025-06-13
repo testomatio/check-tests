@@ -594,6 +594,40 @@ TESTOMATIO_SUITE="S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{
 TESTOMATIO_SUITE="@S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 ```
 
+## Remove Path Prefixes
+
+Use `TESTOMATIO_WORKDIR` to avoid redundant folder nesting:
+
+```bash
+# Problem: src/tests/API/ creates nested paths in Testomat.io
+# Solution: Set working directory to remove src/tests prefix
+TESTOMATIO_WORKDIR=src/tests TESTOMATIO=1111111 npx check-tests playwright "**/*.spec.ts"
+
+# Monorepo: Import without parent paths
+TESTOMATIO_WORKDIR=apps/frontend TESTOMATIO=1111111 npx check-tests jest "**/*.test.js"
+```
+
+## Group Tests by Category
+
+Use `TESTOMATIO_PREPEND_DIR` to organize tests:
+
+```bash
+# Group API tests under "API Tests" folder
+TESTOMATIO_PREPEND_DIR="API Tests" TESTOMATIO=1111111 npx check-tests jest "src/api/**/*.test.js"
+
+# Separate by team
+TESTOMATIO_PREPEND_DIR="Frontend Team" TESTOMATIO=1111111 npx check-tests playwright "tests/ui/**/*.spec.ts"
+```
+
+## Import to Specific Suite
+
+Use `TESTOMATIO_SUITE` to target existing suites:
+
+```bash
+# Import to existing suite by SID
+TESTOMATIO_SUITE=S1234567 TESTOMATIO=1111111 npx check-tests jest "features/**/*.test.js"
+```
+
 ## TypeScript
 
 For TypeScript projects `@babel/core` and `@babel/plugin-transform-typescript` packages are used. GitHub Action already contains those modules, while CLI version of this tool tries to automatically install them on first run.

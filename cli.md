@@ -98,6 +98,15 @@ TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js" --update-ids
 
 # Create missing tests and suites
 TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js" --create
+
+# Import tests into a specific suite
+TESTOMATIO_SUITE=S1234567 TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js"
+
+# Import tests with custom working directory
+TESTOMATIO_WORKDIR=./e2e TESTOMATIO=your-api-key npx check-tests playwright "**/*.spec.ts"
+
+# Import tests into a specific folder
+TESTOMATIO_PREPEND_DIR="Frontend Tests" TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js"
 ```
 
 ### Export Options
