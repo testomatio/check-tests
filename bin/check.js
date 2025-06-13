@@ -35,6 +35,7 @@ program
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
   .option('--line-numbers', 'Adding an extra line number to each block of code')
   .option('--test-alias <test-alias>', 'Specify custom alias for test/it etc (separated by commas if multiple)')
+  .option('--exclude <pattern>', 'Glob pattern to exclude files from analysis')
   .action(async (framework, files, opts) => {
     framework = framework.toLowerCase();
     opts.testAlias = opts.testAlias ? opts.testAlias.split(',') : [];

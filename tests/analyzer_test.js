@@ -106,6 +106,54 @@ describe('analyzer', () => {
     expect(decorator.getSuiteNames()).to.include('Math');
   });
 
+  it('should exclude files matching exclude pattern', () => {
+    analyzer = new Analyzer('mocha', path.join(__dirname, '..'), { exclude: 'example/dummy/**' });
+    analyzer.analyze('./example/**/*.js');
+
+    const stats = analyzer.getStats();
+    const files = stats.files;
+    const decorator = analyzer.getDecorator();
+
+    // Should not include files from dummy directory
+    const dummyFiles = files.filter(file => file.includes('dummy'));
+    expect(dummyFiles).to.have.length(0);
+
+    // Should still include other example files
+    const mochaFiles = files.filter(file => file.includes('example/mocha'));
+    expect(mochaFiles.length).to.be.above(0);
+  });
+
+  it('should exclude specific file patterns', () => {
+    analyzer = new Analyzer('mocha', path.join(__dirname, '..'), { exclude: 'example/**/index_test.js' });
+    analyzer.analyze('./example/**/*.js');
+
+    const stats = analyzer.getStats();
+    const files = stats.files;
+
+    // Should not include any index_test.js files
+    const indexTestFiles = files.filter(file => file.includes('index_test.js'));
+    expect(indexTestFiles).to.have.length(0);
+
+    // Should still include other test files
+    expect(files.length).to.be.above(0);
+  });
+
+  it('should work without exclude option', () => {
+    const analyzerWithoutExclude = new Analyzer('mocha', path.join(__dirname, '..'));
+    analyzerWithoutExclude.analyze('./example/dummy/**_test.js');
+
+    const analyzerWithExclude = new Analyzer('mocha', path.join(__dirname, '..'), {
+      exclude: 'example/dummy/node_modules/**',
+    });
+    analyzerWithExclude.analyze('./example/dummy/**_test.js');
+
+    const statsWithoutExclude = analyzerWithoutExclude.getStats();
+    const statsWithExclude = analyzerWithExclude.getStats();
+
+    // Should have same number of tests when excluding node_modules (which has no real tests anyway)
+    expect(statsWithExclude.tests.length).to.equal(statsWithoutExclude.tests.length);
+  });
+
   context('env variable params', () => {
     beforeEach(() => {
       process.env.TESTOMATIO_PREPEND_DIR = 'MyTests';

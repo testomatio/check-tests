@@ -9,6 +9,8 @@ Use this checker as
 - [GitHub Action](#github-action)
 - [CLI tool](#cli)
 
+📖 **[Complete CLI Configuration Documentation](cli.md)** - Detailed reference for all CLI options and environment variables
+
 ### Features
 
 - Analyzes JavaScript test files in Pull Request
