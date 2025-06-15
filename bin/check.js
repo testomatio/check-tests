@@ -51,7 +51,8 @@ program
       frameworkOpts.noHooks = !opts.hooks;
     }
 
-    const analyzer = new Analyzer(framework, opts.dir || process.cwd(), { ...opts, ...frameworkOpts });
+    const workDir = opts.dir || process.cwd();
+    const analyzer = new Analyzer(framework, workDir, { ...opts, ...frameworkOpts });
     try {
       if (opts.typescript) {
         try {
@@ -138,7 +139,6 @@ program
             analyzer.analyze(files);
             if (apiKey) {
               const reporter = new Reporter(apiKey.trim(), framework);
-              const workDir = opts.dir || process.cwd();
               try {
                 const idMap = await reporter.getIds();
                 const files = updateIds(analyzer.rawTests, idMap, workDir, opts);
@@ -156,7 +156,7 @@ program
           console.log(' ✖️  API key not provided');
         }
       } else {
-        console.log(" ✖️  Can't find any tests in this folder\n");
+        console.log(` ✖️  Can't find any tests in this folder: ${workDir}\n`);
         console.log(
           'Change file pattern or directory to scan to find test files:\n\nUsage: npx check-tests < pattern > -d[directory]',
         );
@@ -172,6 +172,35 @@ program
       if (!err.name == 'ValidationError') {
         console.error(err.stack);
       }
+      process.exit(1);
+    }
+  });
+
+// Pull command
+program
+  .command('pull')
+  .option('-d, --dir <dir>', 'target directory', '.')
+  .option('--dry-run', 'show what files would be created without actually creating them')
+  .description('Pull test files from Testomat.io')
+  .action(async opts => {
+    const Reporter = require('../src/reporter');
+    const Pull = require('../src/pull');
+
+    if (!apiKey) {
+      console.error(' ✖️  API key not provided. Set TESTOMATIO environment variable.');
+      process.exit(1);
+    }
+
+    try {
+      const reporter = new Reporter(apiKey.trim(), 'manual');
+      const pull = new Pull(reporter, opts.dir || process.cwd(), { dryRun: opts.dryRun });
+      const files = await pull.pullFiles();
+
+      if (!opts.dryRun && files.length > 0) {
+        console.log('\n✨ Pull completed successfully!');
+      }
+    } catch (error) {
+      console.error(' ✖️  Failed to pull files:', error.message);
       process.exit(1);
     }
   });

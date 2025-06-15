@@ -52,6 +52,9 @@ class Analyzer {
       case 'nightwatch':
         this.frameworkParser = require('./lib/frameworks/nightwatch');
         break;
+      case 'manual':
+        this.frameworkParser = require('./lib/frameworks/markdown');
+        break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io':
@@ -83,13 +86,16 @@ class Analyzer {
     this.decorator = new Decorator([], { framework: this.framework });
     this.stats = this.getEmptyStats();
 
-    pattern = path.join(path.resolve(this.workDir), pattern);
-    let files = glob.sync(pattern);
+    let files = glob.sync(pattern, { cwd: this.workDir });
+
+    // Convert relative paths to absolute paths
+    files = files.map(file => path.resolve(this.workDir, file));
 
     // Exclude files matching the exclude pattern if provided
     if (this.opts.exclude) {
-      const excludePattern = path.join(path.resolve(this.workDir), this.opts.exclude);
-      const excludedFiles = glob.sync(excludePattern);
+      const excludedFiles = glob
+        .sync(this.opts.exclude, { cwd: this.workDir })
+        .map(file => path.resolve(this.workDir, file));
       files = files.filter(file => !excludedFiles.includes(file));
       debug('Excluded files:', excludedFiles);
     }
@@ -107,8 +113,8 @@ class Analyzer {
       let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
 
       let ast;
-      // no need to parse code for newman tests
-      if (this.framework !== 'newman') {
+      // no need to parse code for newman tests or manual tests
+      if (this.framework !== 'newman' && this.framework !== 'manual') {
         if (this.plugins.length > 0 || this.presets.length) {
           try {
             const opts = {};
