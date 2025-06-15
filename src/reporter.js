@@ -3,6 +3,7 @@ const isHttps = URL.startsWith('https');
 const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
 const path = require('path');
+const fs = require('fs');
 
 class Reporter {
   constructor(apiKey, framework) {
@@ -15,10 +16,64 @@ class Reporter {
     this.apiKey = apiKey;
     this.framework = framework;
     this.tests = [];
+    this.files = {};
   }
 
   addTests(tests) {
     this.tests = this.tests.concat(tests);
+  }
+
+  attachFiles() {
+    this.files = {};
+
+    const uniqueFiles = [...new Set(this.tests.map(test => test.file).filter(f => !!f))];
+
+    for (const fileName of uniqueFiles) {
+      try {
+        this.files[fileName] = fs.readFileSync(path.resolve(fileName), 'utf8');
+      } catch (err) {
+        debug(`Error reading file ${fileName}: ${err.message}`);
+      }
+    }
+  }
+
+  getFilesFromServer() {
+    return new Promise((res, rej) => {
+      debug('Getting files from Testomat.io...');
+      const req = request(
+        `${URL.trim()}/api/test_data?with_files=true&api_key=${this.apiKey}`,
+        { method: 'GET' },
+        resp => {
+          // The whole response has been received. Print out the result.
+          let message = '';
+
+          resp.on('end', () => {
+            debug('Files fetched from Testomat.io', message);
+            if (resp.statusCode !== 200) {
+              debug('Files fetch failed', resp.statusCode, resp.statusMessage, message);
+              rej(message);
+            } else {
+              res(JSON.parse(message));
+            }
+          });
+
+          resp.on('data', chunk => {
+            message += chunk.toString();
+          });
+
+          resp.on('aborted', () => {
+            console.log(' ✖️ Files were not fetched from Testomat.io');
+          });
+        },
+      );
+
+      req.on('error', err => {
+        console.log(`Error: ${err.message}`);
+        rej(err);
+      });
+
+      req.end();
+    });
   }
 
   getIds() {
@@ -77,7 +132,9 @@ class Reporter {
       if (process.env.TESTOMATIO_PREPEND_DIR) opts.dir = process.env.TESTOMATIO_PREPEND_DIR;
       if (process.env.TESTOMATIO_SUITE) opts.suite = process.env.TESTOMATIO_SUITE;
 
-      const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework });
+      this.attachFiles();
+
+      const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework, files: this.files });
 
       debug('Sending test data to Testomat.io', data);
       const req = request(
