@@ -62,15 +62,17 @@ npx check-tests <framework> <files> [options]
 
 ### Testomat.io Configuration
 
-| Variable                 | Description                               | Required                              |
-| ------------------------ | ----------------------------------------- | ------------------------------------- |
-| `TESTOMATIO`             | API key for Testomat.io                   | Yes (for sync operations)             |
-| `TESTOMATIO_URL`         | Testomat.io server URL                    | No (default: https://app.testomat.io) |
-| `TESTOMATIO_BRANCH`      | Branch name for Testomat.io               | No                                    |
-| `TESTOMATIO_WORKDIR`     | Working directory for relative file paths | No                                    |
-| `TESTOMATIO_PREPEND_DIR` | Directory to prepend to test paths        | No                                    |
-| `TESTOMATIO_SUITE`       | Suite name for tests                      | No                                    |
-| `TESTOMATIO_NO_DETACHED` | Don't mark unmatched tests as detached    | No                                    |
+| Variable                 | Description                                                                                  | Required                              |
+| ------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `TESTOMATIO`             | API key for Testomat.io                                                                      | Yes (for sync operations)             |
+| `TESTOMATIO_URL`         | Testomat.io server URL                                                                       | No (default: https://app.testomat.io) |
+| `TESTOMATIO_BRANCH`      | Branch name for Testomat.io                                                                  | No                                    |
+| `TESTOMATIO_WORKDIR`     | Working directory for relative file paths                                                    | No                                    |
+| `TESTOMATIO_PREPEND_DIR` | Directory to prepend to test paths                                                           | No                                    |
+| `TESTOMATIO_SUITE`       | Suite name for tests                                                                         | No                                    |
+| `TESTOMATIO_LABELS`      | Comma-separated labels to apply to all tests. Supports `label:value` format for label values | No                                    |
+| `TESTOMATIO_SYNC_LABELS` | Alias for TESTOMATIO_LABELS (compatibility)                                                  | No                                    |
+| `TESTOMATIO_NO_DETACHED` | Don't mark unmatched tests as detached                                                       | No                                    |
 
 ## Examples
 
@@ -107,6 +109,18 @@ TESTOMATIO_WORKDIR=./e2e TESTOMATIO=your-api-key npx check-tests playwright "**/
 
 # Import tests into a specific folder
 TESTOMATIO_PREPEND_DIR="Frontend Tests" TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js"
+
+# Apply labels to all imported tests
+TESTOMATIO_LABELS="smoke,regression" TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js"
+
+# Apply labels with values using label:value format
+TESTOMATIO_LABELS="severity:high,feature:auth,team:frontend" TESTOMATIO=your-api-key npx check-tests jest "tests/**/*.test.js"
+
+# Mix simple labels and label:value pairs
+TESTOMATIO_LABELS="smoke,severity:critical,regression" TESTOMATIO=your-api-key npx check-tests playwright "tests/**/*.spec.ts"
+
+# Apply labels using the alias (for Python SDK compatibility)
+TESTOMATIO_SYNC_LABELS="api,integration" TESTOMATIO=your-api-key npx check-tests playwright "tests/**/*.spec.ts"
 ```
 
 ### Export Options

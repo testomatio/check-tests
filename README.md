@@ -594,6 +594,27 @@ TESTOMATIO_SUITE="S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{
 TESTOMATIO_SUITE="@S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 ```
 
+## Apply Labels to Tests
+
+Use `TESTOMATIO_LABELS` to tag all imported tests with labels:
+
+```bash
+# Apply single label
+TESTOMATIO_LABELS="smoke" TESTOMATIO=1111111 npx check-tests jest "tests/**/*.test.js"
+
+# Apply multiple labels (comma-separated)
+TESTOMATIO_LABELS="smoke,regression,api" TESTOMATIO=1111111 npx check-tests playwright "tests/**/*.spec.ts"
+
+# Apply labels with values using label:value format
+TESTOMATIO_LABELS="severity:high,feature:user_account,team:backend" TESTOMATIO=1111111 npx check-tests jest "tests/**/*.test.js"
+
+# Mix simple labels and label:value pairs
+TESTOMATIO_LABELS="smoke,severity:critical,feature:auth,regression" TESTOMATIO=1111111 npx check-tests playwright "tests/**/*.spec.ts"
+
+# Use alias for Python SDK compatibility
+TESTOMATIO_SYNC_LABELS="integration,e2e" TESTOMATIO=1111111 npx check-tests cypress "cypress/integration/**/*.js"
+```
+
 ## Remove Path Prefixes
 
 Use `TESTOMATIO_WORKDIR` to avoid redundant folder nesting:
