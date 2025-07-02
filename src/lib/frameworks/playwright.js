@@ -1,4 +1,4 @@
-const traverse = require('@babel/traverse');
+const traverse = require('@babel/traverse').default || require('@babel/traverse');
 const CommentError = require('../../errors/comment.error');
 const {
   getStringValue,
@@ -27,7 +27,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     currentSuite.push(path);
   }
 
-  traverse.default(ast, {
+  traverse(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'describe' })) {
         if (!path.parentPath && !path.parentPath.container) return;
@@ -35,21 +35,16 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         addSuite(path.parentPath.container);
       }
 
-      if (path.isIdentifier({ name: 'beforeAll' })) {
-        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
+      if (path.isMemberExpression() && path.node.object.name === 'test' && path.node.property.name === 'beforeAll') {
+        beforeCode = getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber);
       }
 
-      if (path.isIdentifier({ name: 'beforeEach' })) {
-        beforeEachCode = getCode(
-          source,
-          getLineNumber(path.parentPath),
-          getEndLineNumber(path.parentPath),
-          isLineNumber,
-        );
+      if (path.isMemberExpression() && path.node.object.name === 'test' && path.node.property.name === 'beforeEach') {
+        beforeEachCode = getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber);
       }
 
-      if (path.isIdentifier({ name: 'afterAll' })) {
-        afterCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
+      if (path.isMemberExpression() && path.node.object.name === 'test' && path.node.property.name === 'afterAll') {
+        afterCode = getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber);
 
         if (afterCode && !noHooks) {
           for (const test of tests) {
@@ -198,11 +193,11 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           afterCode = afterCode ?? '';
           /* prettier-ignore */
           code = noHooks
-          ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-          : beforeEachCode
-          + beforeCode
-          + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
-          + afterCode;
+            ? getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
+            : beforeEachCode +
+              beforeCode +
+              getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber) +
+              afterCode;
 
           const testName = getStringValue(path.parent);
 

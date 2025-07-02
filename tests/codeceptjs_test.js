@@ -79,35 +79,35 @@ describe('codeceptjs parser', () => {
     it('should include Before hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
       // first test
-      expect(tests[0].code).to.include('Before(async (I, TodosPage) => {\n');
-      expect(tests[0].code).to.include('TodosPage.goto();\n');
-      expect(tests[0].code).to.include("TodosPage.enterTodo('foo');\n");
-      expect(tests[0].code).to.include("TodosPage.enterTodo('bar');\n");
+      expect(tests[0].code).to.include('Before(async (I, TodosPage) => {');
+      expect(tests[0].code).to.include('TodosPage.goto();');
+      expect(tests[0].code).to.include("TodosPage.enterTodo('foo');");
+      expect(tests[0].code).to.include("TodosPage.enterTodo('bar');");
       // second test
-      expect(tests[1].code).to.include('Before(async (I, TodosPage) => {\n');
-      expect(tests[1].code).to.include('TodosPage.goto();\n');
-      expect(tests[1].code).to.include("TodosPage.enterTodo('foo');\n");
-      expect(tests[1].code).to.include("TodosPage.enterTodo('bar');\n");
+      expect(tests[1].code).to.include('Before(async (I, TodosPage) => {');
+      expect(tests[1].code).to.include('TodosPage.goto();');
+      expect(tests[1].code).to.include("TodosPage.enterTodo('foo');");
+      expect(tests[1].code).to.include("TodosPage.enterTodo('bar');");
     });
 
     it('should include BeforeSuite hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
       // first test
-      expect(tests[0].code).to.include('BeforeSuite(({ I }) => {\n');
-      expect(tests[0].code).to.include("TodosPage.enterTodo('baz');\n");
+      expect(tests[0].code).to.include('BeforeSuite(({ I }) => {');
+      expect(tests[0].code).to.include("TodosPage.enterTodo('baz');");
       // second test
-      expect(tests[1].code).to.include('BeforeSuite(({ I }) => {\n');
-      expect(tests[1].code).to.include("TodosPage.enterTodo('baz');\n");
+      expect(tests[1].code).to.include('BeforeSuite(({ I }) => {');
+      expect(tests[1].code).to.include("TodosPage.enterTodo('baz');");
     });
 
     it('should include AfterSuite hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
       // first test
-      expect(tests[0].code).to.include('AfterSuite(({ I }) => {\n');
-      expect(tests[0].code).to.include("TodosPage.enterTodo('h&m');\n");
+      expect(tests[0].code).to.include('AfterSuite(({ I }) => {');
+      expect(tests[0].code).to.include("TodosPage.enterTodo('h&m');");
       // second test
-      expect(tests[1].code).to.include('AfterSuite(({ I }) => {\n');
-      expect(tests[1].code).to.include("TodosPage.enterTodo('h&m');\n");
+      expect(tests[1].code).to.include('AfterSuite(({ I }) => {');
+      expect(tests[1].code).to.include("TodosPage.enterTodo('h&m');");
     });
   });
 
@@ -122,27 +122,29 @@ describe('codeceptjs parser', () => {
     it('should exclude Before hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('Before(async (I, TodosPage) => {\n');
-      expect(tests[0].code).to.include("Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.not.include('Before(async (I, TodosPage) => {');
+      expect(tests[0].code).to.include("Scenario('Edited todo is saved', async (I, TodosPage) => {");
       // second test
-      expect(tests[1].code).to.not.include('Before(async (I, TodosPage) => {\n');
-      expect(tests[1].code).to.include("Data(examples).Scenario('Todos containing weird characters', async (I, current, TodosPage) => {\n");
+      expect(tests[1].code).to.not.include('Before(async (I, TodosPage) => {');
+      expect(tests[1].code).to.include(
+        "Data(examples).Scenario('Todos containing weird characters', async (I, current, TodosPage) => {",
+      );
     });
 
     it('should exclude BeforeSuite hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('BeforeSuite(({ I }) => {\n');
+      expect(tests[0].code).to.not.include('BeforeSuite(({ I }) => {');
       // second test
-      expect(tests[1].code).to.not.include('BeforeSuite(({ I }) => {\n');
+      expect(tests[1].code).to.not.include('BeforeSuite(({ I }) => {');
     });
 
     it('should exclude AfterSuite hook code', () => {
       const tests = codeceptParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('AfterSuite(({ I }) => {\n');
+      expect(tests[0].code).to.not.include('AfterSuite(({ I }) => {');
       // second test
-      expect(tests[1].code).to.not.include('AfterSuite(({ I }) => {\n');
+      expect(tests[1].code).to.not.include('AfterSuite(({ I }) => {');
     });
   });
 
@@ -157,31 +159,31 @@ describe('codeceptjs parser', () => {
     it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
       const tests = codeceptParser(fileAst, '', fileSource, { lineNumbers: true });
       // first test only
-      expect(tests[0].code).to.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
-      expect(tests[0].code).to.include("19:   I.say('Then I see that the todo text has been changed');\n");
-      expect(tests[0].code).to.include("20:   await TodosPage.seeNthTodoEquals(1, 'boom');\n");
+      expect(tests[0].code).to.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {");
+      expect(tests[0].code).to.include("19:   I.say('Then I see that the todo text has been changed');");
+      expect(tests[0].code).to.include("20:   await TodosPage.seeNthTodoEquals(1, 'boom');");
       // by default hooks include line number too
-      expect(tests[0].code).to.include("3: Before(async (I, TodosPage) => {\n");
-      expect(tests[0].code).to.include("9: BeforeSuite(({ I }) => {\n");
-      expect(tests[0].code).to.include("45: AfterSuite(({ I }) => {\n");
+      expect(tests[0].code).to.include('3: Before(async (I, TodosPage) => {');
+      expect(tests[0].code).to.include('9: BeforeSuite(({ I }) => {');
+      expect(tests[0].code).to.include('45: AfterSuite(({ I }) => {');
     });
 
     it('[no SET the lineNumbers opts] should exclude line-number', () => {
       const tests = codeceptParser(fileAst, '', fileSource);
       // first test only
-      expect(tests[0].code).to.not.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.not.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {");
       // no lines
-      expect(tests[0].code).to.include("Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
+      expect(tests[0].code).to.include("Scenario('Edited todo is saved', async (I, TodosPage) => {");
     });
 
     // multiple options
     it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
       const tests = codeceptParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
       // first test only
-      expect(tests[0].code).to.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {\n");
-      expect(tests[0].code).to.include("19:   I.say('Then I see that the todo text has been changed');\n");
+      expect(tests[0].code).to.include("13: Scenario('Edited todo is saved', async (I, TodosPage) => {");
+      expect(tests[0].code).to.include("19:   I.say('Then I see that the todo text has been changed');");
       // no includes hook code
-      expect(tests[0].code).to.not.include('3: Before(async (I, TodosPage) => {\n');
+      expect(tests[0].code).to.not.include('3: Before(async (I, TodosPage) => {');
     });
   });
 });

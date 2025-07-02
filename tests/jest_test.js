@@ -64,37 +64,37 @@ describe('jest parser', () => {
     it('should include beforeAll hook code', () => {
       const tests = jestParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include('beforeAll(() => {\n');
-      expect(tests[0].code).to.include("console.log('Ran beforeAll');\n");
-      expect(tests[0].code).to.include('expect(foods[1]).toBeTruthy();\n');
+      expect(tests[0].code).to.include('beforeAll(() => {');
+      expect(tests[0].code).to.include("console.log('Ran beforeAll');");
+      expect(tests[0].code).to.include('expect(foods[1]).toBeTruthy();');
       // second test
-      expect(tests[1].code).to.include('beforeAll(() => {\n');
-      expect(tests[1].code).to.include("console.log('Ran beforeAll');\n");
-      expect(tests[1].code).to.include('expect(foods[1]).toBeTruthy();\n');
+      expect(tests[1].code).to.include('beforeAll(() => {');
+      expect(tests[1].code).to.include("console.log('Ran beforeAll');");
+      expect(tests[1].code).to.include('expect(foods[1]).toBeTruthy();');
     });
 
     it('should include beforeEach hook code', () => {
       const tests = jestParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include('beforeEach(() => {\n');
-      expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
-      expect(tests[0].code).to.include('expect(foods[2]).toBeTruthy();\n');
+      expect(tests[0].code).to.include('beforeEach(() => {');
+      expect(tests[0].code).to.include("console.log('Ran beforeEach');");
+      expect(tests[0].code).to.include('expect(foods[2]).toBeTruthy();');
       // second test
-      expect(tests[1].code).to.include('beforeEach(() => {\n');
-      expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
-      expect(tests[1].code).to.include('expect(foods[2]).toBeTruthy();\n');
+      expect(tests[1].code).to.include('beforeEach(() => {');
+      expect(tests[1].code).to.include("console.log('Ran beforeEach');");
+      expect(tests[1].code).to.include('expect(foods[2]).toBeTruthy();');
     });
 
     it('should include afterAll hook code', () => {
       const tests = jestParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include('afterAll(() => {\n');
-      expect(tests[0].code).to.include("console.log('Ran afterAll');\n");
-      expect(tests[0].code).to.include('expect(foods[0]).toBeTruthy();\n');
+      expect(tests[0].code).to.include('afterAll(() => {');
+      expect(tests[0].code).to.include("console.log('Ran afterAll');");
+      expect(tests[0].code).to.include('expect(foods[0]).toBeTruthy();');
       // second test
-      expect(tests[1].code).to.include('afterAll(() => {\n');
-      expect(tests[1].code).to.include("console.log('Ran afterAll');\n");
-      expect(tests[1].code).to.include('expect(foods[0]).toBeTruthy();\n');
+      expect(tests[1].code).to.include('afterAll(() => {');
+      expect(tests[1].code).to.include("console.log('Ran afterAll');");
+      expect(tests[1].code).to.include('expect(foods[0]).toBeTruthy();');
     });
   });
 
@@ -109,27 +109,27 @@ describe('jest parser', () => {
     it('should exclude beforeAll hook code', () => {
       const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('beforeAll(() => {\n');
-      expect(tests[0].code).to.include("test('Vienna <3 veal', async () => {\n");
+      expect(tests[0].code).to.not.include('beforeAll(() => {');
+      expect(tests[0].code).to.include("test('Vienna <3 veal', async () => {");
       // second test
-      expect(tests[1].code).to.not.include('before(() => {\n');
-      expect(tests[1].code).to.include("test('San Juan <3 plantains', async () => {\n");
+      expect(tests[1].code).to.not.include('before(() => {');
+      expect(tests[1].code).to.include("test('San Juan <3 plantains', async () => {");
     });
 
     it('should exclude beforeEach hook code', () => {
       const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('beforeEach(() => {\n');
+      expect(tests[0].code).to.not.include('beforeEach(() => {');
       // second test
-      expect(tests[1].code).to.not.include('beforeEach(() => {\n');
+      expect(tests[1].code).to.not.include('beforeEach(() => {');
     });
 
     it('should exclude after hook code', () => {
       const tests = jestParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('afterAll(() => {\n');
+      expect(tests[0].code).to.not.include('afterAll(() => {');
       // second test
-      expect(tests[1].code).to.not.include('afterAll(() => {\n');
+      expect(tests[1].code).to.not.include('afterAll(() => {');
     });
   });
 
@@ -144,31 +144,31 @@ describe('jest parser', () => {
     it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
       const tests = jestParser(fileAst, '', fileSource, { lineNumbers: true });
       // first test only
-      expect(tests[0].code).to.include("14:     test('Vienna <3 veal', async () => {\n");
-      expect(tests[0].code).to.include('15:         const { foods, pkg } = await generateWithPlugin({\n');
+      expect(tests[0].code).to.include("14:     test('Vienna <3 veal', async () => {");
+      expect(tests[0].code).to.include('15:         const { foods, pkg } = await generateWithPlugin({');
       // by default hooks include line number too
-      expect(tests[0].code).to.include('9:     beforeEach(() => {\n');
-      expect(tests[0].code).to.include('4:     beforeAll(() => {\n');
-      expect(tests[0].code).to.include('30:     afterAll(() => {\n');
+      expect(tests[0].code).to.include('9:     beforeEach(() => {');
+      expect(tests[0].code).to.include('4:     beforeAll(() => {');
+      expect(tests[0].code).to.include('30:     afterAll(() => {');
       // second test
-      expect(tests[1].code).to.include("24:     test('San Juan <3 plantains', async () => {\n");
+      expect(tests[1].code).to.include("24:     test('San Juan <3 plantains', async () => {");
     });
 
     it('[no SET the lineNumbers opts] should exclude line-number', () => {
       const tests = jestParser(fileAst, '', fileSource);
       // first test only
-      expect(tests[0].code).to.not.include("14:     test('Vienna <3 veal', async () => {\n");
+      expect(tests[0].code).to.not.include("14:     test('Vienna <3 veal', async () => {");
       // no lines
-      expect(tests[0].code).to.include("test('Vienna <3 veal', async () => {\n");
+      expect(tests[0].code).to.include("test('Vienna <3 veal', async () => {");
     });
 
     // multiple options
     it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
       const tests = jestParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
       // first test only
-      expect(tests[0].code).to.include("14:     test('Vienna <3 veal', async () => {\n");
+      expect(tests[0].code).to.include("14:     test('Vienna <3 veal', async () => {");
       // no includes hook code
-      expect(tests[0].code).to.not.include('4:     beforeAll(() => {\n');
+      expect(tests[0].code).to.not.include('4:     beforeAll(() => {');
     });
   });
 

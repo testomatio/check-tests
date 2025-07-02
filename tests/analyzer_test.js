@@ -118,8 +118,8 @@ describe('analyzer', () => {
     const dummyFiles = files.filter(file => file.includes('dummy'));
     expect(dummyFiles).to.have.length(0);
 
-    // Should still include other example files
-    const mochaFiles = files.filter(file => file.includes('example/mocha'));
+    // Should still include other example files (check for mocha directory in absolute paths)
+    const mochaFiles = files.filter(file => file.includes('\\mocha\\') || file.includes('/mocha/'));
     expect(mochaFiles.length).to.be.above(0);
   });
 
