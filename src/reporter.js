@@ -76,6 +76,16 @@ class Reporter {
     });
   }
 
+  parseLabels(labelsString) {
+    if (!labelsString) return [];
+
+    // Handle comma-separated values like "label1,label2,label3"
+    return labelsString
+      .split(',')
+      .map(label => label.trim())
+      .filter(label => label.length > 0);
+  }
+
   getIds() {
     return new Promise((res, rej) => {
       debug('Getting ids from Testomat.io...');
@@ -115,6 +125,9 @@ class Reporter {
     return new Promise((resolve, reject) => {
       console.log('\n 🚀 Sending data to testomat.io\n');
 
+      // Parse labels from environment variable (supports both TESTOMATIO_LABELS and TESTOMATIO_SYNC_LABELS)
+      const labelsFromEnv = this.parseLabels(process.env.TESTOMATIO_LABELS || process.env.TESTOMATIO_SYNC_LABELS);
+
       const tests = this.tests.map(test => {
         // make file path relative to TESTOMATIO_WORKDIR if provided
         if (process.env.TESTOMATIO_WORKDIR && test.file) {
@@ -125,6 +138,12 @@ class Reporter {
 
         // unify path to use slashes (prevent backslashes on windows)
         test.file = test.file?.replace(/\\/g, '/');
+
+        // Apply labels to each test
+        if (labelsFromEnv.length > 0) {
+          test.labels = labelsFromEnv;
+        }
+
         return test;
       });
       this.tests = tests;

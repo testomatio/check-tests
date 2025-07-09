@@ -571,9 +571,15 @@ TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-emp
 
 > This prevents usage --keep-structure option.
 
-## Import Into a Specific Suite
+### Import Into a Specific Suite
 
-To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PREPEND_DIR` environment variable:
+To put all imported tests into a specific suite (folder) pass in `TESTOMATIO_PREPEND_DIR` environment variable, avoid using special characters in the directory name. This helps prevent potential errors across different operating systems and command-line environments.
+
+**Recommendations:**
+
+Use only letters `(A-Z, a-z)`, numbers `(0-9)`, hyphens `(-)`, and underscores `(_)`.
+Avoid characters like `/, \, :, *, ?, ", <, >, |, &, $, #, %, @,` and the apostrophe `(')`.
+Examples of recommended naming: `MyTests` or `project_tests`.
 
 ```
 TESTOMATIO_PREPEND_DIR="MyTESTS" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
@@ -592,6 +598,27 @@ or use SID with prefix:
 ```
 TESTOMATIO_SUITE="S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
 TESTOMATIO_SUITE="@S1111111" TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js"
+```
+
+## Apply Labels to Tests
+
+Use `TESTOMATIO_LABELS` to tag all imported tests with labels:
+
+```bash
+# Apply single label
+TESTOMATIO_LABELS="smoke" TESTOMATIO=1111111 npx check-tests jest "tests/**/*.test.js"
+
+# Apply multiple labels (comma-separated)
+TESTOMATIO_LABELS="smoke,regression,api" TESTOMATIO=1111111 npx check-tests playwright "tests/**/*.spec.ts"
+
+# Apply labels with values using label:value format
+TESTOMATIO_LABELS="severity:high,feature:user_account,team:backend" TESTOMATIO=1111111 npx check-tests jest "tests/**/*.test.js"
+
+# Mix simple labels and label:value pairs
+TESTOMATIO_LABELS="smoke,severity:critical,feature:auth,regression" TESTOMATIO=1111111 npx check-tests playwright "tests/**/*.spec.ts"
+
+# Use alias for Python SDK compatibility
+TESTOMATIO_SYNC_LABELS="integration,e2e" TESTOMATIO=1111111 npx check-tests cypress "cypress/integration/**/*.js"
 ```
 
 ## Remove Path Prefixes

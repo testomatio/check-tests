@@ -16,6 +16,7 @@ jobs:
       - run: npm i
       - run: git config --global user.name "GitHub CD bot"
       - run: git config --global user.email "github-cd-bot@example.com"
+      - run: git add . && git diff --staged --quiet || git commit -m "Update dependencies"
       - run: git status
       - run: npm version ${{ github.event.release.tag_name }}
       - uses: JS-DevTools/npm-publish@v3
