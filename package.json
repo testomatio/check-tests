@@ -68,7 +68,6 @@
     "check": "node -r dotenv/config bin/check.js",
     "run": "node -r dotenv/config index.js",
     "test": "mocha tests/**_test.js",
-    "test:one": "mocha tests/update_fs_test.js",
     "test:debug": "node debug_test.js",
     "lint": "eslint 'src/**/*.js' --fix",
     "pretty-quick": "pretty-quick --staged",
