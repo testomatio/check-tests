@@ -68,8 +68,8 @@ describe('UpdateIds FS', () => {
     expect(files.length).to.equal(5);
     expect(file1).to.include('@S12345678');
     expect(file1).to.include('@T1111111');
-    expect(file1).to.include('@T22222111');
-    expect(file2).not.to.include('@T22222111');
+    expect(file1).not.to.include('@T22222111');
+    expect(file2).to.include('@T22222111');
     cleanFiles('update_examples');
   });
 

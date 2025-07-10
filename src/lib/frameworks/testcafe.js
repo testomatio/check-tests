@@ -1,4 +1,4 @@
-const traverse = require('@babel/traverse');
+const traverse = require('@babel/traverse').default || require('@babel/traverse');
 const {
   getLineNumber,
   getEndLineNumber,
@@ -15,7 +15,7 @@ module.exports = (ast, file = '', source = '') => {
   const tests = [];
   let currentSuite = '';
 
-  traverse.default(ast, {
+  traverse(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'fixture' })) {
         if (!hasTemplateQuasi(path.parent)) return;
