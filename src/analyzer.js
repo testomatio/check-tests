@@ -52,6 +52,9 @@ class Analyzer {
       case 'nightwatch':
         this.frameworkParser = require('./lib/frameworks/nightwatch');
         break;
+      case 'manual':
+        this.frameworkParser = require('./lib/frameworks/markdown');
+        break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io':
@@ -116,8 +119,8 @@ class Analyzer {
       let source = fs.readFileSync(fullPath, { encoding: 'utf8' }).toString();
 
       let ast;
-      // no need to parse code for newman tests
-      if (this.framework !== 'newman') {
+      // no need to parse code for newman tests or manual tests
+      if (this.framework !== 'newman' && this.framework !== 'manual') {
         if (this.plugins.length > 0 || this.presets.length) {
           try {
             const opts = {};
