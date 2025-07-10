@@ -348,37 +348,37 @@ test.describe.only('my test', () => {
     it('should include beforeAll hook code', () => {
       const tests = playwrightParser(fileAst, '', fileSource);
       // first test
-      expect(tests[0].code).to.include("test.beforeAll('run before', async () => {\n");
-      expect(tests[0].code).to.include("console.log('Ran before');\n");
-      expect(tests[0].code).to.include("await page.locator('#btnBeforeAll').click();\n");
+      expect(tests[0].code).to.include("test.beforeAll('run before', async () => {");
+      expect(tests[0].code).to.include("console.log('Ran before');");
+      expect(tests[0].code).to.include("await page.locator('#btnBeforeAll').click();");
       // second test
-      expect(tests[1].code).to.include("test.beforeAll('run before', async () => {\n");
-      expect(tests[1].code).to.include("console.log('Ran before');\n");
-      expect(tests[1].code).to.include("await page.locator('#btnBeforeAll').click();\n");
+      expect(tests[1].code).to.include("test.beforeAll('run before', async () => {");
+      expect(tests[1].code).to.include("console.log('Ran before');");
+      expect(tests[1].code).to.include("await page.locator('#btnBeforeAll').click();");
     });
 
     it('should include beforeEach hook code', () => {
       const tests = playwrightParser(fileAst, '', fileSource);
       // first test
-      expect(tests[0].code).to.include('test.beforeEach(async ({ page }) => {\n');
-      expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
-      expect(tests[0].code).to.include("await page.locator('#btnBeforeEach').click();\n");
+      expect(tests[0].code).to.include('test.beforeEach(async ({ page }) => {');
+      expect(tests[0].code).to.include("console.log('Ran beforeEach');");
+      expect(tests[0].code).to.include("await page.locator('#btnBeforeEach').click();");
       // second test
-      expect(tests[1].code).to.include('test.beforeEach(async ({ page }) => {\n');
-      expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
-      expect(tests[1].code).to.include("await page.locator('#btnBeforeEach').click();\n");
+      expect(tests[1].code).to.include('test.beforeEach(async ({ page }) => {');
+      expect(tests[1].code).to.include("console.log('Ran beforeEach');");
+      expect(tests[1].code).to.include("await page.locator('#btnBeforeEach').click();");
     });
 
     it('should include afterAll hook code', () => {
       const tests = playwrightParser(fileAst, '', fileSource);
       // first test
-      expect(tests[0].code).to.include('test.afterAll(async () => {\n');
-      expect(tests[0].code).to.include("console.log('Ran afterAll');\n");
-      expect(tests[0].code).to.include("await page.locator('#btnafterAll').click();\n");
+      expect(tests[0].code).to.include('test.afterAll(async () => {');
+      expect(tests[0].code).to.include("console.log('Ran afterAll');");
+      expect(tests[0].code).to.include("await page.locator('#btnafterAll').click();");
       // second test
-      expect(tests[1].code).to.include('test.afterAll(async () => {\n');
-      expect(tests[1].code).to.include("console.log('Ran afterAll');\n");
-      expect(tests[1].code).to.include("await page.locator('#btnafterAll').click();\n");
+      expect(tests[1].code).to.include('test.afterAll(async () => {');
+      expect(tests[1].code).to.include("console.log('Ran afterAll');");
+      expect(tests[1].code).to.include("await page.locator('#btnafterAll').click();");
     });
   });
 
@@ -400,17 +400,17 @@ test.describe.only('my test', () => {
     it('should exclude beforeEach hook code', () => {
       const tests = playwrightParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('test.beforeEach(async ({ page }) => {\n');
+      expect(tests[0].code).to.not.include('test.beforeEach(async ({ page }) => {');
       // second test
-      expect(tests[1].code).to.not.include('test.beforeEach(async ({ page }) => {\n');
+      expect(tests[1].code).to.not.include('test.beforeEach(async ({ page }) => {');
     });
 
     it('should exclude afterAll hook code', () => {
       const tests = playwrightParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('test.afterAll(async () => {\n');
+      expect(tests[0].code).to.not.include('test.afterAll(async () => {');
       // second test
-      expect(tests[1].code).to.not.include('test.afterAll(async () => {\n');
+      expect(tests[1].code).to.not.include('test.afterAll(async () => {');
     });
   });
 
@@ -470,30 +470,30 @@ test.describe.only('my test', () => {
     it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
       const tests = playwrightParser(fileAst, '', fileSource, { lineNumbers: true });
       // first test only
-      expect(tests[0].code).to.include("13:     test('my test #1', async ({ page }) => {\n");
-      expect(tests[0].code).to.include("14:         expect(page.url()).toBe('https://www.programsbuzz.com/');\n");
+      expect(tests[0].code).to.include("13:     test('my test #1', async ({ page }) => {");
+      expect(tests[0].code).to.include("14:         expect(page.url()).toBe('https://www.programsbuzz.com/');");
       // by default hooks include line number too
-      expect(tests[0].code).to.include('8:     test.beforeEach(async ({ page }) => {\n');
-      expect(tests[0].code).to.include("3:     test.beforeAll('run before', async () => {\n");
-      expect(tests[0].code).to.include('21:     test.afterAll(async () => {\n');
+      expect(tests[0].code).to.include('8:     test.beforeEach(async ({ page }) => {');
+      expect(tests[0].code).to.include("3:     test.beforeAll('run before', async () => {");
+      expect(tests[0].code).to.include('21:     test.afterAll(async () => {');
       // second test
-      expect(tests[1].code).to.include("17:     test('my test #2', async ({ page }) => {\n");
+      expect(tests[1].code).to.include("17:     test('my test #2', async ({ page }) => {");
     });
 
     it('[no SET the lineNumbers opts] should exclude line-number', () => {
       const tests = playwrightParser(fileAst, '', fileSource);
       // first test only
-      expect(tests[0].code).to.not.include("13:     test('my test #1', async ({ page }) => {\n");
+      expect(tests[0].code).to.not.include("13:     test('my test #1', async ({ page }) => {");
       // no lines
-      expect(tests[0].code).to.include("test('my test #1', async ({ page }) => {\n");
+      expect(tests[0].code).to.include("test('my test #1', async ({ page }) => {");
     });
     // multiple options
     it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
       const tests = playwrightParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
       // first test only
-      expect(tests[0].code).to.include("13:     test('my test #1', async ({ page }) => {\n");
+      expect(tests[0].code).to.include("13:     test('my test #1', async ({ page }) => {");
       // no includes hook code
-      expect(tests[0].code).to.not.include('8:     test.beforeEach(async ({ page }) => {\n');
+      expect(tests[0].code).to.not.include('8:     test.beforeEach(async ({ page }) => {');
     });
   });
 

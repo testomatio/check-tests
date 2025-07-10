@@ -83,13 +83,15 @@ class Analyzer {
     this.decorator = new Decorator([], { framework: this.framework });
     this.stats = this.getEmptyStats();
 
-    pattern = path.join(path.resolve(this.workDir), pattern);
-    let files = glob.sync(pattern);
+    // Fix: Don't convert to absolute path, use relative path from workDir
+    const originalCwd = process.cwd();
+    process.chdir(this.workDir);
+
+    let files = glob.sync(pattern, { windowsPathsNoEscape: true });
 
     // Exclude files matching the exclude pattern if provided
     if (this.opts.exclude) {
-      const excludePattern = path.join(path.resolve(this.workDir), this.opts.exclude);
-      const excludedFiles = glob.sync(excludePattern);
+      const excludedFiles = glob.sync(this.opts.exclude, { windowsPathsNoEscape: true });
       files = files.filter(file => !excludedFiles.includes(file));
       debug('Excluded files:', excludedFiles);
     }
@@ -97,14 +99,21 @@ class Analyzer {
     debug('Files:', files);
 
     for (const file of files) {
-      if (fs.lstatSync(file).isDirectory()) continue;
+      // Fix: Since we already changed working directory, just resolve relative to current directory
+      const fullPath = path.resolve(file);
+
+      if (fs.lstatSync(fullPath).isDirectory()) {
+        continue;
+      }
 
       // skip node_modules. On Windows its \n + ode_modules
-      if (file.includes('ode_modules')) continue;
+      if (file.includes('ode_modules')) {
+        continue;
+      }
 
       debug(`Analyzing ${file}`);
 
-      let source = fs.readFileSync(file, { encoding: 'utf8' }).toString();
+      let source = fs.readFileSync(fullPath, { encoding: 'utf8' }).toString();
 
       let ast;
       // no need to parse code for newman tests
@@ -128,10 +137,9 @@ class Analyzer {
         }
         try {
           if (this.typeScript) {
-            // const program = parser.createProgram(path.join(__dirname, '../tsconfig.json'))
             const program = parser.parse(source, {
               sourceType: 'unambiguous',
-              filePath: file.replace(/\\/g, '/'),
+              filePath: fullPath.replace(/\\/g, '/'),
               loc: true,
               range: true,
               tokens: true,
@@ -146,30 +154,29 @@ class Analyzer {
         } catch (err) {
           console.error(`Error parsing ${file}:`);
           console.error(err.message);
+          continue; // Skip this file if parsing fails
         }
       }
 
-      // append file name to each test
-      const fileName = path.relative(this.workDir, file);
-      // prepend dir should not affect the actual file path, it is used only on Testomatio side
-      // if (process.env.TESTOMATIO_PREPEND_DIR) {
-      //   fileName = path.join(process.env.TESTOMATIO_PREPEND_DIR, fileName);
-      // }
+      // Fix: Use relative fileName based on workDir context
+      // When workDir is 'example', file should be 'mocha/index_test.js'
+      // When workDir is '.', file should be 'example/mocha/index_test.js'
+      const fileName = file.replace(/\\/g, '/'); // Convert Windows paths to forward slashes
 
-      /**
-       * Assigns the array of TestData objects to the `tests` variable.
-       * @type {TestData[]}
-       */
       const testsData = this.frameworkParser(ast, fileName, source, this.opts);
+
       this.rawTests.push(testsData);
       const tests = new Decorator(testsData, { framework: this.framework });
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());
       this.stats.skipped = this.stats.skipped.concat(tests.getSkippedTestFullNames());
-      this.stats.files.push(file);
+      this.stats.files.push(fullPath);
 
       this.decorator.append(testsData);
       tests.validate();
     }
+
+    // Restore original working directory
+    process.chdir(originalCwd);
   }
 
   getDecorator() {

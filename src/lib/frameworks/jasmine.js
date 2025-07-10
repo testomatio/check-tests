@@ -1,4 +1,4 @@
-const traverse = require('@babel/traverse');
+const traverse = require('@babel/traverse').default || require('@babel/traverse');
 const CommentError = require('../../errors/comment.error');
 const {
   getUpdatePoint,
@@ -19,7 +19,7 @@ module.exports = (ast, file = '', source = '') => {
     currentSuite.push(path);
   }
 
-  traverse.default(ast, {
+  traverse(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'describe' })) {
         if (!hasStringOrTemplateArgument(path.parent)) return;

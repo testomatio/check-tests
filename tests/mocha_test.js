@@ -76,37 +76,37 @@ describe('mocha parser', () => {
     it('should include before hook code by default', () => {
       const tests = mochaParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include('before(() => {\n');
-      expect(tests[0].code).to.include("console.log('Ran before');\n");
-      expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+      expect(tests[0].code).to.include('before(() => {');
+      expect(tests[0].code).to.include("console.log('Ran before');");
+      expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');");
       // second test
-      expect(tests[1].code).to.include('before(() => {\n');
-      expect(tests[1].code).to.include("console.log('Ran before');\n");
-      expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+      expect(tests[1].code).to.include('before(() => {');
+      expect(tests[1].code).to.include("console.log('Ran before');");
+      expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');");
     });
 
     it('should include beforeEach hook code by default', () => {
       const tests = mochaParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include('beforeEach(() => {\n');
-      expect(tests[0].code).to.include("console.log('Ran beforeEach');\n");
-      expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+      expect(tests[0].code).to.include('beforeEach(() => {');
+      expect(tests[0].code).to.include("console.log('Ran beforeEach');");
+      expect(tests[0].code).to.include("cy.visit('http://localhost:8080/commands/actions');");
       // second test
-      expect(tests[1].code).to.include('beforeEach(() => {\n');
-      expect(tests[1].code).to.include("console.log('Ran beforeEach');\n");
-      expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');\n");
+      expect(tests[1].code).to.include('beforeEach(() => {');
+      expect(tests[1].code).to.include("console.log('Ran beforeEach');");
+      expect(tests[1].code).to.include("cy.visit('http://localhost:8080/commands/actions');");
     });
 
     it('should include after hook code by default', () => {
       const tests = mochaParser(ast, '', source);
       // first test
-      expect(tests[0].code).to.include('after(async () => {\n');
-      expect(tests[0].code).to.include("console.log('Ran after');\n");
-      expect(tests[0].code).to.include("cy.get('.action-disabled');\n");
+      expect(tests[0].code).to.include('after(async () => {');
+      expect(tests[0].code).to.include("console.log('Ran after');");
+      expect(tests[0].code).to.include("cy.get('.action-disabled');");
       // second test
-      expect(tests[1].code).to.include('after(async () => {\n');
-      expect(tests[1].code).to.include("console.log('Ran after');\n");
-      expect(tests[1].code).to.include("cy.get('.action-disabled');\n");
+      expect(tests[1].code).to.include('after(async () => {');
+      expect(tests[1].code).to.include("console.log('Ran after');");
+      expect(tests[1].code).to.include("cy.get('.action-disabled');");
     });
   });
 
@@ -121,25 +121,25 @@ describe('mocha parser', () => {
     it('should exclude before hook code', () => {
       const tests = mochaParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('before(() => {\n');
+      expect(tests[0].code).to.not.include('before(() => {');
       // second test
-      expect(tests[1].code).to.not.include('before(() => {\n');
+      expect(tests[1].code).to.not.include('before(() => {');
     });
 
     it('should exclude beforeEach hook code', () => {
       const tests = mochaParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('beforeEach(() => {\n');
+      expect(tests[0].code).to.not.include('beforeEach(() => {');
       // second test
-      expect(tests[1].code).to.not.include('beforeEach(() => {\n');
+      expect(tests[1].code).to.not.include('beforeEach(() => {');
     });
 
     it('should exclude after hook code', () => {
       const tests = mochaParser(fileAst, '', fileSource, { noHooks: true });
       // first test
-      expect(tests[0].code).to.not.include('after(async () => {\n');
+      expect(tests[0].code).to.not.include('after(async () => {');
       // second test
-      expect(tests[1].code).to.not.include('after(async () => {\n');
+      expect(tests[1].code).to.not.include('after(async () => {');
     });
   });
 
@@ -154,30 +154,30 @@ describe('mocha parser', () => {
     it('[lineNumbers=true opts] each section should include line-number as part of code section', () => {
       const tests = mochaParser(fileAst, '', fileSource, { lineNumbers: true });
       // first test only
-      expect(tests[0].code).to.include("13:     it('.type() - type into a DOM element', () => {\n");
+      expect(tests[0].code).to.include("13:     it('.type() - type into a DOM element', () => {");
       // by default hooks include line number too
-      expect(tests[0].code).to.include('4:     beforeEach(() => {\n');
-      expect(tests[0].code).to.include('8:     before(() => {\n');
-      expect(tests[0].code).to.include('24:     after(async () => {\n');
+      expect(tests[0].code).to.include('4:     beforeEach(() => {');
+      expect(tests[0].code).to.include('8:     before(() => {');
+      expect(tests[0].code).to.include('24:     after(async () => {');
       // second test
-      expect(tests[1].code).to.include("20:     it('.click() - click on a DOM element', () => {\n");
+      expect(tests[1].code).to.include("20:     it('.click() - click on a DOM element', () => {");
     });
 
     it('[no SET the lineNumbers opts] should exclude line-number', () => {
       const tests = mochaParser(fileAst, '', fileSource);
       // first test only
-      expect(tests[0].code).to.not.include("13:     it('.type() - type into a DOM element', () => {\n");
+      expect(tests[0].code).to.not.include("13:     it('.type() - type into a DOM element', () => {");
       // no lines
-      expect(tests[0].code).to.include("it('.type() - type into a DOM element', () => {\n");
+      expect(tests[0].code).to.include("it('.type() - type into a DOM element', () => {");
     });
 
     // multiple options
     it('[noHooks=true + lineNumbers=true opts] line-number as part of code section', () => {
       const tests = mochaParser(fileAst, '', fileSource, { lineNumbers: true, noHooks: true });
       // first test only
-      expect(tests[0].code).to.include("13:     it('.type() - type into a DOM element', () => {\n");
+      expect(tests[0].code).to.include("13:     it('.type() - type into a DOM element', () => {");
       // no includes hook code
-      expect(tests[0].code).to.not.include('8:     before(() => {\n');
+      expect(tests[0].code).to.not.include('8:     before(() => {');
     });
   });
 });
