@@ -91,9 +91,14 @@ Check that your project uses one of the following testing frameworks (this list 
 - jasmine
 - jest
 - mocha
-- [nigthwatch](https://nightwatchjs.org)
+- newman (Postman collections)
+- [nightwatch](https://nightwatchjs.org)
+- playwright
 - protractor
+- qunit
 - testcafe
+- vitest
+- manual (Markdown-based manual tests)
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
@@ -377,34 +382,147 @@ TESTOMATIO_URL=http://local.testomat.io
 
 ### Example
 
-Check tests for CodeceptJS
+### Framework Examples
 
-```
+#### CodeceptJS
+
+```bash
+# JavaScript
 npx check-tests codeceptjs "tests/**_test.js"
+
+# TypeScript
+npx check-tests codeceptjs "tests/**_test.ts" --typescript
 ```
 
-Check tests for Protractor
+#### Cypress.io
 
-```
-npx check-tests protractor "spec/**.spec.js"
-```
-
-Check tests for Protractor with TypeScript
-
-```
-npx check-tests protractor "spec/**.spec.ts" --typescript
-```
-
-Check tests for Cypress.io
-
-```
+```bash
+# JavaScript
 npx check-tests cypress "cypress/integration/**.js"
+npx check-tests cypress.io "cypress/e2e/**.js"
+
+# TypeScript
+npx check-tests cypress "cypress/integration/**.ts" --typescript
+npx check-tests cypress.io "cypress/e2e/**.spec.ts" --typescript
 ```
 
-Check tests for Testcafe
+#### Jasmine
 
+```bash
+# JavaScript
+npx check-tests jasmine "spec/**/*.spec.js"
+
+# TypeScript
+npx check-tests jasmine "spec/**/*.spec.ts" --typescript
 ```
+
+#### Jest
+
+```bash
+# JavaScript
+npx check-tests jest "tests/**/*.test.js"
+npx check-tests jest "__tests__/**/*.js"
+
+# TypeScript
+npx check-tests jest "tests/**/*.test.ts" --typescript
+npx check-tests jest "src/**/*.spec.ts" --typescript
+```
+
+#### Mocha
+
+```bash
+# JavaScript
+npx check-tests mocha "test/**/*_test.js"
+npx check-tests mocha "tests/**/*.spec.js"
+
+# TypeScript
+npx check-tests mocha "test/**/*.test.ts" --typescript
+```
+
+#### Newman (Postman Collections)
+
+```bash
+# Single collection
+npx check-tests newman "api-tests.postman_collection.json"
+
+# Multiple collections
+npx check-tests newman "collections/*.json"
+```
+
+#### Nightwatch
+
+```bash
+# JavaScript
+npx check-tests nightwatch "tests/**/*.js"
+
+# TypeScript
+npx check-tests nightwatch "tests/**/*.ts" --typescript
+```
+
+#### Playwright
+
+```bash
+# JavaScript
+npx check-tests playwright "tests/**/*.spec.js"
+npx check-tests playwright "e2e/**/*.test.js"
+
+# TypeScript
+npx check-tests playwright "tests/**/*.spec.ts" --typescript
+npx check-tests playwright "e2e/**/*.test.ts" --typescript
+```
+
+#### Protractor
+
+```bash
+# JavaScript
+npx check-tests protractor "spec/**.spec.js"
+npx check-tests protractor "e2e/**/*_spec.js"
+
+# TypeScript
+npx check-tests protractor "spec/**.spec.ts" --typescript
+npx check-tests protractor "e2e/**/*.spec.ts" --typescript
+```
+
+#### QUnit
+
+```bash
+# JavaScript
+npx check-tests qunit "tests/**/*.js"
+
+# TypeScript
+npx check-tests qunit "tests/**/*.ts" --typescript
+```
+
+#### TestCafe
+
+```bash
+# JavaScript
 npx check-tests testcafe "tests/**.js"
+npx check-tests testcafe "fixtures/**/*.test.js"
+
+# TypeScript
+npx check-tests testcafe "tests/**.ts" --typescript
+npx check-tests testcafe "fixtures/**/*.test.ts" --typescript
+```
+
+#### Vitest
+
+```bash
+# JavaScript
+npx check-tests vitest "tests/**/*.test.js"
+npx check-tests vitest "src/**/*.spec.js"
+
+# TypeScript
+npx check-tests vitest "tests/**/*.test.ts" --typescript
+npx check-tests vitest "src/**/*.spec.ts" --typescript
+```
+
+#### Manual Tests (Markdown)
+
+```bash
+# Markdown-based manual test documentation
+npx check-tests manual "docs/tests/**/*.md"
+npx check-tests manual "manual-tests/*.md"
 ```
 
 ### Sample Output
