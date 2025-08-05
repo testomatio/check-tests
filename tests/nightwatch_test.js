@@ -263,4 +263,183 @@ describe('Test with hooks', function() {
     expect(tests[0].code).to.not.include('before');
     expect(tests[0].code).to.include('browser.assert.titleContains');
   });
+
+  it('should parse classic Nightwatch CommonJS syntax', () => {
+    source = fs.readFileSync('./example/nightwatch/classic.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = nightwatchParser(ast, 'classic.js', source);
+
+    expect(tests).to.have.lengthOf(8);
+
+    // Verify test names
+    const testNames = tests.map(t => t.name);
+    expect(testNames).to.include('Google homepage should load');
+    expect(testNames).to.include('Search functionality should work');
+    expect(testNames).to.include('Advanced search should be accessible');
+    expect(testNames).to.include('Custom command test');
+    expect(testNames).to.include('Page object style test');
+    expect(testNames).to.include('Client assertions test');
+    expect(testNames).to.include('Conditional test');
+    expect(testNames).to.include('Multiple assertions test');
+
+    // Verify hooks are included
+    expect(tests[0].code).to.include('before');
+    expect(tests[0].code).to.include('beforeEach');
+    expect(tests[0].code).to.include('after');
+    expect(tests[0].code).to.include('afterEach');
+
+    // Verify classic Nightwatch syntax is preserved
+    expect(tests[0].code).to.include('browser');
+    expect(tests[0].code).to.include('waitForElementVisible');
+    expect(tests[0].code).to.include('assert.title');
+    expect(tests[0].code).to.include('Setting up...');
+
+    // Check suite structure
+    expect(tests[0].suites).to.deep.equal(['classic.js']);
+  });
+
+  it('should parse page objects pattern', () => {
+    source = fs.readFileSync('./example/nightwatch/page-objects.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = nightwatchParser(ast, 'page-objects.js', source);
+
+    expect(tests).to.have.lengthOf(5);
+
+    const testNames = tests.map(t => t.name);
+    expect(testNames).to.include('Home page navigation test');
+    expect(testNames).to.include('Search workflow test');
+    expect(testNames).to.include('Advanced search features');
+    expect(testNames).to.include('Mobile responsive test');
+    expect(testNames).to.include('Multi-language support test');
+
+    // Verify page object references are preserved
+    expect(tests[0].code).to.include('browser.globals.homePage');
+    expect(tests[1].code).to.include('searchPage');
+    expect(tests[0].code).to.include('navigate()');
+    expect(tests[0].code).to.include('@searchBox');
+
+    // Verify page object pattern is used (require is at top level, not in test code)
+    expect(tests[0].code).to.include('homePage');
+  });
+
+  it('should parse complex nested suites with hooks', () => {
+    source = fs.readFileSync('./example/nightwatch/complex-hooks.js').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = nightwatchParser(ast, 'complex-hooks.js', source);
+
+    expect(tests).to.have.lengthOf(9);
+
+    // Verify Authentication Suite tests
+    const authTests = tests.filter(t => t.suites.includes('Authentication Suite'));
+    expect(authTests).to.have.lengthOf(3);
+    expect(authTests.map(t => t.name)).to.include('Valid login test');
+    expect(authTests.map(t => t.name)).to.include('Invalid login test');
+    expect(authTests.map(t => t.name)).to.include('Empty fields validation');
+
+    // Verify Navigation Suite tests
+    const navTests = tests.filter(t => t.suites.includes('Navigation Suite'));
+    expect(navTests).to.have.lengthOf(3);
+    expect(navTests.map(t => t.name)).to.include('Main menu navigation');
+    expect(navTests.map(t => t.name)).to.include('Breadcrumb navigation');
+    expect(navTests.map(t => t.name)).to.include('Footer links test');
+
+    // Verify Form Interaction Suite tests
+    const formTests = tests.filter(t => t.suites.includes('Form Interaction Suite'));
+    expect(formTests).to.have.lengthOf(3);
+    expect(formTests.map(t => t.name)).to.include('Contact form submission');
+    expect(formTests.map(t => t.name)).to.include('Form validation test');
+    expect(formTests.map(t => t.name)).to.include('Required fields test');
+
+    // Verify global hooks are included
+    expect(tests[0].code).to.include('Global setup');
+    expect(tests[0].code).to.include('Global beforeEach');
+    expect(tests[0].code).to.include('Global afterEach');
+    expect(tests[0].code).to.include('Global teardown');
+
+    // Verify suite-specific content is preserved
+    expect(authTests[0].code).to.include('Auth suite setup');
+    expect(authTests[0].code).to.include('#username');
+    expect(navTests[0].code).to.include('.menu-item');
+    expect(formTests[0].code).to.include('#submit-button');
+  });
+
+  it('should handle @tags and metadata in classic syntax', () => {
+    source = `
+module.exports = {
+  '@tags': ['smoke', 'regression'],
+  '@disabled': false,
+  
+  'Tagged test': function(browser) {
+    browser.url('https://example.com');
+  },
+  
+  'Another tagged test': function(browser) {
+    browser.assert.title('Example');
+  }
+};
+    `;
+
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = nightwatchParser(ast, 'tagged.js', source);
+
+    expect(tests).to.have.lengthOf(2);
+    expect(tests[0].name).to.equal('Tagged test');
+    expect(tests[1].name).to.equal('Another tagged test');
+
+    // Verify metadata properties are excluded from tests
+    const testNames = tests.map(t => t.name);
+    expect(testNames).to.not.include('@tags');
+    expect(testNames).to.not.include('@disabled');
+  });
+
+  it('should handle classic Nightwatch with custom commands', () => {
+    source = `
+module.exports = {
+  'Custom commands test': function(browser) {
+    browser
+      .url('https://example.com')
+      .perform(function() {
+        console.log('Custom action');
+      })
+      .execute(function() {
+        return document.title;
+      }, function(result) {
+        browser.assert.equal(result.value, 'Example');
+      })
+      .waitForConditionPollInterval(100)
+      .waitForConditionTimeout(5000);
+  },
+  
+  'Browser API test': function(browser) {
+    browser
+      .resizeWindow(1024, 768)
+      .maximizeWindow()
+      .refresh()
+      .back()
+      .forward()
+      .deleteCookies()
+      .closeWindow()
+      .switchWindow();
+  }
+};
+    `;
+
+    ast = jsParser.parse(source, { sourceType: 'unambiguous' });
+    const tests = nightwatchParser(ast, 'custom-commands.js', source);
+
+    expect(tests).to.have.lengthOf(2);
+    expect(tests[0].name).to.equal('Custom commands test');
+    expect(tests[1].name).to.equal('Browser API test');
+
+    // Verify custom commands are preserved
+    expect(tests[0].code).to.include('perform(function()');
+    expect(tests[0].code).to.include('execute(function()');
+    expect(tests[0].code).to.include('waitForConditionPollInterval');
+
+    // Verify browser API calls are preserved
+    expect(tests[1].code).to.include('resizeWindow');
+    expect(tests[1].code).to.include('maximizeWindow');
+    expect(tests[1].code).to.include('deleteCookies');
+    expect(tests[1].code).to.include('switchWindow');
+  });
 });
