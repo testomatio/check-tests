@@ -1,6 +1,6 @@
 {
   "name": "check-tests",
-  "version": "0.12.1",
+  "version": "0.12.0-beta.1-nightwatch",
   "description": "Static analysis for tests. Prints all tests in console and fails when exclusive or skipped tests found.",
   "keywords": [
     "testing",
