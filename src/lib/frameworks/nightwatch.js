@@ -9,6 +9,22 @@ const {
   getCode,
 } = require('../utils');
 
+// Function to generate suite name from filename
+function generateSuiteNameFromFile(filename) {
+  const name = filename.split('/').pop(); // Get just the filename
+  const hasTestInName = /\.(test|spec)\.(js|ts|mjs)$/.test(name);
+
+  const baseName = name
+    .replace(/\.(test|spec)\.(js|ts|mjs)$/, '') // Remove .test.js, .spec.ts, etc.
+    .replace(/\.(js|ts|mjs)$/, '') // Remove .js, .ts, .mjs
+    .split(/[-_.]/) // Split on hyphens, underscores, dots
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+    .join(' '); // Join with spaces
+
+  // Add "Test" suffix if the filename contained "test" or "spec"
+  return hasTestInName ? baseName + ' Test' : baseName;
+}
+
 module.exports = (ast, file = '', source = '', opts = {}) => {
   const tests = [];
   let currentSuite = [];
@@ -90,24 +106,50 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         }
       }
 
-      // Handle module.exports object pattern for Nightwatch
-      if (path.isAssignmentExpression()) {
-        const { left, right } = path.node;
+      // Handle module.exports and export default object patterns for Nightwatch
+      if (path.isAssignmentExpression() || path.isExportDefaultDeclaration()) {
+        let rightExpression;
 
-        // Check for module.exports = { ... }
-        if (
-          left.type === 'MemberExpression' &&
-          left.object.name === 'module' &&
-          left.property.name === 'exports' &&
-          right.type === 'ObjectExpression'
-        ) {
-          // First pass: collect all hooks from the module.exports object
+        if (path.isAssignmentExpression()) {
+          const { left, right } = path.node;
+          // Check for module.exports = { ... }
+          if (
+            left.type === 'MemberExpression' &&
+            left.object.name === 'module' &&
+            left.property.name === 'exports' &&
+            right.type === 'ObjectExpression'
+          ) {
+            rightExpression = right;
+          }
+        } else if (path.isExportDefaultDeclaration()) {
+          // Check for export default { ... } or export default identifier
+          if (path.node.declaration.type === 'ObjectExpression') {
+            rightExpression = path.node.declaration;
+          } else if (path.node.declaration.type === 'Identifier') {
+            // Handle TypeScript: export default home; where home is defined elsewhere
+            // We need to find the variable declaration
+            const identifierName = path.node.declaration.name;
+            // Look for the variable declaration in the same scope
+            const binding = path.scope.getBinding(identifierName);
+            if (
+              binding &&
+              binding.path.isVariableDeclarator() &&
+              binding.path.node.init &&
+              binding.path.node.init.type === 'ObjectExpression'
+            ) {
+              rightExpression = binding.path.node.init;
+            }
+          }
+        }
+
+        if (rightExpression) {
+          // First pass: collect all hooks from the exported object
           let moduleBeforeCode = '';
           let moduleBeforeEachCode = '';
           let moduleAfterCode = '';
           let moduleAfterEachCode = '';
 
-          right.properties.forEach(prop => {
+          rightExpression.properties.forEach(prop => {
             const propName = prop.key.name || prop.key.value;
             if (propName === 'before' && prop.value.type === 'FunctionExpression') {
               moduleBeforeCode = getCode(source, prop.loc.start.line, prop.loc.end.line, isLineNumber);
@@ -121,7 +163,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           });
 
           // Second pass: extract test methods from the exported object
-          right.properties.forEach(prop => {
+          rightExpression.properties.forEach(prop => {
             const propName = prop.key.name || prop.key.value;
 
             // Skip metadata properties (starting with @)
@@ -129,97 +171,21 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
               return;
             }
 
-            // Handle nested suite objects
+            // Skip nested objects since Nightwatch doesn't support nested suites
             if (
               (prop.type === 'ObjectProperty' && prop.value.type === 'ObjectExpression') ||
               (prop.type === 'Property' && prop.value.type === 'ObjectExpression')
             ) {
-              // This is a nested suite - first collect its hooks
-              const suiteName = propName;
-              let suiteBeforeCode = '';
-              let suiteBeforeEachCode = '';
-              let suiteAfterCode = '';
-              let suiteAfterEachCode = '';
-
-              prop.value.properties.forEach(nestedProp => {
-                const nestedPropName = nestedProp.key.name || nestedProp.key.value;
-                if (nestedPropName === 'before' && nestedProp.value.type === 'FunctionExpression') {
-                  suiteBeforeCode = getCode(source, nestedProp.loc.start.line, nestedProp.loc.end.line, isLineNumber);
-                } else if (nestedPropName === 'beforeEach' && nestedProp.value.type === 'FunctionExpression') {
-                  suiteBeforeEachCode = getCode(
-                    source,
-                    nestedProp.loc.start.line,
-                    nestedProp.loc.end.line,
-                    isLineNumber,
-                  );
-                } else if (nestedPropName === 'after' && nestedProp.value.type === 'FunctionExpression') {
-                  suiteAfterCode = getCode(source, nestedProp.loc.start.line, nestedProp.loc.end.line, isLineNumber);
-                } else if (nestedPropName === 'afterEach' && nestedProp.value.type === 'FunctionExpression') {
-                  suiteAfterEachCode = getCode(
-                    source,
-                    nestedProp.loc.start.line,
-                    nestedProp.loc.end.line,
-                    isLineNumber,
-                  );
-                }
-              });
-
-              // Then process the test methods
-              prop.value.properties.forEach(nestedProp => {
-                const nestedPropName = nestedProp.key.name || nestedProp.key.value;
-
-                // Skip hooks in nested suites
-                if (['before', 'beforeEach', 'beforeAll', 'after', 'afterEach'].includes(nestedPropName)) {
-                  return;
-                }
-
-                if (
-                  nestedProp.type === 'ObjectMethod' ||
-                  (nestedProp.type === 'ObjectProperty' && nestedProp.value.type === 'FunctionExpression') ||
-                  (nestedProp.type === 'Property' && nestedProp.value.type === 'FunctionExpression')
-                ) {
-                  let code = '';
-                  beforeCode = beforeCode ?? '';
-                  beforeEachCode = beforeEachCode ?? '';
-                  beforeAllCode = beforeAllCode ?? '';
-                  afterCode = afterCode ?? '';
-                  afterEachCode = afterEachCode ?? '';
-
-                  /* prettier-ignore */
-                  code = noHooks
-                    ? getCode(source, nestedProp.loc.start.line, nestedProp.loc.end.line, isLineNumber)
-                    : moduleBeforeCode
-                    + moduleBeforeEachCode
-                    + suiteBeforeCode
-                    + suiteBeforeEachCode
-                    + beforeAllCode
-                    + beforeCode
-                    + beforeEachCode
-                    + getCode(source, nestedProp.loc.start.line, nestedProp.loc.end.line, isLineNumber)
-                    + afterEachCode
-                    + suiteAfterEachCode
-                    + afterCode
-                    + suiteAfterCode
-                    + moduleAfterEachCode
-                    + moduleAfterCode;
-
-                  tests.push({
-                    name: nestedPropName,
-                    suites: currentSuite.map(s => getStringValue(s)).concat([suiteName, file.split('/').pop()]),
-                    updatePoint: getUpdatePoint(path.parent),
-                    line: nestedProp.loc.start.line,
-                    code,
-                    file,
-                    skipped: !!currentSuite.filter(s => s.skipped).length,
-                  });
-                }
-              });
+              // Nightwatch doesn't support nested suites, skip these
+              return;
             }
             // Handle regular test functions
             else if (
               prop.type === 'ObjectMethod' ||
               (prop.type === 'ObjectProperty' && prop.value.type === 'FunctionExpression') ||
-              (prop.type === 'Property' && prop.value.type === 'FunctionExpression')
+              (prop.type === 'Property' && prop.value.type === 'FunctionExpression') ||
+              (prop.type === 'ObjectProperty' && prop.value.type === 'ArrowFunctionExpression') ||
+              (prop.type === 'Property' && prop.value.type === 'ArrowFunctionExpression')
             ) {
               // Skip hooks
               if (['before', 'beforeEach', 'beforeAll', 'after', 'afterEach'].includes(propName)) {
@@ -247,9 +213,16 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
                 + afterCode
                 + moduleAfterCode;
 
+              // For export default pattern, if no explicit suites, use generated suite name
+              const explicitSuites = currentSuite.map(s => getStringValue(s));
+              const suiteNames =
+                explicitSuites.length > 0
+                  ? explicitSuites.concat([file.split('/').pop()])
+                  : [generateSuiteNameFromFile(file)];
+
               tests.push({
                 name: propName,
-                suites: currentSuite.map(s => getStringValue(s)).concat([file.split('/').pop()]),
+                suites: suiteNames,
                 updatePoint: getUpdatePoint(path.parent),
                 line: prop.loc.start.line,
                 code,
@@ -283,9 +256,14 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           + afterCode;
 
         const testName = getStringValue(path.parent);
+        // For describe/it pattern, if there are explicit suites (describe blocks), use only those
+        // If no explicit suites, generate from filename
+        const explicitSuites = currentSuite.map(s => getStringValue(s));
+        const suiteNames = explicitSuites.length > 0 ? explicitSuites : [generateSuiteNameFromFile(file)];
+
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)).concat([file.split('/').pop()]),
+          suites: suiteNames,
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code,
@@ -307,9 +285,13 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
           const testName = getStringValue(path.parentPath.container);
+          // For skipped tests, use same suite logic as regular tests
+          const explicitSuites = currentSuite.map(s => getStringValue(s));
+          const suiteNames = explicitSuites.length > 0 ? explicitSuites : [generateSuiteNameFromFile(file)];
+
           tests.push({
             name: testName,
-            suites: currentSuite.map(s => getStringValue(s)).concat([file.split('/').pop()]),
+            suites: suiteNames,
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,

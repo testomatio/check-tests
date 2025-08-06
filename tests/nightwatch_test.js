@@ -51,7 +51,7 @@ describe('Ecosia.org Demo', function() {
 
     // Test outside describe block
     expect(tests[0].name).to.equal('test inside a file');
-    expect(tests[0].suites).to.deep.equal(['mixed.js']);
+    expect(tests[0].suites).to.deep.equal(['Mixed']);
 
     // Test inside first suite
     expect(tests[1].name).to.equal('test inside a suite');
@@ -78,7 +78,7 @@ describe('Ecosia.org Demo', function() {
     expect(tests).to.have.lengthOf(2);
     expect(tests[0].name).to.equal('Google title test');
     expect(tests[1].name).to.equal('Google search test');
-    expect(tests[0].suites).to.deep.equal(['basic.js']);
+    expect(tests[0].suites).to.deep.equal(['Basic']);
     expect(tests[0].code).to.include('browser.url');
     expect(tests[1].code).to.include('setValue');
   });
@@ -182,10 +182,11 @@ export default home;
 
     const tests = nightwatchParser(ast, 'github.ts', source);
 
-    // Note: export default doesn't create module.exports assignment,
-    // so this test pattern might not be detected by our current parser
-    // This shows a limitation we might need to address
-    expect(tests).to.have.lengthOf(0);
+    // TypeScript export default pattern is now supported
+    expect(tests).to.have.lengthOf(3);
+    expect(tests[0].name).to.equal('Github Title test');
+    expect(tests[1].name).to.equal('Github search for nightwatch repository');
+    expect(tests[2].name).to.equal('Github login with fake credentials');
   });
 
   it('should handle hooks correctly', () => {
@@ -295,7 +296,7 @@ describe('Test with hooks', function() {
     expect(tests[0].code).to.include('Setting up...');
 
     // Check suite structure
-    expect(tests[0].suites).to.deep.equal(['classic.js']);
+    expect(tests[0].suites).to.deep.equal(['Classic']);
   });
 
   it('should parse page objects pattern', () => {
@@ -322,33 +323,29 @@ describe('Test with hooks', function() {
     expect(tests[0].code).to.include('homePage');
   });
 
-  it('should parse complex nested suites with hooks', () => {
+  it('should parse complex classical Nightwatch tests with hooks', () => {
     source = fs.readFileSync('./example/nightwatch/complex-hooks.js').toString();
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = nightwatchParser(ast, 'complex-hooks.js', source);
 
     expect(tests).to.have.lengthOf(9);
 
-    // Verify Authentication Suite tests
-    const authTests = tests.filter(t => t.suites.includes('Authentication Suite'));
-    expect(authTests).to.have.lengthOf(3);
-    expect(authTests.map(t => t.name)).to.include('Valid login test');
-    expect(authTests.map(t => t.name)).to.include('Invalid login test');
-    expect(authTests.map(t => t.name)).to.include('Empty fields validation');
+    // Verify test names (no nested suites since Nightwatch doesn't support them)
+    const testNames = tests.map(t => t.name);
+    expect(testNames).to.include('Valid login test');
+    expect(testNames).to.include('Invalid login test');
+    expect(testNames).to.include('Empty login fields validation');
+    expect(testNames).to.include('Main menu navigation test');
+    expect(testNames).to.include('Breadcrumb navigation test');
+    expect(testNames).to.include('Footer links navigation test');
+    expect(testNames).to.include('Contact form submission test');
+    expect(testNames).to.include('Form validation error test');
+    expect(testNames).to.include('Required form fields test');
 
-    // Verify Navigation Suite tests
-    const navTests = tests.filter(t => t.suites.includes('Navigation Suite'));
-    expect(navTests).to.have.lengthOf(3);
-    expect(navTests.map(t => t.name)).to.include('Main menu navigation');
-    expect(navTests.map(t => t.name)).to.include('Breadcrumb navigation');
-    expect(navTests.map(t => t.name)).to.include('Footer links test');
-
-    // Verify Form Interaction Suite tests
-    const formTests = tests.filter(t => t.suites.includes('Form Interaction Suite'));
-    expect(formTests).to.have.lengthOf(3);
-    expect(formTests.map(t => t.name)).to.include('Contact form submission');
-    expect(formTests.map(t => t.name)).to.include('Form validation test');
-    expect(formTests.map(t => t.name)).to.include('Required fields test');
+    // Verify all tests are in the same file suite (no nested suites)
+    tests.forEach(test => {
+      expect(test.suites).to.deep.equal(['Complex Hooks']);
+    });
 
     // Verify global hooks are included
     expect(tests[0].code).to.include('Global setup');
@@ -356,11 +353,16 @@ describe('Test with hooks', function() {
     expect(tests[0].code).to.include('Global afterEach');
     expect(tests[0].code).to.include('Global teardown');
 
-    // Verify suite-specific content is preserved
-    expect(authTests[0].code).to.include('Auth suite setup');
-    expect(authTests[0].code).to.include('#username');
-    expect(navTests[0].code).to.include('.menu-item');
-    expect(formTests[0].code).to.include('#submit-button');
+    // Verify each test includes its specific functionality
+    const loginTest = tests.find(t => t.name === 'Valid login test');
+    expect(loginTest.code).to.include('#username');
+    expect(loginTest.code).to.include('#password');
+
+    const navTest = tests.find(t => t.name === 'Main menu navigation test');
+    expect(navTest.code).to.include('.menu-item');
+
+    const formTest = tests.find(t => t.name === 'Contact form submission test');
+    expect(formTest.code).to.include('#submit-button');
   });
 
   it('should handle @tags and metadata in classic syntax', () => {
@@ -441,5 +443,92 @@ module.exports = {
     expect(tests[1].code).to.include('maximizeWindow');
     expect(tests[1].code).to.include('deleteCookies');
     expect(tests[1].code).to.include('switchWindow');
+  });
+
+  it('should parse classic Nightwatch ESM syntax', () => {
+    source = fs.readFileSync('./example/nightwatch/classic-esm.mjs').toString();
+    ast = jsParser.parse(source, { sourceType: 'module', allowImportExportEverywhere: true });
+    const tests = nightwatchParser(ast, 'classic-esm.mjs', source);
+
+    expect(tests).to.have.lengthOf(7);
+
+    // Verify test names
+    const testNames = tests.map(t => t.name);
+    expect(testNames).to.include('Google homepage should load');
+    expect(testNames).to.include('Search functionality should work');
+    expect(testNames).to.include('Advanced search should be accessible');
+    expect(testNames).to.include('Custom command test');
+    expect(testNames).to.include('Client assertions test');
+    expect(testNames).to.include('Conditional test');
+    expect(testNames).to.include('Multiple assertions test');
+
+    // Verify hooks are included
+    expect(tests[0].code).to.include('before');
+    expect(tests[0].code).to.include('beforeEach');
+    expect(tests[0].code).to.include('after');
+    expect(tests[0].code).to.include('afterEach');
+
+    // Verify classic Nightwatch syntax is preserved
+    expect(tests[0].code).to.include('browser');
+    expect(tests[0].code).to.include('waitForElementVisible');
+    expect(tests[0].code).to.include('assert.title');
+    expect(tests[0].code).to.include('Setting up...');
+
+    // Check suite structure
+    expect(tests[0].suites).to.deep.equal(['Classic Esm']);
+
+    // Verify ESM format works correctly
+    expect(tests[0].file).to.equal('classic-esm.mjs');
+  });
+
+  it('should parse TypeScript Nightwatch export default pattern', () => {
+    source = `
+import {NightwatchAPI, NightwatchTests} from 'nightwatch';
+
+const home: NightwatchTests = {
+  'Github Title test': () => {
+    browser
+      .url('https://github.com')
+      .assert.titleContains('GitHub');
+  },
+
+  'Github search test': () => {
+    browser
+      .url('https://github.com/search')
+      .setValue('[placeholder="Search GitHub"]', 'nightwatch')
+      .perform(function(this: NightwatchAPI) {
+        const actions = this.actions({async: true});
+        return actions.keyDown(this.Keys['ENTER']).keyUp(this.Keys['ENTER']);
+      })
+      .waitForElementVisible('.header-search-button')
+      .assert.textEquals('.header-search-button', 'nightwatch');
+  }
+};
+
+export default home;
+    `;
+
+    const program = tsParser.parse(source, {
+      sourceType: 'module',
+      loc: true,
+      range: true,
+      tokens: true,
+    });
+    ast = {
+      program,
+      type: 'File',
+    };
+
+    const tests = nightwatchParser(ast, 'github.test.ts', source);
+
+    expect(tests).to.have.lengthOf(2);
+    expect(tests[0].name).to.equal('Github Title test');
+    expect(tests[1].name).to.equal('Github search test');
+    expect(tests[0].suites).to.deep.equal(['Github Test']);
+
+    // Verify TypeScript arrow function syntax is preserved
+    expect(tests[0].code).to.include('() => {');
+    expect(tests[1].code).to.include('this: NightwatchAPI');
+    expect(tests[1].code).to.include('actions({async: true})');
   });
 });
