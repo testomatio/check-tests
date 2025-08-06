@@ -220,10 +220,19 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
                   ? explicitSuites.concat([file.split('/').pop()])
                   : [generateSuiteNameFromFile(file)];
 
+              // For object property pattern, create updatePoint from the key location
+              let updatePoint;
+              if (prop.key && prop.key.loc) {
+                updatePoint = {
+                  line: prop.key.loc.end.line,
+                  column: prop.key.loc.end.column - 1,
+                };
+              }
+
               tests.push({
                 name: propName,
                 suites: suiteNames,
-                updatePoint: getUpdatePoint(path.parent),
+                updatePoint: updatePoint,
                 line: prop.loc.start.line,
                 code,
                 file,
