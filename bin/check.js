@@ -184,6 +184,7 @@ program
   .command('pull')
   .option('-d, --dir <dir>', 'target directory', '.')
   .option('--dry-run', 'show what files would be created without actually creating them')
+  .option('--force', 'skip git checks and force pull files')
   .description('Pull test files from Testomat.io')
   .action(async opts => {
     const Reporter = require('../src/reporter');
@@ -196,7 +197,7 @@ program
 
     try {
       const reporter = new Reporter(apiKey.trim(), 'manual');
-      const pull = new Pull(reporter, opts.dir || process.cwd(), { dryRun: opts.dryRun });
+      const pull = new Pull(reporter, opts.dir || process.cwd(), { dryRun: opts.dryRun, force: opts.force });
       const files = await pull.pullFiles();
 
       if (!opts.dryRun && files.length > 0) {

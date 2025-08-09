@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const debug = require('debug')('testomatio:pull');
 
 class Pull {
@@ -7,10 +8,16 @@ class Pull {
     this.reporter = reporter;
     this.workDir = workDir;
     this.dryRun = options.dryRun || false;
+    this.force = options.force || false;
   }
 
   async pullFiles() {
     debug('Pulling files from Testomat.io...');
+
+    // Perform git checks unless force mode is enabled
+    if (!this.force) {
+      this.performGitChecks();
+    }
 
     try {
       const data = await this.reporter.getFilesFromServer();
@@ -128,19 +135,64 @@ class Pull {
       const item = node[name];
 
       if (item.isFile) {
-        // File
         const connector = isLast ? '└── ' : '├── ';
         console.log(`${prefix}${connector}${name}`);
       } else {
-        // Directory
         const connector = isLast ? '└── ' : '├── ';
         console.log(`${prefix}${connector}${name}/`);
 
-        // Recurse into directory
         const newPrefix = prefix + (isLast ? '    ' : '│   ');
         this.printTree(item, newPrefix);
       }
     });
+  }
+
+  performGitChecks() {
+    if (this.isDirNonEmpty() && !this.isGitRepository()) {
+      console.error(' ✖️ Directory is not empty and git is not initialized.');
+      console.error('    Run "git init" to initialize git repository, or use --force to skip checks.');
+      process.exit(1);
+    }
+
+    if (this.isGitRepository() && !this.isWorkingTreeClean()) {
+      console.error(' ✖️ Git working tree is not clean.');
+      console.error('    Commit your changes first, or use --force to skip checks.');
+      process.exit(1);
+    }
+  }
+
+  isDirNonEmpty() {
+    try {
+      const files = fs.readdirSync(this.workDir);
+      const visibleFiles = files.filter(file => !file.startsWith('.'));
+      return visibleFiles.length > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  isGitRepository() {
+    try {
+      execSync('git rev-parse --git-dir', {
+        cwd: this.workDir,
+        stdio: 'ignore',
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  isWorkingTreeClean() {
+    try {
+      const output = execSync('git status --porcelain', {
+        cwd: this.workDir,
+        encoding: 'utf8',
+      });
+      return output.trim() === '';
+    } catch (error) {
+      return false;
+    }
   }
 }
 
