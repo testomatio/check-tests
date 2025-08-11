@@ -92,7 +92,7 @@ Check that your project uses one of the following testing frameworks (this list 
 - jest
 - mocha
 - newman (Postman collections)
-- [nightwatch](https://nightwatchjs.org)
+- [nightwatch](https://nightwatchjs.org) [more info](docs/frameworks/nightwatch.md)
 - playwright
 - protractor
 - qunit
