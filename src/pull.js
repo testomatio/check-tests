@@ -149,14 +149,22 @@ class Pull {
 
   performGitChecks() {
     if (this.isDirNonEmpty() && !this.isGitRepository()) {
-      console.error(' ✖️ Directory is not empty and git is not initialized.');
+      const message = ' ✖️ Directory is not empty and git is not initialized.';
+      console.error(message);
       console.error('    Run "git init" to initialize git repository, or use --force to skip checks.');
+      if (process.env.NODE_ENV === 'test') {
+        throw new Error(message);
+      }
       process.exit(1);
     }
 
     if (this.isGitRepository() && !this.isWorkingTreeClean()) {
-      console.error(' ✖️ Git working tree is not clean.');
+      const message = ' ✖️ Git working tree is not clean.';
+      console.error(message);
       console.error('    Commit your changes first, or use --force to skip checks.');
+      if (process.env.NODE_ENV === 'test') {
+        throw new Error(message);
+      }
       process.exit(1);
     }
   }
