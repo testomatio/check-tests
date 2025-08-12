@@ -19,7 +19,7 @@ describe('Pull', () => {
         }),
     };
 
-    pull = new Pull(mockReporter, testDir);
+    pull = new Pull(mockReporter, testDir, { force: true });
 
     // Clean up test directory
     if (fs.existsSync(testDir)) {
@@ -89,7 +89,7 @@ describe('Pull', () => {
 
   describe('dry run mode', () => {
     beforeEach(() => {
-      pull = new Pull(mockReporter, testDir, { dryRun: true });
+      pull = new Pull(mockReporter, testDir, { dryRun: true, force: true });
     });
 
     it('should not create files in dry run mode', async () => {
@@ -142,6 +142,137 @@ describe('Pull', () => {
       } finally {
         console.log = originalLog;
       }
+    });
+  });
+
+  describe('git checks', () => {
+    const { execSync } = require('child_process');
+    let tempGitDir;
+
+    beforeEach(() => {
+      tempGitDir = path.join('/tmp', 'temp-git-test-' + Date.now());
+      if (fs.existsSync(tempGitDir)) {
+        fs.rmSync(tempGitDir, { recursive: true, force: true });
+      }
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(tempGitDir)) {
+        fs.rmSync(tempGitDir, { recursive: true, force: true });
+      }
+    });
+
+    describe('non-empty directory without git', () => {
+      it('should exit with error when directory has files but no git', async () => {
+        // Create non-empty directory
+        fs.mkdirSync(tempGitDir, { recursive: true });
+        fs.writeFileSync(path.join(tempGitDir, 'existing.txt'), 'content');
+
+        // Set test environment
+        const originalEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = 'test';
+
+        const pullNoForce = new Pull(mockReporter, tempGitDir, { force: false });
+
+        try {
+          await pullNoForce.pullFiles();
+          expect.fail('Should have thrown an error');
+        } catch (error) {
+          expect(error.message).to.include('Directory is not empty and git is not initialized');
+        } finally {
+          process.env.NODE_ENV = originalEnv;
+        }
+      });
+
+      it('should pass when directory is empty and no git', async () => {
+        // Create empty directory
+        fs.mkdirSync(tempGitDir, { recursive: true });
+
+        const pullNoForce = new Pull(mockReporter, tempGitDir, { force: false });
+        const files = await pullNoForce.pullFiles();
+
+        expect(files).to.have.length(2);
+      });
+
+      it('should pass when directory has only hidden files and no git', async () => {
+        // Create directory with only hidden files
+        fs.mkdirSync(tempGitDir, { recursive: true });
+        fs.writeFileSync(path.join(tempGitDir, '.hidden'), 'content');
+
+        const pullNoForce = new Pull(mockReporter, tempGitDir, { force: false });
+        const files = await pullNoForce.pullFiles();
+
+        expect(files).to.have.length(2);
+      });
+    });
+
+    describe('git repository with dirty working tree', () => {
+      beforeEach(() => {
+        // Initialize git repo
+        fs.mkdirSync(tempGitDir, { recursive: true });
+        execSync('git init', { cwd: tempGitDir, stdio: 'ignore' });
+        execSync('git config user.email "test@example.com"', { cwd: tempGitDir, stdio: 'ignore' });
+        execSync('git config user.name "Test User"', { cwd: tempGitDir, stdio: 'ignore' });
+      });
+
+      it('should exit with error when working tree is dirty', async () => {
+        // Create uncommitted file
+        fs.writeFileSync(path.join(tempGitDir, 'uncommitted.txt'), 'content');
+
+        // Set test environment
+        const originalEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = 'test';
+
+        const pullNoForce = new Pull(mockReporter, tempGitDir, { force: false });
+
+        try {
+          await pullNoForce.pullFiles();
+          expect.fail('Should have thrown an error');
+        } catch (error) {
+          expect(error.message).to.include('Git working tree is not clean');
+        } finally {
+          process.env.NODE_ENV = originalEnv;
+        }
+      });
+
+      it('should pass when working tree is clean', async () => {
+        // Create and commit a file
+        fs.writeFileSync(path.join(tempGitDir, 'committed.txt'), 'content');
+        execSync('git add .', { cwd: tempGitDir, stdio: 'ignore' });
+        execSync('git commit -m "Initial commit"', { cwd: tempGitDir, stdio: 'ignore' });
+
+        const pullNoForce = new Pull(mockReporter, tempGitDir, { force: false });
+        const files = await pullNoForce.pullFiles();
+
+        expect(files).to.have.length(2);
+      });
+    });
+
+    describe('force mode', () => {
+      it('should bypass git checks with force mode', async () => {
+        // Create non-empty directory with no git
+        fs.mkdirSync(tempGitDir, { recursive: true });
+        fs.writeFileSync(path.join(tempGitDir, 'existing.txt'), 'content');
+
+        const pullForce = new Pull(mockReporter, tempGitDir, { force: true });
+        const files = await pullForce.pullFiles();
+
+        expect(files).to.have.length(2);
+      });
+
+      it('should bypass dirty working tree check with force mode', async () => {
+        // Initialize git repo with uncommitted changes
+        fs.mkdirSync(tempGitDir, { recursive: true });
+        execSync('git init', { cwd: tempGitDir, stdio: 'ignore' });
+        execSync('git config user.email "test@example.com"', { cwd: tempGitDir, stdio: 'ignore' });
+        execSync('git config user.name "Test User"', { cwd: tempGitDir, stdio: 'ignore' });
+        fs.writeFileSync(path.join(tempGitDir, 'uncommitted.txt'), 'content');
+
+        const pullForce = new Pull(mockReporter, tempGitDir, { force: true });
+        const files = await pullForce.pullFiles();
+
+        expect(files).to.have.length(2);
+      });
     });
   });
 });
