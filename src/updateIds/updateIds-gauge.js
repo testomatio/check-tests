@@ -2,9 +2,12 @@ const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
 const debug = require('debug')('testomatio:update-ids-gauge');
-const { TAG_REGEX } = require('./constants');
+const { TAG_REGEX, SUITE_ID_REGEX, TEST_ID_REGEX } = require('./constants');
 
-const ID_REGEX = /@(?:S|T)[a-z0-9]+/gi;
+// Match only proper IDs like @SXXXXXXXX or @TXXXXXXXX (8 chars)
+const ID_REGEX = new RegExp(`${SUITE_ID_REGEX.source}|${TEST_ID_REGEX.source}`, 'gi');
+// Also match any legacy or malformed @S* / @T* tokens to ensure replacement
+const ANY_ST_TOKEN_REGEX = /@(S|T)[A-Za-z0-9]+/g;
 
 const isSuite = line => line.startsWith('# ');
 const isTest = line => line.startsWith('## ');
@@ -18,7 +21,8 @@ const extractName = line =>
     .trim();
 const extractUnderlinedName = line => line.trim();
 
-const extractIds = line => line.match(ID_REGEX) || [];
+// kept for potential future use; avoid lint error
+// const extractIds = line => line.match(ID_REGEX) || [];
 
 const buildKeys = (file, suite, test) => ({
   full: `${file}#${suite}${test ? `#${test}` : ''}`,
@@ -29,9 +33,11 @@ const buildKeys = (file, suite, test) => ({
 const findMappedId = (map, keys) => map[keys.full] || map[keys.simple] || map[keys.normalized];
 
 const updateLine = (line, id) => {
-  const existingIds = extractIds(line);
-  if (existingIds.includes(id)) return line;
-  return `${line} ${id}`.trim();
+  // Remove any previously set Suite/Test IDs and append the new one
+  // This guarantees there is at most one ID in the title
+  // Remove both strict IDs and any legacy @S* / @T* tokens
+  const lineWithoutIds = line.replace(ID_REGEX, '').replace(ANY_ST_TOKEN_REGEX, '').replace(/\s+/g, ' ').trim();
+  return `${lineWithoutIds} ${id}`.trim();
 };
 
 const removeIds = (line, ids) => {

@@ -160,6 +160,38 @@ Update User
       expect(updatedContent).to.include('## Update User @T12345679');
     });
 
+    it('replaces previously added IDs (suite and tests)', () => {
+      const specContent = `# User Management @SOLD
+
+## Create User @TOLD
+* Open user form
+
+## Update User @TOLDER
+* Open user form`;
+
+      const testomatioMap = {
+        suites: {
+          [`${tempDir}/test.spec#User Management`]: '@SNEW12345',
+        },
+        tests: {
+          [`${tempDir}/test.spec#User Management#Create User`]: '@TNEW54321',
+          [`${tempDir}/test.spec#User Management#Update User`]: '@TNEW11111',
+        },
+      };
+
+      const specPath = path.join(tempDir, 'test.spec');
+      fs.writeFileSync(specPath, specContent);
+
+      const updatedFiles = updateIdsGauge(testomatioMap, tempDir, { pattern: '**/*.spec' });
+
+      expect(updatedFiles).to.include(specPath);
+      const updatedContent = fs.readFileSync(specPath, 'utf8');
+      expect(updatedContent).to.include('# User Management @SNEW12345');
+      expect(updatedContent).to.include('## Create User @TNEW54321');
+      expect(updatedContent).to.include('## Update User @TNEW11111');
+      expect(updatedContent).to.not.match(/@SOLD|@TOLD|@TOLDER/);
+    });
+
     it('handles simple key matching', () => {
       const specContent = `# User Management
 
