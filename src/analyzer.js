@@ -55,6 +55,9 @@ class Analyzer {
       case 'manual':
         this.frameworkParser = require('./lib/frameworks/markdown');
         break;
+      case 'gauge':
+        this.frameworkParser = require('./lib/frameworks/gauge');
+        break;
       case 'mocha':
       case 'cypress':
       case 'cypress.io':
