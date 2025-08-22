@@ -44,6 +44,7 @@ npx check-tests <framework> <files> [options]
 | `--no-hooks`                | Exclude test hooks code from the code on the client          | false   |
 | `--line-numbers`            | Add line numbers to each block of code                       | false   |
 | `--test-alias <test-alias>` | Specify custom alias for test/it functions (comma-separated) | -       |
+| `--force`                   | Skip git checks and force push files                         | false   |
 
 ### Export Options
 

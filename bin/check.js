@@ -22,6 +22,10 @@ async function mainAction(framework, files, opts) {
   opts.testAlias = opts.testAlias ? opts.testAlias.split(',') : [];
   opts.framework = framework;
   opts.pattern = files;
+
+  if (opts.force) {
+    console.log(' ⚠️  Running with --force option');
+  }
   const frameworkOpts = {};
 
   if (opts.lineNumbers) {
@@ -103,6 +107,7 @@ async function mainAction(framework, files, opts) {
           branch,
           'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached,
           structure: opts.keepStructure,
+          force: opts.force || false,
         }); // async call
 
         if (opts.sync) {
@@ -230,6 +235,7 @@ program
   .option('--line-numbers', 'Adding an extra line number to each block of code')
   .option('--test-alias <test-alias>', 'Specify custom alias for test/it etc (separated by commas if multiple)')
   .option('--exclude <pattern>', 'Glob pattern to exclude files from analysis')
+  .option('--force', 'skip git checks and force push files')
   .description('Push manual tests from markdown files (alias for check-tests manual **/**.md)')
   .action(async opts => {
     // Alias: call main action with 'manual' framework and '**/**.md' files
