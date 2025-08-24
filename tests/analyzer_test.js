@@ -172,4 +172,22 @@ describe('analyzer', () => {
         .and.satisfy(msg => msg.startsWith(''));
     });
   });
+
+  it('should parse TypeScript files with ES2023 Explicit Resource Management', () => {
+    analyzer = new Analyzer('jest', path.join(__dirname, '..'));
+    analyzer.withTypeScript();
+    analyzer.analyze('example/jest/erm.spec.ts');
+
+    const stats = analyzer.getStats();
+    const decorator = analyzer.getDecorator();
+    const actualTests = stats.tests;
+
+    expect(actualTests).to.include('ERM: using works');
+    expect(decorator.getSuiteNames()).to.include('ERM');
+    expect(stats.tests.length).to.equal(1);
+    expect(stats.skipped.length).to.equal(0);
+
+    const tests = decorator.getTests();
+    expect(tests[0].code).to.include('using r = getResource();');
+  });
 });

@@ -192,4 +192,40 @@ describe('jest parser', () => {
       expect(tests[1].code).to.include("test.concurrent('test concurrent', () => {});");
     });
   });
+
+  context('ES2023 Explicit Resource Management tests', () => {
+    let ermSource, ermAst;
+
+    before(() => {
+      ermSource = fs.readFileSync('./example/jest/erm.spec.ts').toString();
+      // Parse with explicitResourceManagement plugin to support using keyword
+      ermAst = parser.parse(ermSource, {
+        sourceType: 'unambiguous',
+        plugins: ['typescript', 'explicitResourceManagement'],
+      });
+    });
+
+    it('should parse jest file with using keyword without errors', () => {
+      expect(() => {
+        jestParser(ermAst, 'example/jest/erm.spec.ts', ermSource);
+      }).to.not.throw();
+    });
+
+    it('should find test with using declaration', () => {
+      const tests = jestParser(ermAst, 'example/jest/erm.spec.ts', ermSource);
+
+      expect(tests).to.have.lengthOf(1);
+      expect(tests[0].name).to.equal('using works');
+      expect(tests[0].suites).to.deep.equal(['ERM']);
+    });
+
+    it('should include code with using keyword', () => {
+      const tests = jestParser(ermAst, 'example/jest/erm.spec.ts', ermSource);
+
+      expect(tests[0].code).to.include('using r = getResource();');
+      expect(tests[0].code).to.include('expect(1).toBe(1);');
+      // [Symbol.dispose] is in the getResource function outside the test, so check source
+      expect(ermSource).to.include('[Symbol.dispose]');
+    });
+  });
 });
