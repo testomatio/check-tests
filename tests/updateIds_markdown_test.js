@@ -33,7 +33,7 @@ User should be able to login.`;
 
       const result = updateIdsMarkdown(testomatioMap, __dirname, { pattern: 'temp-test.md' });
 
-      expect(result).to.include(testFile);
+      expect(result.map(f => path.resolve(f))).to.include(path.resolve(testFile));
 
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.include('id: @T12345678');
@@ -59,7 +59,7 @@ Test suite for login functionality.`;
 
       const result = updateIdsMarkdown(testomatioMap, __dirname, { pattern: 'temp-test.md' });
 
-      expect(result).to.include(testFile);
+      expect(result.map(f => path.resolve(f))).to.include(path.resolve(testFile));
 
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.include('id: @S87654321');
@@ -86,7 +86,7 @@ User should be able to login.`;
 
       const result = updateIdsMarkdown(testomatioMap, __dirname, { pattern: 'temp-test.md' });
 
-      expect(result).to.include(testFile);
+      expect(result.map(f => path.resolve(f))).to.include(path.resolve(testFile));
 
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.include('id: @T12345678');
@@ -113,7 +113,7 @@ User should be able to login.`;
 
       const result = updateIdsMarkdown(testomatioMap, __dirname, { pattern: 'temp-test.md' });
 
-      expect(result).to.include(testFile);
+      expect(result.map(f => path.resolve(f))).to.include(path.resolve(testFile));
 
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.include('id: @T12345678');
@@ -158,7 +158,7 @@ User should be able to login.`;
 
       const result = cleanIdsMarkdown({}, __dirname, { pattern: 'temp-test.md' });
 
-      expect(result).to.include(testFile);
+      expect(result.map(f => path.resolve(f))).to.include(path.resolve(testFile));
 
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.not.include('id: @T12345678');
@@ -183,7 +183,7 @@ User should be able to login.`;
 
       const result = cleanIdsMarkdown({}, __dirname, { pattern: 'temp-test.md' });
 
-      expect(result).to.include(testFile);
+      expect(result.map(f => path.resolve(f))).to.include(path.resolve(testFile));
 
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.not.include('id: @T12345678');

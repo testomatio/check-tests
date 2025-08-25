@@ -140,19 +140,32 @@ class Analyzer {
         }
         try {
           if (this.typeScript) {
-            const program = parser.parse(source, {
-              sourceType: 'unambiguous',
-              filePath: fullPath.replace(/\\/g, '/'),
-              loc: true,
-              range: true,
-              tokens: true,
-            });
-            ast = {
-              program,
-              type: 'File',
-            };
+            // Try with typescript-estree first, fall back to babel parser with typescript plugin for ERM support
+            try {
+              const program = parser.parse(source, {
+                sourceType: 'unambiguous',
+                filePath: fullPath.replace(/\\/g, '/'),
+                loc: true,
+                range: true,
+                tokens: true,
+              });
+              ast = {
+                program,
+                type: 'File',
+              };
+            } catch (tsErr) {
+              // Fall back to babel parser for TypeScript with ERM support
+              const babelParser = require('@babel/parser');
+              ast = babelParser.parse(source, {
+                sourceType: 'unambiguous',
+                plugins: ['typescript', 'explicitResourceManagement'],
+              });
+            }
           } else {
-            ast = parser.parse(source, { sourceType: 'unambiguous' });
+            ast = parser.parse(source, {
+              sourceType: 'unambiguous',
+              plugins: ['explicitResourceManagement'],
+            });
           }
         } catch (err) {
           console.error(`Error parsing ${file}:`);

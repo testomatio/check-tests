@@ -789,6 +789,26 @@ Now tests TypeScript can be imported with `--typescript` option:
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --typescript
 ```
 
+### ES2023 Support
+
+Starting from version 0.13.3, the tool supports ES2023 Explicit Resource Management (ERM) syntax including:
+
+- `using` declarations for automatic resource disposal
+- `[Symbol.dispose]` method definitions
+
+This allows parsing of modern TypeScript/JavaScript files that use resource management patterns:
+
+```typescript
+const getResource = () => ({
+  [Symbol.dispose]: () => { /* cleanup code */ },
+});
+
+test('resource management', () => {
+  using resource = getResource();
+  // resource will be automatically disposed at the end of the scope
+});
+```
+
 ## Test aliases
 
 Test aliases are used to map tests in source code to tests in Testomat.io. By default `test` and `it` are parsed. But if you rename them or use another function to define tests (e.g. created/extended test object in Playwright), you can add alias (or multiple aliases, separated by comma) via `--test-alias` option:
