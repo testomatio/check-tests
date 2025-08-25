@@ -88,6 +88,7 @@ Check that your project uses one of the following testing frameworks (this list 
 
 - codeceptjs
 - cypress.io
+- gauge (Gauge specifications)
 - jasmine
 - jest
 - mocha
@@ -515,6 +516,14 @@ npx check-tests vitest "src/**/*.spec.js"
 # TypeScript
 npx check-tests vitest "tests/**/*.test.ts" --typescript
 npx check-tests vitest "src/**/*.spec.ts" --typescript
+```
+
+#### Gauge
+
+```bash
+# Gauge specification files
+npx check-tests gauge "specs/**/*.spec"
+npx check-tests gauge "tests/**/*.spec"
 ```
 
 #### Manual Tests (Markdown)
