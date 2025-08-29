@@ -88,6 +88,7 @@ Check that your project uses one of the following testing frameworks (this list 
 
 - codeceptjs
 - cypress.io
+- gauge (Gauge specifications)
 - jasmine
 - jest
 - mocha
@@ -517,6 +518,14 @@ npx check-tests vitest "tests/**/*.test.ts" --typescript
 npx check-tests vitest "src/**/*.spec.ts" --typescript
 ```
 
+#### Gauge
+
+```bash
+# Gauge specification files
+npx check-tests gauge "specs/**/*.spec"
+npx check-tests gauge "tests/**/*.spec"
+```
+
 #### Manual Tests (Markdown)
 
 ```bash
@@ -787,6 +796,26 @@ Now tests TypeScript can be imported with `--typescript` option:
 
 ```
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --typescript
+```
+
+### ES2023 Support
+
+Starting from version 0.13.3, the tool supports ES2023 Explicit Resource Management (ERM) syntax including:
+
+- `using` declarations for automatic resource disposal
+- `[Symbol.dispose]` method definitions
+
+This allows parsing of modern TypeScript/JavaScript files that use resource management patterns:
+
+```typescript
+const getResource = () => ({
+  [Symbol.dispose]: () => { /* cleanup code */ },
+});
+
+test('resource management', () => {
+  using resource = getResource();
+  // resource will be automatically disposed at the end of the scope
+});
 ```
 
 ## Test aliases

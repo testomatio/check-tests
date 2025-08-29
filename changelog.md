@@ -1,3 +1,10 @@
+# 0.13.3
+
+- Added ES2023 Explicit Resource Management (ERM) parsing support
+- Fixed parser to support `using` declarations and `[Symbol.dispose]` syntax
+- Added fallback from TypeScript parser to Babel parser for ERM syntax support
+- Tests now work correctly with TypeScript files containing `using` keyword
+
 # 0.8.17
 
 - Added `--line-numbers` option to push the Code line number to the Testomat.io
