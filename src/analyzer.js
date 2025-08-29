@@ -122,8 +122,9 @@ class Analyzer {
       let source = fs.readFileSync(fullPath, { encoding: 'utf8' }).toString();
 
       let ast;
-      // no need to parse code for newman tests or manual tests
-      if (this.framework !== 'newman' && this.framework !== 'manual') {
+      // no need to parse code for frameworks that don't use JavaScript/AST
+      const noAstFrameworks = ['newman', 'manual', 'gauge'];
+      if (!noAstFrameworks.includes(this.framework)) {
         if (this.plugins.length > 0 || this.presets.length) {
           try {
             const opts = {};
