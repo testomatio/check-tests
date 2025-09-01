@@ -11,7 +11,7 @@ jobs:
     steps:
       # first checkout your code
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # then use redoc-cli-github-action to generate your HTML bundle
       - name: Generate and rename Redoc documentation
