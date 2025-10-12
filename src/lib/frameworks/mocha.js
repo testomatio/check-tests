@@ -129,8 +129,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
         let code = '';
 
-        // accumulate hooks in case multiple "before"s are used
-        beforeCode += beforeCode ?? '';
+        beforeCode = beforeCode ?? '';
         beforeEachCode = beforeEachCode ?? '';
         afterCode = afterCode ?? '';
         /* prettier-ignore */
