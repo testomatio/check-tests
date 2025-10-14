@@ -39,7 +39,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
       }
 
       if (path.isIdentifier({ name: 'before' })) {
-        beforeCode = getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
+        beforeCode += getCode(source, getLineNumber(path.parentPath), getEndLineNumber(path.parentPath), isLineNumber);
       }
 
       if (path.isIdentifier({ name: 'beforeEach' })) {
