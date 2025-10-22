@@ -228,4 +228,142 @@ describe('jest parser', () => {
       expect(ermSource).to.include('[Symbol.dispose]');
     });
   });
+
+  context('jest each and concurrent each tests', () => {
+    let eachSource, eachAst;
+
+    before(() => {
+      eachSource = fs.readFileSync('./example/jest/each-tests.js').toString();
+      eachAst = parser.parse(eachSource);
+    });
+
+    it('should parse test.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const testEachTests = tests.filter(t => t.name.includes('test.each with number') && !t.skipped);
+
+      expect(testEachTests).to.have.lengthOf(1);
+      expect(testEachTests[0].name).to.equal('test.each with number %i');
+      expect(testEachTests[0].suites).to.deep.equal(['Jest Each Tests Suite']);
+      expect(testEachTests[0].skipped).to.be.false;
+    });
+
+    it('should parse it.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const itEachTests = tests.filter(t => t.name.includes('it.each with fruit'));
+
+      expect(itEachTests).to.have.lengthOf(1);
+      expect(itEachTests[0].name).to.equal('it.each with fruit %s');
+      expect(itEachTests[0].suites).to.deep.equal(['Jest Each Tests Suite']);
+      expect(itEachTests[0].skipped).to.be.false;
+    });
+
+    it('should parse test.concurrent.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const concurrentEachTests = tests.filter(t => t.name.includes('test.concurrent.each with number') && !t.skipped);
+
+      expect(concurrentEachTests).to.have.lengthOf(1);
+      expect(concurrentEachTests[0].name).to.equal('test.concurrent.each with number %i');
+      expect(concurrentEachTests[0].suites).to.deep.equal(['Jest Each Tests Suite']);
+      expect(concurrentEachTests[0].skipped).to.be.false;
+    });
+
+    it('should parse it.concurrent.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const itConcurrentEachTests = tests.filter(t => t.name.includes('it.concurrent.each with color'));
+
+      expect(itConcurrentEachTests).to.have.lengthOf(1);
+      expect(itConcurrentEachTests[0].name).to.equal('it.concurrent.each with color %s');
+      expect(itConcurrentEachTests[0].suites).to.deep.equal(['Jest Each Tests Suite']);
+      expect(itConcurrentEachTests[0].skipped).to.be.false;
+    });
+
+    it('should parse skipped test.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const skippedTestEach = tests.filter(t => t.name.includes('skipped test.each with number') && t.skipped);
+
+      expect(skippedTestEach).to.have.lengthOf(1);
+      expect(skippedTestEach[0].name).to.equal('skipped test.each with number %i');
+      expect(skippedTestEach[0].skipped).to.be.true;
+    });
+
+    it('should parse skipped it.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const skippedItEach = tests.filter(t => t.name.includes('skipped it.each with letter') && t.skipped);
+
+      expect(skippedItEach).to.have.lengthOf(1);
+      expect(skippedItEach[0].name).to.equal('skipped it.each with letter %s');
+      expect(skippedItEach[0].skipped).to.be.true;
+    });
+
+    it('should parse skipped test.concurrent.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const skippedConcurrentEach = tests.filter(t => t.name.includes('skipped test.concurrent.each'));
+
+      expect(skippedConcurrentEach).to.have.lengthOf(1);
+      expect(skippedConcurrentEach[0].name).to.equal('skipped test.concurrent.each with number %i');
+      expect(skippedConcurrentEach[0].skipped).to.be.true;
+    });
+
+    it('should parse skipped it.concurrent.each', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const skippedItConcurrentEach = tests.filter(t => t.name.includes('skipped it.concurrent.each'));
+
+      expect(skippedItConcurrentEach).to.have.lengthOf(1);
+      expect(skippedItConcurrentEach[0].name).to.equal('skipped it.concurrent.each with letter %s');
+      expect(skippedItConcurrentEach[0].skipped).to.be.true;
+    });
+
+    it('should parse each with multiple parameters', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const multiParamTests = tests.filter(t => t.name.includes('test.each with sum'));
+
+      expect(multiParamTests).to.have.lengthOf(1);
+      expect(multiParamTests[0].name).to.equal('test.each with sum %i + %i = %i');
+      expect(multiParamTests[0].skipped).to.be.false;
+    });
+
+    it('should parse concurrent each with multiple parameters', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const concurrentMultiParamTests = tests.filter(t => t.name.includes('test.concurrent.each with string'));
+
+      expect(concurrentMultiParamTests).to.have.lengthOf(1);
+      expect(concurrentMultiParamTests[0].name).to.equal('test.concurrent.each with string "%s" has length %i');
+      expect(concurrentMultiParamTests[0].skipped).to.be.false;
+    });
+
+    it('should include code for each tests', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const testEachTest = tests.filter(t => t.name.includes('test.each with number'))[0];
+
+      expect(testEachTest.code).to.include('test.each([1, 2, 3])');
+      expect(testEachTest.code).to.include('expect(num).toBeLessThan(5)');
+    });
+
+    it('should include code for concurrent each tests', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+      const concurrentEachTest = tests.filter(t => t.name.includes('test.concurrent.each with number'))[0];
+
+      expect(concurrentEachTest.code).to.include('test.concurrent.each([1, 2, 3])');
+      expect(concurrentEachTest.code).to.include('expect(num).toBeLessThan(5)');
+    });
+
+    it('should count all each tests correctly', () => {
+      const tests = jestParser(eachAst, 'example/jest/each-tests.js', eachSource);
+
+      // Count each type of tests
+      const regularTests = tests.filter(t => !t.name.includes('.each') && !t.name.includes('.concurrent'));
+      const eachTests = tests.filter(t => t.name.includes('.each') && !t.name.includes('.concurrent.each'));
+      const concurrentTests = tests.filter(t => t.name.includes('.concurrent') && !t.name.includes('.each'));
+      const concurrentEachTests = tests.filter(t => t.name.includes('.concurrent.each'));
+
+      // We should have found all types of tests
+      expect(regularTests.length).to.be.greaterThan(0);
+      expect(eachTests.length).to.be.greaterThan(0);
+      expect(concurrentTests.length).to.be.greaterThan(0);
+      expect(concurrentEachTests.length).to.be.greaterThan(0);
+
+      // Total should include all each variations
+      expect(tests.length).to.be.greaterThan(10);
+    });
+  });
 });
