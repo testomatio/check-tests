@@ -3,7 +3,7 @@ const Analyzer = require('../src/analyzer');
 const fs = require('fs');
 const path = require('path');
 
-const TESTOMATIO_ID_REGEX = /@T[a-fA-F0-9]{1,}/;
+const { TEST_ID_REGEX } = require('../src/updateIds/constants');
 
 describe('--require-ids functionality', () => {
   const tempDir = path.join(__dirname, 'temp-require-ids');
@@ -48,7 +48,7 @@ describe('--require-ids functionality', () => {
     const testsMissingIds = decorator
       .getTests()
       .filter(test => !test.skipped)
-      .filter(test => !TESTOMATIO_ID_REGEX.test(test.name));
+      .filter(test => !TEST_ID_REGEX.test(test.name));
 
     expect(testsMissingIds.length).to.equal(0);
   });
@@ -81,7 +81,7 @@ describe('--require-ids functionality', () => {
     const testsMissingIds = decorator
       .getTests()
       .filter(test => !test.skipped)
-      .filter(test => !TESTOMATIO_ID_REGEX.test(test.name));
+      .filter(test => !TEST_ID_REGEX.test(test.name));
 
     expect(testsMissingIds.length).to.equal(2);
     expect(testsMissingIds[0].name).to.equal('should test case 2 without ID');
@@ -116,7 +116,7 @@ describe('--require-ids functionality', () => {
     const testsMissingIds = decorator
       .getTests()
       .filter(test => !test.skipped)
-      .filter(test => !TESTOMATIO_ID_REGEX.test(test.name));
+      .filter(test => !TEST_ID_REGEX.test(test.name));
 
     expect(testsMissingIds.length).to.equal(1);
     expect(testsMissingIds[0].name).to.equal('should test case 3 without ID');

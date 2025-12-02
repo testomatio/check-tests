@@ -10,7 +10,7 @@ const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
-const TESTOMATIO_ID_REGEX = /@T[a-fA-F0-9]{1,}/;
+const { TEST_ID_REGEX } = require('../src/updateIds/constants');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
 process.env.isTestomatioCli = true;
@@ -157,7 +157,7 @@ async function mainAction(framework, files, opts) {
       const testsMissingIds = decorator
         .getTests()
         .filter(test => !test.skipped)
-        .filter(test => !TESTOMATIO_ID_REGEX.test(test.name));
+        .filter(test => !TEST_ID_REGEX.test(test.name));
 
       if (testsMissingIds.length > 0) {
         const missingIdList = testsMissingIds.map(test => `${test.file}:${test.line} - ${test.name}`).join('\n');
