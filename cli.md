@@ -44,6 +44,7 @@ npx check-tests <framework> <files> [options]
 | `--no-hooks`                | Exclude test hooks code from the code on the client          | false   |
 | `--line-numbers`            | Add line numbers to each block of code                       | false   |
 | `--test-alias <test-alias>` | Specify custom alias for test/it functions (comma-separated) | -       |
+| `--require-ids`             | Fail build if tests are missing Testomat.io IDs              | false   |
 | `--force`                   | Skip git checks and force push files                         | false   |
 
 ### Export Options
@@ -149,6 +150,7 @@ TESTOMATIO_BRANCH=main
 - `0` - Success
 - `1` - Error (general)
 - `2` - Skipped tests found (when `--no-skipped` is used)
+- `1` - Tests missing Testomat.io IDs found (when `--require-ids` is used)
 
 ## Supported Frameworks
 
