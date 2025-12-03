@@ -69,7 +69,7 @@
     "run": "node -r dotenv/config index.js",
     "test": "mocha tests/**_test.js",
     "test:debug": "node debug_test.js",
-    "lint": "eslint 'src/**/*.js' --fix",
+    "lint": "eslint src/**/*.js --fix",
     "pretty-quick": "pretty-quick --staged",
     "prepare": "husky install",
     "build": "ncc build index.js --minify"
