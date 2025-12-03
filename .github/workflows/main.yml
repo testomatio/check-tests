@@ -11,6 +11,8 @@ jobs:
     name: Check Tests
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Node.js for use with actions
         uses: actions/setup-node@v4
         with:

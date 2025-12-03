@@ -162,13 +162,13 @@ class Analyzer {
               const babelParser = require('@babel/parser');
               ast = babelParser.parse(source, {
                 sourceType: 'unambiguous',
-                plugins: ['typescript', 'explicitResourceManagement'],
+                plugins: ['typescript', 'explicitResourceManagement', 'optionalChaining', 'nullishCoalescingOperator'],
               });
             }
           } else {
             ast = parser.parse(source, {
               sourceType: 'unambiguous',
-              plugins: ['explicitResourceManagement'],
+              plugins: ['explicitResourceManagement', 'optionalChaining', 'nullishCoalescingOperator'],
             });
           }
         } catch (err) {
