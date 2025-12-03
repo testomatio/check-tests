@@ -10,6 +10,7 @@ const apiKey = process.env['INPUT_TESTOMATIO-KEY'] || process.env['TESTOMATIO'];
 const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
+const { TEST_ID_REGEX } = require('../src/updateIds/constants');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
 process.env.isTestomatioCli = true;
@@ -151,6 +152,22 @@ async function mainAction(framework, files, opts) {
     if (!opts.skipped && skipped.length) {
       throw new Error('Skipped tests found, failing...');
     }
+
+    if (opts.requireIds) {
+      const testsMissingIds = decorator
+        .getTests()
+        .filter(test => !test.skipped)
+        .filter(test => !TEST_ID_REGEX.test(test.name));
+
+      if (testsMissingIds.length > 0) {
+        const missingIdList = testsMissingIds.map(test => `${test.file}:${test.line} - ${test.name}`).join('\n');
+
+        throw new Error(
+          `Found ${testsMissingIds.length} test(s) missing Testomat.io IDs:\n${missingIdList}\n\n` +
+            'Please add Testomat.io IDs to all tests or run with --update-ids to add them automatically.',
+        );
+      }
+    }
   } catch (err) {
     console.error(chalk.bold.red(err));
     console.error(err);
@@ -182,6 +199,7 @@ program
   .option('--line-numbers', 'Adding an extra line number to each block of code')
   .option('--test-alias <test-alias>', 'Specify custom alias for test/it etc (separated by commas if multiple)')
   .option('--exclude <pattern>', 'Glob pattern to exclude files from analysis')
+  .option('--require-ids', 'Fail build if tests are missing Testomat.io IDs')
   .action(mainAction);
 
 // Pull command
