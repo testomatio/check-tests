@@ -244,6 +244,16 @@ const jest = {
   },
 };
 
+function getAllSuiteTags(currentSuite) {
+  const tags = [];
+  currentSuite.forEach(suite => {
+    if (suite.tags && suite.tags.length) {
+      tags.push(...suite.tags);
+    }
+  });
+  return tags;
+}
+
 module.exports = {
   hasStringArgument,
   hasTemplateQuasi,
@@ -261,4 +271,5 @@ module.exports = {
   cleanAtPoint,
   playwright,
   arrayCompare,
+  getAllSuiteTags,
 };
