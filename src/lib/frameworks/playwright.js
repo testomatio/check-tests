@@ -8,6 +8,7 @@ const {
   getEndLineNumber,
   getCode,
   playwright,
+  getAllSuiteTags,
 } = require('../utils');
 
 module.exports = (ast, file = '', source = '', opts = {}) => {
@@ -24,6 +25,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
+    path.tags = playwright.getTestProps({ parent: { expression: path } }).tags;
     currentSuite.push(path);
   }
 
@@ -210,7 +212,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code,
             file,
-            tags: playwright.getTestProps(path.parentPath).tags,
+            tags: [...getAllSuiteTags(currentSuite), ...playwright.getTestProps(path.parentPath).tags],
             annotations: playwright.getTestProps(path.parentPath).annotations,
             skipped: !!currentSuite.filter(s => s.skipped).length,
           });
