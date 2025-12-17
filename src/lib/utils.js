@@ -247,7 +247,7 @@ const jest = {
 function getAllSuiteTags(currentSuite) {
   const tags = [];
   currentSuite.forEach(suite => {
-    if (suite.tags && suite.tags.length) {
+    if (suite.tags?.length) {
       tags.push(...suite.tags);
     }
   });
