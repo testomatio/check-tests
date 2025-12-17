@@ -361,6 +361,16 @@ Run `check-tests` via npx:
 npx check-tests <framework> "<tests>" --no-skipped
 ```
 
+### Requiring Testomat.io IDs
+
+To fail the build if tests are missing Testomat.io IDs:
+
+```sh
+npx check-tests <framework> "<tests>" --require-ids
+```
+
+This is perfect for CI environments where you want to ensure all tests are properly tracked in Testomat.io.
+
 ### Development
 
 To change host of endpoint for receiving data, and set it to other than app.testomat.io use TESTOMATIO_URL environment variable:
@@ -377,6 +387,7 @@ TESTOMATIO_URL=http://local.testomat.io
 ### CLI Options:
 
 - `--no-skipped` - fail when skipped tests found
+- `--require-ids` - fail when tests are missing Testomat.io IDs
 - `--typescript` - enable typescript support
 - `-g, --generate-file <fileName>` - Export test details to document
 - `-u, --url <url>`, Github URL to get file link (URL/tree/master)
