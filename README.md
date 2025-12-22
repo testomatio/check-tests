@@ -638,6 +638,9 @@ By default `check-tests` doesn't wait for all tests to be processed. It sends re
 TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --sync
 ```
 
+> [!WARNING]
+> Avoid `--sync` when importing large code bases, as sync request can be blocked by timeout. Import tests without `--sync` flag for seamless experience 
+
 Please note, that this will take a long time on a large codebase.
 
 ## Auto-assign Test IDs in Source Code
@@ -649,6 +652,9 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --updat
 ```
 
 Tests imported with `--update-ids` will be processed in synchronouse mode, so the script will finish after all tests are processed.
+
+> [!WARNING]
+> When importing large code bases, it is recommended to import all tests first without `--update-ids` flag. Once you ensure all tests were imported and displayed in UI, run the same command with `--update-ids`. This ensures that server finishes processing data and IDs are ready to be assigned.
 
 ## Keep Test IDs Between Projects
 
