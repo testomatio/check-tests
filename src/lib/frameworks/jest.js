@@ -24,6 +24,17 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
+    if (currentSuite.length > 0) {
+      const parentSuite = getStringValue(currentSuite[currentSuite.length - 1]);
+      const currentSuiteName = getStringValue(path);
+
+      const message =
+        `Nested describe blocks are not allowed.\n` +
+        `Found describe "${currentSuiteName}" inside describe "${parentSuite}" in ${file}\n` +
+        `Only flat describe structure is supported`;
+      console.error(message);
+      process.exit(1);
+    }
     currentSuite.push(path);
   }
 
