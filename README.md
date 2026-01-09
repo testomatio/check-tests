@@ -639,7 +639,7 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --sync
 ```
 
 > [!WARNING]
-> Avoid `--sync` when importing large code bases, as sync request can be blocked by timeout. Import tests without `--sync` flag for seamless experience 
+> Avoid `--sync` when importing large code bases, as sync request can be blocked by timeout. Import tests without `--sync` flag for seamless experience
 
 Please note, that this will take a long time on a large codebase.
 
@@ -655,6 +655,16 @@ Tests imported with `--update-ids` will be processed in synchronouse mode, so th
 
 > [!WARNING]
 > When importing large code bases, it is recommended to import all tests first without `--update-ids` flag. Once you ensure all tests were imported and displayed in UI, run the same command with `--update-ids`. This ensures that server finishes processing data and IDs are ready to be assigned.
+
+### Reserved Tag Format
+
+⚠️ **Do not use tags matching the pattern `@T` followed by 8 alphanumeric characters** (e.g., `@Tabcd1234`, `@Ta1k4ghg9`, `@TeacherXP`). This format is reserved by Testomatio for auto-assigned test IDs. Using tags that match this pattern may cause conflicts during test synchronization and IDs assignment.
+
+If you need to use tags starting with `@T`, ensure they don't follow the `@T + 8 characters` format. For example:
+
+- ✅ `@Teachers` - safe (7 characters after @T)
+- ❌ `@TeacherXP`, `@Ta1b2c3d4` - reserved format, avoid this
+- ✅ `@teacherXP` - as workaround, use lowercase 't' to avoid reserved format
 
 ## Keep Test IDs Between Projects
 
@@ -675,7 +685,7 @@ To clean up test ids without connecting to Testomatio project use `--purge` opti
 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --purge
 ```
 
-This method may be unsafe, as it cleans all `@S*` and `@T*` tags from tests and suites. So if you have a tag like `@Test1234` this may also be removed. If you use this option make sure if all the test titles a proper before committing the tests in GIT.
+This method may be unsafe, as it cleans all `@S*` and `@T*` tags that match the test ID format from tests and suites (specifically tags matching `@T` followed by exactly 8 alphanumeric characters, and `@S` followed by exactly 8 alphanumeric characters). If you use this option make sure all test titles are correct before committing the tests in GIT.
 
 > **Note:** `--purge` is an alias of `--unsafe-clean-ids` option.
 
