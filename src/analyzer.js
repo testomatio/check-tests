@@ -102,6 +102,10 @@ class Analyzer {
       debug('Excluded files:', excludedFiles);
     }
 
+    if (this.framework === 'manual') {
+      files.sort();
+    }
+
     debug('Files:', files);
 
     for (const file of files) {
