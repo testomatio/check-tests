@@ -24,8 +24,10 @@ module.exports = (ast, file = '', source = '') => {
       while (i < lines.length && !lines[i].trim()) i++;
       if (i < lines.length && lines[i].trim().startsWith('#')) {
         const suiteName = lines[i].trim().replace(/^#+\s*/, '');
+        const suiteId = suiteMetadata.data?.id;
+
         currentSuite = {
-          name: suiteName,
+          name: suiteId ? `${suiteName} ${suiteId}` : suiteName,
           line: i + 1,
           metadata: suiteMetadata.data,
         };
