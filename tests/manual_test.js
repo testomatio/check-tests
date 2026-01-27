@@ -58,4 +58,37 @@ describe('manual (markdown) parser', () => {
       });
     });
   });
+
+  context('markdown multiple-suites', () => {
+    before(() => {
+      source = fs.readFileSync('./example/multi-suites.test.md').toString();
+    });
+
+    it('should parse markdown file with multiple suites', () => {
+      const tests = markdownParser(null, 'multi-suites.test.md', source);
+
+      expect(tests).to.have.length.greaterThan(0);
+
+      const testNames = tests.map(t => t.name);
+      expect(testNames).to.include('Test1');
+      expect(testNames).to.include('Test2');
+      expect(testNames).to.include('Test3');
+    });
+
+    it('should extract all suites information', () => {
+      const tests = markdownParser(null, 'multi-suites.test.md', source);
+
+      // Suite with suite id in meta
+      const firstTest = tests[0];
+      expect(firstTest.suites).to.include('Suite1 @Sf5ee38dj');
+
+      // Nested suite names should be parsed correctly
+      const secondTest = tests[1];
+      expect(secondTest.suites).to.include('Suite1 > Suite2 @Sf5ee34dj');
+
+      // Suite without suite id in meta
+      const thirdTest = tests[2];
+      expect(thirdTest.suites).to.include('Suite3');
+    });
+  });
 });
