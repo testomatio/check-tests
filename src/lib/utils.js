@@ -134,7 +134,13 @@ function cleanAtPoint(subject, replaceAt, cleanSubject) {
 const playwright = {
   getTestProps: path => {
     const testProps = { annotations: [], tags: [] };
-    const argumentsList = path.parent.expression.arguments;
+    let argumentsList = [];
+    if (path.node && path.node.arguments) {
+      argumentsList = path.node.arguments;
+    } else if (path.parent && path.parent.expression && path.parent.expression.arguments) {
+      argumentsList = path.parent.expression.arguments;
+    }
+
     if (!argumentsList?.length) return testProps;
     const argumentsWithTags = argumentsList.filter(arg => arg.type === 'ObjectExpression');
     if (!argumentsWithTags.length) return testProps;

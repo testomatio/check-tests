@@ -504,4 +504,26 @@ test.describe.only('my test', () => {
 
     expect(tests.length).to.equal(1);
   });
+
+  it('should not crash when test is assigned to a variable or inside an array (regression for issue #1)', () => {
+    const source = `
+      // This works normally
+      test('works', () => {});
+
+      // This might fail if getTestProps relies on ExpressionStatement
+      const t = test('fails?', () => {});
+      
+      // Or inside a block not being an expression statement?
+      [test('in array', () => {})];
+    `;
+
+    ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+
+    // Should not throw
+    const tests = playwrightParser(ast, '', source);
+
+    expect(tests).to.be.an('array');
+    expect(tests.length).to.be.greaterThan(0);
+    expect(tests[0].name).to.equal('works');
+  });
 });
