@@ -102,9 +102,7 @@ class Analyzer {
       debug('Excluded files:', excludedFiles);
     }
 
-    if (this.framework === 'manual') {
-      files.sort();
-    }
+    files.sort();
 
     debug('Files:', files);
 
