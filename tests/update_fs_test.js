@@ -31,7 +31,7 @@ const copyDir = function (src, dest) {
 const idMap = {
   tests: {
     'Create a new todo item': '@T1111111',
-    'Todos containing weird characters': '@T22222111111',
+    'DataTable example#Todos containing weird characters': '@T22222111111',
   },
   suites: {
     '@first Create Todos @step:06 @smoke @story:12345': '@S12345678',

@@ -190,4 +190,32 @@ describe('analyzer', () => {
     const tests = decorator.getTests();
     expect(tests[0].code).to.include('using r = getResource();');
   });
+
+  it('should sort files alphabetically', () => {
+    analyzer = new Analyzer('codeceptJS', path.join(__dirname, '..'));
+    analyzer.analyze('./example/codeceptjs/*.js');
+
+    const stats = analyzer.getStats();
+    const files = stats.files;
+
+    const decorator = analyzer.getDecorator();
+    const tests = decorator.getTests();
+
+    expect(files[0]).to.include('create_todos_test.js');
+    expect(files[files.length - 1]).to.include('test_hooks_description.js');
+    expect(tests[0].file).to.include('create_todos_test.js');
+    expect(tests[tests.length - 1].file).to.include('test_hooks_description.js');
+  });
+
+  it('should maintain consistent file order across multiple runs', () => {
+    const analyzer1 = new Analyzer('codeceptJS', path.join(__dirname, '..'));
+    analyzer1.analyze('./example/codeceptjs/*.js');
+    const files1 = analyzer1.getStats().files;
+
+    const analyzer2 = new Analyzer('mocha', path.join(__dirname, '..'));
+    analyzer2.analyze('./example/codeceptjs/*.js');
+    const files2 = analyzer2.getStats().files;
+
+    expect(files1).to.deep.equal(files2);
+  });
 });
