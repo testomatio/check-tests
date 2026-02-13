@@ -19,7 +19,7 @@ jobs:
       - run: git add . && git diff --staged --quiet || git commit -m "Update dependencies"
       - run: git status
       - run: npm version ${{ github.event.release.tag_name }}
-      - uses: JS-DevTools/npm-publish@v3
+      - uses: JS-DevTools/npm-publish@v4
         with:
           token: ${{ secrets.NPM_TOKEN }}
           # use "beta" tag if relevant, otherwise use "latest"
