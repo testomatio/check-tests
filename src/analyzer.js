@@ -102,6 +102,8 @@ class Analyzer {
       debug('Excluded files:', excludedFiles);
     }
 
+    files.sort();
+
     debug('Files:', files);
 
     for (const file of files) {
