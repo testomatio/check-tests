@@ -258,7 +258,9 @@ program
   .description('Push manual tests from markdown files (alias for check-tests manual **/**.md)')
   .action(async opts => {
     // Alias: call main action with 'manual' framework and '**/**.md' files
-    await mainAction('manual', '**/**.md', opts);
+    const globalOpts = program.opts();
+    const mergedOpts = { ...globalOpts, ...opts };
+    await mainAction('manual', '**/**.md', mergedOpts);
   });
 
 if (process.argv.length <= 2) {
