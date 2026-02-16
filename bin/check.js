@@ -212,6 +212,7 @@ program
   .action(async opts => {
     const Reporter = require('../src/reporter');
     const Pull = require('../src/pull');
+    const pullDir = program.opts().dir || opts.dir;
 
     if (!apiKey) {
       console.error(' ✖️  API key not provided. Set TESTOMATIO environment variable.');
@@ -220,7 +221,7 @@ program
 
     try {
       const reporter = new Reporter(apiKey.trim(), 'manual');
-      const pull = new Pull(reporter, opts.dir || process.cwd(), { dryRun: opts.dryRun, force: opts.force });
+      const pull = new Pull(reporter, pullDir || process.cwd(), { dryRun: opts.dryRun, force: opts.force });
       const files = await pull.pullFiles();
 
       if (!opts.dryRun && files.length > 0) {
