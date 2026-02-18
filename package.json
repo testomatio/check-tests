@@ -15,7 +15,10 @@
   ],
   "homepage": "https://testomat.io",
   "license": "MIT",
-  "repository": "https://github.com/testomatio/check-tests",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testomatio/check-tests.git"
+  },
   "author": {
     "name": "DavertMik",
     "email": "davert@codegyre.com",
@@ -27,7 +30,7 @@
     "index.js"
   ],
   "bin": {
-    "check-tests": "./bin/check.js"
+    "check-tests": "bin/check.js"
   },
   "main": "src/index.js",
   "dependencies": {
