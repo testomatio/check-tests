@@ -147,8 +147,8 @@ const playwright = {
     const properties = argumentsWithTags.map(arg => arg.properties);
     if (!properties.length) return testProps;
 
-    const propertiesWithTags = properties.flat().filter(prop => prop.key.name === 'tag');
-    const propertiesWithAnnotations = properties.flat().filter(prop => prop.key.name === 'annotation');
+    const propertiesWithTags = properties.flat().filter(prop => prop.key?.name === 'tag');
+    const propertiesWithAnnotations = properties.flat().filter(prop => prop.key?.name === 'annotation');
 
     // parse TAGS
     // prop value could be a string or an array of strings
