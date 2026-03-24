@@ -303,6 +303,47 @@ describe('Reporter', () => {
       expect(reporter.files['./example/checkout.test.md']).to.be.a('string');
       expect(reporter.files['./example/checkout.test.md']).to.include('# Checkout Process');
     });
+
+    it('should resolve file paths relative to workDir when workDir is passed to constructor', () => {
+      // test method behaviour with -d option. Analyzer sets 'file' field relative to workDir. So attachFiles should use workDir as relative path to file
+      const reporterWithWorkDir = new Reporter(mockApiKey, mockFramework, 'example');
+      const tests = [
+        {
+          name: 'Test 1',
+          file: 'checkout.test.md',
+          suites: ['Suite 1'],
+        },
+        {
+          name: 'Test 2',
+          file: 'test-specification.md',
+          suites: ['Suite 2'],
+        },
+      ];
+
+      reporterWithWorkDir.addTests(tests);
+      reporterWithWorkDir.attachFiles();
+
+      expect(reporterWithWorkDir.files).to.have.property('checkout.test.md');
+      expect(reporterWithWorkDir.files).to.have.property('test-specification.md');
+      expect(reporterWithWorkDir.files['checkout.test.md']).to.be.a('string');
+      expect(reporterWithWorkDir.files['checkout.test.md']).to.include('# Checkout Process');
+    });
+
+    it('should not find files when workDir is wrong and paths are relative to a different dir', () => {
+      // Without workDir, 'checkout.test.md' resolves relative to cwd — file does not exist there
+      const tests = [
+        {
+          name: 'Test 1',
+          file: 'checkout.test.md',
+          suites: ['Suite 1'],
+        },
+      ];
+
+      reporter.addTests(tests);
+      reporter.attachFiles();
+
+      expect(reporter.files).to.not.have.property('checkout.test.md');
+    });
   });
 
   describe('send method integration', () => {

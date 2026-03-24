@@ -99,7 +99,7 @@ async function mainAction(framework, files, opts) {
           .catch(err => console.log('Error in creating test document', err));
       }
       if (apiKey) {
-        const reporter = new Reporter(apiKey.trim(), framework);
+        const reporter = new Reporter(apiKey.trim(), framework, workDir);
         reporter.addTests(decorator.getTests());
         const resp = reporter.send({
           sync: opts.sync || opts.updateIds,
