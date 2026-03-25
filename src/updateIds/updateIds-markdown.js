@@ -2,6 +2,7 @@ const debug = require('debug')('testomatio:update-ids-markdown');
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
+const { TAG_REGEX } = require('./constants');
 
 /**
  * Insert test ids (@T12345678) and suite ids (@S12345678) into markdown test files
@@ -23,18 +24,33 @@ function updateIdsMarkdown(testomatioMap, workDir, opts = {}) {
     const lines = fileContent.split('\n');
     let isModified = false;
 
+    let pendingType = null; // 'test' or 'suite' set by preceding comment
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      // Check for heading lines (# or ##)
+      if (line === '<!-- test') {
+        pendingType = 'test';
+        continue;
+      }
+      if (line === '<!-- suite') {
+        pendingType = 'suite';
+        continue;
+      }
+
+      // Check for heading lines (# ...)
       if (!line.startsWith('#')) continue;
 
-      const isTest = line.startsWith('##');
-      const isSuite = line.startsWith('#') && !line.startsWith('##');
+      const isTest = pendingType === 'test';
+      const isSuite = pendingType === 'suite';
+      pendingType = null;
 
       if (!isTest && !isSuite) continue;
 
-      const name = line.replace(/^#+\s*/, '');
+      const name = line
+        .replace(/^#+\s*/, '')
+        .replace(TAG_REGEX, '')
+        .trim();
       const mappedId = isTest ? testomatioMap.tests[name] : testomatioMap.suites[name];
 
       if (!mappedId) continue;

@@ -121,6 +121,82 @@ User should be able to login.`;
       expect(updatedContent).to.include('author: john');
     });
 
+    it('should add ID to test and suite with tags in name', () => {
+      const content = `<!-- suite
+priority: high
+-->
+# Login Suite @smoke @regression
+
+<!-- test
+priority: normal
+-->
+# Test Login @smoke
+
+User should be able to login.`;
+
+      fs.writeFileSync(testFile, content);
+
+      const testomatioMap = {
+        tests: {
+          'Test Login': '@T12345678',
+        },
+        suites: {
+          'Login Suite': '@S87654321',
+        },
+      };
+
+      updateIdsMarkdown(testomatioMap, __dirname, { pattern: 'temp-test.md' });
+
+      const updatedContent = fs.readFileSync(testFile, 'utf8');
+      expect(updatedContent).to.include('id: @T12345678');
+      expect(updatedContent).to.include('id: @S87654321');
+    });
+
+    it('should handle markdown with multi suites', () => {
+      const content = `<!-- suite
+-->
+# Suite A
+
+<!-- test
+-->
+## Test A1
+
+<!-- test
+-->
+## Test A2
+
+<!-- suite
+-->
+# Suite B
+
+<!-- test
+-->
+## Test B1`;
+
+      fs.writeFileSync(testFile, content);
+
+      const testomatioMap = {
+        tests: {
+          'Test A1': '@T00000001',
+          'Test A2': '@T00000002',
+          'Test B1': '@T00000003',
+        },
+        suites: {
+          'Suite A': '@S00000001',
+          'Suite B': '@S00000002',
+        },
+      };
+
+      updateIdsMarkdown(testomatioMap, __dirname, { pattern: 'temp-test.md' });
+
+      const updatedContent = fs.readFileSync(testFile, 'utf8');
+      expect(updatedContent).to.include('id: @S00000001');
+      expect(updatedContent).to.include('id: @S00000002');
+      expect(updatedContent).to.include('id: @T00000001');
+      expect(updatedContent).to.include('id: @T00000002');
+      expect(updatedContent).to.include('id: @T00000003');
+    });
+
     it('should skip tests without metadata comment', () => {
       const content = `## Test Login
 
