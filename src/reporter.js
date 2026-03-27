@@ -37,11 +37,11 @@ class Reporter {
     }
   }
 
-  getFilesFromServer() {
+  getFilesFromServer(exportAutomated) {
     return new Promise((res, rej) => {
       debug('Getting files from Testomat.io...');
       const req = request(
-        `${URL.trim()}/api/test_data?with_files=true&api_key=${this.apiKey}`,
+        `${URL.trim()}/api/test_data?with_files=true&api_key=${this.apiKey}&export_automated=${exportAutomated}`,
         { method: 'GET' },
         resp => {
           // The whole response has been received. Print out the result.
