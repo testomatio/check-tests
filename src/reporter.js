@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 
 class Reporter {
-  constructor(apiKey, framework) {
+  constructor(apiKey, framework, workDir) {
     if (!framework) {
       console.error('Framework cannot be empty');
     }
@@ -15,6 +15,7 @@ class Reporter {
     }
     this.apiKey = apiKey;
     this.framework = framework;
+    this.workDir = workDir || process.cwd();
     this.tests = [];
     this.files = {};
   }
@@ -30,7 +31,7 @@ class Reporter {
 
     for (const fileName of uniqueFiles) {
       try {
-        this.files[fileName] = fs.readFileSync(path.resolve(fileName), 'utf8');
+        this.files[fileName] = fs.readFileSync(path.resolve(this.workDir, fileName), 'utf8');
       } catch (err) {
         debug(`Error reading file ${fileName}: ${err.message}`);
       }
