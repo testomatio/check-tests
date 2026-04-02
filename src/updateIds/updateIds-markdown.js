@@ -29,11 +29,11 @@ function updateIdsMarkdown(testomatioMap, workDir, opts = {}) {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      if (line === '<!-- test') {
+      if (line.startsWith('<!-- test')) {
         pendingType = 'test';
         continue;
       }
-      if (line === '<!-- suite') {
+      if (line.startsWith('<!-- suite')) {
         pendingType = 'suite';
         continue;
       }
@@ -91,10 +91,18 @@ function updateId(lines, lineNumber, mappedId) {
   // Look backwards for <!-- test or <!-- suite
   for (let i = lineNumber - 1; i >= 0; i--) {
     const line = lines[i].trim();
+
+    // Single-line comment <!-- test --> — expand it into multiline block
+    if ((line.startsWith('<!-- test') || line.startsWith('<!-- suite')) && line.endsWith('-->')) {
+      const keyword = line.startsWith('<!-- test') ? '<!-- test' : '<!-- suite';
+      lines.splice(i, 1, keyword, `id: ${mappedId}`, '-->');
+      return true;
+    }
+
     if (line === '-->') {
       commentEnd = i;
     }
-    if (line === '<!-- test' || line === '<!-- suite') {
+    if (line.startsWith('<!-- test') || line.startsWith('<!-- suite')) {
       commentStart = i;
       break;
     }

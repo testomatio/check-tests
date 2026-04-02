@@ -16,7 +16,7 @@ module.exports = (ast, file = '', source = '') => {
     const line = lines[i].trim();
 
     // Check for HTML comment blocks
-    if (line === '<!-- suite') {
+    if (line.startsWith('<!-- suite')) {
       const suiteMetadata = parseMetadataBlock(lines, i);
       i = suiteMetadata.endIndex;
 
@@ -36,7 +36,7 @@ module.exports = (ast, file = '', source = '') => {
       continue;
     }
 
-    if (line === '<!-- test') {
+    if (line.startsWith('<!-- test')) {
       const testMetadata = parseMetadataBlock(lines, i);
       i = testMetadata.endIndex;
 
@@ -54,7 +54,7 @@ module.exports = (ast, file = '', source = '') => {
         // Collect content until next test comment or end of file
         while (i < lines.length) {
           const nextLine = lines[i].trim();
-          if (nextLine === '<!-- test' || nextLine === '<!-- suite') {
+          if (nextLine.startsWith('<!-- test') || nextLine.startsWith('<!-- suite')) {
             break;
           }
           testContent.push(lines[i]);
@@ -87,6 +87,11 @@ module.exports = (ast, file = '', source = '') => {
  * Returns the parsed data and the end index
  */
 function parseMetadataBlock(lines, startIndex) {
+  // Dont parse one-line meta comments
+  if (lines[startIndex].trim().endsWith('-->')) {
+    return { data: {}, endIndex: startIndex + 1 };
+  }
+
   const metadata = {};
   let i = startIndex + 1; // Skip the opening comment line
 
