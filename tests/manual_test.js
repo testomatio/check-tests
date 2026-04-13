@@ -91,4 +91,45 @@ describe('manual (markdown) parser', () => {
       expect(thirdTest.suites).to.include('Suite3');
     });
   });
+
+  context('single-line comments <!-- suite --> / <!-- test -->', () => {
+    before(() => {
+      source = fs.readFileSync('./example/single-line-comments.test.md').toString();
+    });
+
+    it('should extract all suite information for suites with single-line comments', () => {
+      const tests = markdownParser(null, 'single-line-comments.test.md', source);
+
+      expect(tests[0].suites).to.include('Suite A');
+      expect(tests[1].suites).to.include('Suite B');
+    });
+
+    it('should extract all test information with single-line comments', () => {
+      const tests = markdownParser(null, 'single-line-comments.test.md', source);
+
+      expect(tests).to.have.length(2);
+      expect(tests.map(t => t.name)).to.include('Test A1');
+      expect(tests.map(t => t.name)).to.include('Test B1');
+      tests.forEach(t => expect(t.manual).to.be.true);
+    });
+  });
+
+  context('mixed single-line and multiline comments', () => {
+    before(() => {
+      source = fs.readFileSync('./example/mixed-comments.test.md').toString();
+    });
+
+    it('should parse file with mixed single-line and multiline comments', () => {
+      const tests = markdownParser(null, 'mixed-comments.test.md', source);
+
+      expect(tests).to.have.length(2);
+
+      const testA1 = tests.find(t => t.name === 'Test A1');
+      expect(testA1.suites).to.include('Suite A');
+      expect(testA1.priority).to.equal('high');
+
+      const testB1 = tests.find(t => t.name === 'Test B1');
+      expect(testB1.suites).to.include('Suite B @S00000001');
+    });
+  });
 });

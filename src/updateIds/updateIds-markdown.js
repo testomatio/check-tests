@@ -2,6 +2,7 @@ const debug = require('debug')('testomatio:update-ids-markdown');
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
+const { TAG_REGEX } = require('./constants');
 
 /**
  * Insert test ids (@T12345678) and suite ids (@S12345678) into markdown test files
@@ -23,18 +24,33 @@ function updateIdsMarkdown(testomatioMap, workDir, opts = {}) {
     const lines = fileContent.split('\n');
     let isModified = false;
 
+    let pendingType = null; // 'test' or 'suite' set by preceding comment
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      // Check for heading lines (# or ##)
+      if (line.startsWith('<!-- test')) {
+        pendingType = 'test';
+        continue;
+      }
+      if (line.startsWith('<!-- suite')) {
+        pendingType = 'suite';
+        continue;
+      }
+
+      // Check for heading lines (# ...)
       if (!line.startsWith('#')) continue;
 
-      const isTest = line.startsWith('##');
-      const isSuite = line.startsWith('#') && !line.startsWith('##');
+      const isTest = pendingType === 'test';
+      const isSuite = pendingType === 'suite';
+      pendingType = null;
 
       if (!isTest && !isSuite) continue;
 
-      const name = line.replace(/^#+\s*/, '');
+      const name = line
+        .replace(/^#+\s*/, '')
+        .replace(TAG_REGEX, '')
+        .trim();
       const mappedId = isTest ? testomatioMap.tests[name] : testomatioMap.suites[name];
 
       if (!mappedId) continue;
@@ -75,10 +91,18 @@ function updateId(lines, lineNumber, mappedId) {
   // Look backwards for <!-- test or <!-- suite
   for (let i = lineNumber - 1; i >= 0; i--) {
     const line = lines[i].trim();
+
+    // Single-line comment <!-- test --> — expand it into multiline block
+    if ((line.startsWith('<!-- test') || line.startsWith('<!-- suite')) && line.endsWith('-->')) {
+      const keyword = line.startsWith('<!-- test') ? '<!-- test' : '<!-- suite';
+      lines.splice(i, 1, keyword, `id: ${mappedId}`, '-->');
+      return true;
+    }
+
     if (line === '-->') {
       commentEnd = i;
     }
-    if (line === '<!-- test' || line === '<!-- suite') {
+    if (line.startsWith('<!-- test') || line.startsWith('<!-- suite')) {
       commentStart = i;
       break;
     }
