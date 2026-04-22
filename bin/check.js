@@ -264,7 +264,7 @@ program
   .action(async opts => {
     // Alias: call main action with 'manual' framework and '**/**.md' files
     const globalOpts = program.opts();
-    const mergedOpts = { ...globalOpts, ...opts };
+    const mergedOpts = { ...globalOpts, ...opts, updateIds: true };
     await mainAction('manual', '**/**.md', mergedOpts);
   });
 
