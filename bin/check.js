@@ -238,10 +238,11 @@ program
     }
   });
 
-// Push command (alias for check-tests manual **/**.md)
+// Push command (alias for check-tests manual **/*.test.md)
 program
   .command('push')
   .option('-d, --dir <dir>', 'test directory')
+  .option('-f, --files <files...>', 'file paths or glob patterns to push (defaults to **/*.test.md)')
   .option('--no-skipped', 'throw error if skipped tests found')
   .option('--typescript', 'enable typescript support')
   .option('--sync', 'import tests to testomatio and wait for completion')
@@ -260,12 +261,15 @@ program
   .option('--test-alias <test-alias>', 'Specify custom alias for test/it etc (separated by commas if multiple)')
   .option('--exclude <pattern>', 'Glob pattern to exclude files from analysis')
   .option('--force', 'skip git checks and force push files')
-  .description('Push manual tests from markdown files (alias for check-tests manual **/**.md)')
+  .description(
+    'Push manual tests from markdown files. Use --files to pass paths or glob patterns (defaults to **/*.test.md).',
+  )
   .action(async opts => {
-    // Alias: call main action with 'manual' framework and '**/**.md' files
     const globalOpts = program.opts();
     const mergedOpts = { ...globalOpts, ...opts, updateIds: true };
-    await mainAction('manual', '**/**.md', mergedOpts);
+    const files =
+      opts.files && opts.files.length ? (opts.files.length === 1 ? opts.files[0] : opts.files) : '**/*.test.md';
+    await mainAction('manual', files, mergedOpts);
   });
 
 if (process.argv.length <= 2) {
