@@ -13,6 +13,57 @@ npx check-tests <framework> <files> [options]
 - `<framework>` - Test framework to analyze (codeceptjs, jasmine, jest, mocha, newman, playwright, qunit, testcafe, nightwatch)
 - `<files>` - Glob pattern to match test files (e.g., `"tests/**/*_test.js"`)
 
+## Push Command
+
+The `push` command is a shortcut for importing markdown-based manual tests into Testomat.io. It is equivalent to `check-tests manual <files>` with `--update-ids` enabled by default.
+
+```bash
+npx check-tests push [options]
+```
+
+### Push Options
+
+| Option                   | Description                                     | Default        |
+| ------------------------ | ----------------------------------------------- | -------------- |
+| `-d, --dir <dir>`        | Test directory to scan                          | Current dir    |
+| `-f, --files <files...>` | One or more file paths or glob patterns to push | `**/*.test.md` |
+| `--force`                | Skip git checks and force push files            | false          |
+
+The `push` command also accepts the same Testomat.io and analysis options as the main command (`--sync`, `--create`, `--no-empty`, `--keep-structure`, `--clean-ids`, `--purge`, `--no-detached`, `--no-skipped`, `--exclude`, etc.).
+
+### `--files` Option
+
+Use `--files` (or `-f`) to override the default glob (`**/*.test.md`). It accepts:
+
+- a **single file path** — push exactly that file
+- **multiple file paths** — push every listed file
+- a **glob pattern** (in quotes) — push every file matched by the pattern
+- **multiple glob patterns** — push the union of files matched by each pattern
+
+Paths and patterns are resolved relative to `--dir` (or the current directory if `--dir` is not set).
+
+### Push Examples
+
+```bash
+# Push every **/*.test.md file under the current directory (default behaviour)
+TESTOMATIO=your-api-key npx check-tests push
+
+# Push a single markdown file
+TESTOMATIO=your-api-key npx check-tests push --files docs/login.test.md
+
+# Push several specific files
+TESTOMATIO=your-api-key npx check-tests push -f docs/login.test.md docs/checkout.test.md
+
+# Push everything matching a custom glob (quote the pattern!)
+TESTOMATIO=your-api-key npx check-tests push --files "manual-tests/**/*.md"
+
+# Combine multiple globs (e.g. smoke + regression suites)
+TESTOMATIO=your-api-key npx check-tests push -f "smoke/**/*.test.md" "regression/**/*.test.md"
+
+# Use a non-default directory together with --files
+TESTOMATIO=your-api-key npx check-tests push -d ./tests --files "**/*.md"
+```
+
 ## CLI Options
 
 ### Basic Options
