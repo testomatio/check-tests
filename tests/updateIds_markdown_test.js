@@ -5,11 +5,15 @@ const { updateIdsMarkdown, cleanIdsMarkdown } = require('../src/updateIds/update
 
 describe('updateIds markdown', () => {
   const testFile = path.join(__dirname, 'temp-test.md');
+  const testFileA = path.join(__dirname, 'temp-test-a.md');
+  const testFileB = path.join(__dirname, 'temp-test-b.md');
 
   afterEach(() => {
-    // Clean up test file
-    if (fs.existsSync(testFile)) {
-      fs.unlinkSync(testFile);
+    // Clean up test files
+    for (const f of [testFile, testFileA, testFileB]) {
+      if (fs.existsSync(f)) {
+        fs.unlinkSync(f);
+      }
     }
   });
 
@@ -285,6 +289,69 @@ User should be able to login.`;
       const updatedContent = fs.readFileSync(testFile, 'utf8');
       expect(updatedContent).to.not.include('@T12345678');
     });
+
+    it('should accept an array of patterns and update every matched file', () => {
+      const contentA = `<!-- test -->
+## Test A
+
+Step.`;
+      const contentB = `<!-- test -->
+## Test B
+
+Step.`;
+
+      fs.writeFileSync(testFileA, contentA);
+      fs.writeFileSync(testFileB, contentB);
+
+      const testomatioMap = {
+        tests: {
+          'Test A': '@T11111111',
+          'Test B': '@T22222222',
+        },
+        suites: {},
+      };
+
+      const result = updateIdsMarkdown(testomatioMap, __dirname, {
+        pattern: ['temp-test-a.md', 'temp-test-b.md'],
+      });
+
+      const resolved = result.map(f => path.resolve(f));
+      expect(resolved).to.include(path.resolve(testFileA));
+      expect(resolved).to.include(path.resolve(testFileB));
+
+      expect(fs.readFileSync(testFileA, 'utf8')).to.include('id: @T11111111');
+      expect(fs.readFileSync(testFileB, 'utf8')).to.include('id: @T22222222');
+    });
+
+    it('should accept an array of glob patterns', () => {
+      const contentA = `<!-- test -->
+## Test A
+
+Step.`;
+      const contentB = `<!-- test -->
+## Test B
+
+Step.`;
+
+      fs.writeFileSync(testFileA, contentA);
+      fs.writeFileSync(testFileB, contentB);
+
+      const testomatioMap = {
+        tests: {
+          'Test A': '@T11111111',
+          'Test B': '@T22222222',
+        },
+        suites: {},
+      };
+
+      const result = updateIdsMarkdown(testomatioMap, __dirname, {
+        pattern: ['temp-test-a.md', 'temp-test-*.md'],
+      });
+
+      const resolved = result.map(f => path.resolve(f));
+      expect(resolved).to.include(path.resolve(testFileA));
+      expect(resolved).to.include(path.resolve(testFileB));
+    });
   });
 
   describe('cleanIdsMarkdown', () => {
@@ -332,6 +399,35 @@ User should be able to login.`;
       expect(updatedContent).to.not.include('id: @T12345678');
       expect(updatedContent).to.not.include('id: @S87654321');
       expect(updatedContent).to.include('priority: high');
+    });
+
+    it('should accept an array of patterns', () => {
+      const contentA = `<!-- test
+id: @T11111111
+-->
+## Test A
+
+Step.`;
+      const contentB = `<!-- test
+id: @T22222222
+-->
+## Test B
+
+Step.`;
+
+      fs.writeFileSync(testFileA, contentA);
+      fs.writeFileSync(testFileB, contentB);
+
+      const result = cleanIdsMarkdown({}, __dirname, {
+        pattern: ['temp-test-a.md', 'temp-test-b.md'],
+      });
+
+      const resolved = result.map(f => path.resolve(f));
+      expect(resolved).to.include(path.resolve(testFileA));
+      expect(resolved).to.include(path.resolve(testFileB));
+
+      expect(fs.readFileSync(testFileA, 'utf8')).to.not.include('@T11111111');
+      expect(fs.readFileSync(testFileB, 'utf8')).to.not.include('@T22222222');
     });
   });
 });

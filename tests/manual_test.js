@@ -132,4 +132,86 @@ describe('manual (markdown) parser', () => {
       expect(testB1.suites).to.include('Suite B @S00000001');
     });
   });
+
+  context('tags / labels comma-separated metadata (arrays)', () => {
+    it('should split tags by comma, trim segments', () => {
+      const md = `<!-- suite
+id: @S1
+-->
+# Suite
+
+<!-- test
+id: @T1
+tags:  smoke ,  critical
+-->
+
+## Case
+`;
+      const tests = markdownParser(null, 'tags.test.md', md);
+      expect(tests).to.have.length(1);
+      expect(tests[0].tags).to.deep.equal(['smoke', 'critical']);
+    });
+
+    it('should yield empty array when tags key has no values', () => {
+      const md = `<!-- suite
+id: @S1
+-->
+# S
+
+<!-- test
+tags:  
+-->
+## T
+`;
+      const tests = markdownParser(null, 'empty-tags.test.md', md);
+      expect(tests[0].tags).to.deep.equal([]);
+    });
+
+    it('should parse single tag without comma', () => {
+      const md = `<!-- suite
+id: @S1
+-->
+# S
+
+<!-- test
+tags: smoke
+-->
+## T
+`;
+      const tests = markdownParser(null, 'single-tag.test.md', md);
+      expect(tests[0].tags).to.deep.equal(['smoke']);
+    });
+
+    it('should parse labels like tags (comma split, trim)', () => {
+      const md = `<!-- suite
+id: @S1
+-->
+# S
+
+<!-- test
+labels: beta ,  qa-team
+-->
+
+## L
+`;
+      const tests = markdownParser(null, 'labels.test.md', md);
+      expect(tests[0].labels).to.deep.equal(['beta', 'qa-team']);
+    });
+
+    it('should yield empty labels array when empty value', () => {
+      const md = `<!-- suite
+id: @S1
+-->
+# S
+
+<!-- test
+labels:
+-->
+
+## L
+`;
+      const tests = markdownParser(null, 'empty-labels.test.md', md);
+      expect(tests[0].labels).to.deep.equal([]);
+    });
+  });
 });
