@@ -3,7 +3,8 @@
  * Expected format:
  * - HTML comment with YAML-like metadata for suite: <!-- suite\nid: @S123\n-->
  * - Level 1 heading (#) for suite title
- * - HTML comment with YAML-like metadata for test: <!-- test\nid: @T456\npriority: high\n-->
+ * - HTML comment with YAML-like metadata for test: <!-- test\nid: @T456\n...\n-->
+ * - `tags` and `labels`: comma-separated lists normalized to trimmed string arrays; all other metadata values stay plain strings
  * - Level 2 heading (##) for test title
  */
 module.exports = (ast, file = '', source = '') => {
@@ -82,6 +83,22 @@ module.exports = (ast, file = '', source = '') => {
   return tests;
 };
 
+/** Metadata keys parsed as comma-separated lists (same rules for each). */
+const COMMA_SEPARATED_LIST_KEYS = new Set(['tags', 'labels']);
+
+/**
+ * Comma-separated list; trim each segment; drop empties.
+ * @param {string} value
+ * @returns {string[]}
+ */
+function parseCommaSeparatedList(value) {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean);
+}
+
 /**
  * Parse metadata block from HTML comment
  * Returns the parsed data and the end index
@@ -108,7 +125,7 @@ function parseMetadataBlock(lines, startIndex) {
     if (match) {
       const key = match[1].trim();
       const value = match[2].trim();
-      metadata[key] = value;
+      metadata[key] = COMMA_SEPARATED_LIST_KEYS.has(key) ? parseCommaSeparatedList(value) : value;
     }
 
     i++;
