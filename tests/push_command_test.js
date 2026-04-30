@@ -5,7 +5,7 @@ const path = require('path');
 
 describe('push command', () => {
   let testDir;
-  const testMarkdownFile = 'test-manual.md';
+  const testMarkdownFile = 'manual.test.md';
   const testMarkdownContent = `<!-- suite -->
 # Manual Test Suite
 
@@ -67,7 +67,7 @@ priority: medium
       });
 
       expect(output).to.include('SHOWING MANUAL TESTS');
-      expect(output).to.include('**/**.md');
+      expect(output).to.include('**/*.test.md');
       expect(output).to.include('Login functionality');
       expect(output).to.include('Invalid login');
     } catch (error) {
@@ -155,6 +155,93 @@ priority: medium
       console.log('Command error:', error.stderr);
       throw error;
     }
+  });
+
+  it('should accept a single file path via --files', () => {
+    const extraContent = `<!-- suite -->
+# Extra Suite
+
+<!-- test -->
+## Extra Test
+- step
+`;
+    fs.writeFileSync(path.join(testDir, 'extra.md'), extraContent);
+
+    const output = execSync(`node bin/check.js push -d ${testDir} --files extra.md`, {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    expect(output).to.include('SHOWING MANUAL TESTS FROM extra.md');
+    expect(output).to.include('Extra Test');
+    expect(output).to.not.include('Login functionality');
+  });
+
+  it('should accept multiple file paths via --files', () => {
+    const extraContent = `<!-- suite -->
+# Extra Suite
+
+<!-- test -->
+## Extra Test
+- step
+`;
+    fs.writeFileSync(path.join(testDir, 'extra.md'), extraContent);
+
+    const output = execSync(`node bin/check.js push -d ${testDir} -f ${testMarkdownFile} extra.md`, {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    expect(output).to.include('SHOWING MANUAL TESTS');
+    expect(output).to.include('Login functionality');
+    expect(output).to.include('Extra Test');
+  });
+
+  it('should accept a glob pattern via --files', () => {
+    const output = execSync(`node bin/check.js push -d ${testDir} --files "*.md"`, {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    expect(output).to.include('SHOWING MANUAL TESTS FROM *.md');
+    expect(output).to.include('Login functionality');
+  });
+
+  it('should accept a file path inside a subdirectory via --files', () => {
+    const subDir = path.join(testDir, 'nested');
+    fs.mkdirSync(subDir, { recursive: true });
+    const nestedContent = `<!-- suite -->
+# Nested Suite
+
+<!-- test -->
+## Nested Test
+- step
+`;
+    fs.writeFileSync(path.join(subDir, 'nested.md'), nestedContent);
+
+    const output = execSync(`node bin/check.js push -d ${testDir} --files nested/nested.md`, {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+
+    expect(output).to.include('SHOWING MANUAL TESTS FROM nested/nested.md');
+    expect(output).to.include('Nested Test');
+    expect(output).to.not.include('Login functionality');
+  });
+
+  it('should expose --files option in --help output', () => {
+    const output = execSync('node bin/check.js push --help', {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8',
+    });
+
+    expect(output).to.include('--files');
+    expect(output).to.include('-f');
+    expect(output).to.include('**/*.test.md');
   });
 
   it('should work with empty directory (finds tests in current project)', () => {

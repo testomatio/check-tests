@@ -4,6 +4,12 @@ const glob = require('glob');
 const path = require('path');
 const { TAG_REGEX } = require('./constants');
 
+function resolvePatterns(workDir, pattern) {
+  const base = path.resolve(workDir);
+  const patterns = Array.isArray(pattern) ? pattern : [pattern];
+  return patterns.map(p => path.join(base, p));
+}
+
 /**
  * Insert test ids (@T12345678) and suite ids (@S12345678) into markdown test files
  * @param {*} testomatioMap mapping of test ids received from testomatio server
@@ -12,7 +18,7 @@ const { TAG_REGEX } = require('./constants');
  * @returns
  */
 function updateIdsMarkdown(testomatioMap, workDir, opts = {}) {
-  const patternWithFullPath = path.join(path.resolve(workDir), opts.pattern);
+  const patternWithFullPath = resolvePatterns(workDir, opts.pattern);
   const files = glob.sync(patternWithFullPath);
   debug('Files:', files);
 
@@ -131,7 +137,7 @@ function updateId(lines, lineNumber, mappedId) {
  * Remove test ids from markdown test files
  */
 function cleanIdsMarkdown(testomatioMap, workDir, opts = { dangerous: false }) {
-  const patternWithFullPath = path.join(path.resolve(workDir), opts.pattern);
+  const patternWithFullPath = resolvePatterns(workDir, opts.pattern);
   const files = glob.sync(patternWithFullPath);
 
   debug('Files:', files);
