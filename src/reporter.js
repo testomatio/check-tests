@@ -173,7 +173,7 @@ class Reporter {
           resp.on('end', () => {
             if (resp.statusCode >= 400) {
               console.log(' ✖️ ', message, `(${resp.statusCode}: ${resp.statusMessage})`);
-              process.exit(1);
+              process.exitCode = 1;
             } else {
               console.log(' 🎉 Data received at Testomat.io');
             }
