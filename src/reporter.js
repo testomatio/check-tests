@@ -18,6 +18,9 @@ class Reporter {
     this.workDir = workDir || process.cwd();
     this.tests = [];
     this.files = {};
+    this.maxChunkBytes = 1 * 1024 * 1024;
+    this.maxChunkFiles = 100;
+    this.maxChunkTests = 500;
   }
 
   addTests(tests) {
@@ -122,41 +125,209 @@ class Reporter {
     });
   }
 
-  send(opts = {}) {
+  async send(opts = {}) {
+    console.log('\n 🚀 Sending data to testomat.io\n');
+
+    this.tests = this.prepareTests();
+    const payloadOpts = this.buildUploadOptions(opts);
+    this.attachFiles();
+
+    const chunks = this.createUploadChunks(payloadOpts);
+    if (chunks.length > 1) {
+      await this.sendInChunks(payloadOpts, chunks);
+      return;
+    }
+
+    const data = this.buildPayload(payloadOpts, this.tests, this.files);
+    await this.sendRequest(data);
+  }
+
+  prepareTests() {
+    const labelsFromEnv = this.parseLabels(process.env.TESTOMATIO_LABELS || process.env.TESTOMATIO_SYNC_LABELS);
+
+    return this.tests.map(test => {
+      const nextTest = { ...test };
+
+      if (process.env.TESTOMATIO_WORKDIR && nextTest.file) {
+        const workdir = path.resolve(process.env.TESTOMATIO_WORKDIR);
+        const absoluteTestPath = path.resolve(nextTest.file);
+        nextTest.file = path.relative(workdir, absoluteTestPath);
+      }
+
+      nextTest.file = nextTest.file?.replace(/\\/g, '/');
+
+      if (labelsFromEnv.length > 0) {
+        nextTest.labels = labelsFromEnv;
+      }
+
+      return nextTest;
+    });
+  }
+
+  buildUploadOptions(opts = {}) {
+    const nextOpts = { ...opts };
+
+    if (process.env.TESTOMATIO_PREPEND_DIR) nextOpts.dir = process.env.TESTOMATIO_PREPEND_DIR;
+    if (process.env.TESTOMATIO_SUITE) nextOpts.suite = process.env.TESTOMATIO_SUITE;
+
+    return nextOpts;
+  }
+
+  buildPayload(opts = {}, tests = this.tests, files = this.files, extra = {}) {
+    return JSON.stringify({ ...opts, ...extra, tests, framework: this.framework, files });
+  }
+
+  createUploadChunks(opts = {}) {
+    if (this.tests.length === 0) {
+      return [{ tests: this.tests, files: this.files }];
+    }
+
+    const groups = this.groupTestsByFile();
+    const chunks = [];
+    let currentChunk = { tests: [], files: {} };
+
+    for (const group of groups) {
+      const groupChunks = this.splitOversizedGroup(group, opts);
+
+      for (const groupChunk of groupChunks) {
+        const nextChunk = {
+          tests: currentChunk.tests.concat(groupChunk.tests),
+          files: { ...currentChunk.files, ...groupChunk.files },
+        };
+        const nextChunkFilesCount = Object.keys(nextChunk.files).length;
+        const nextChunkTestsCount = nextChunk.tests.length;
+
+        if (
+          currentChunk.tests.length > 0 &&
+          (this.getPayloadSize(opts, nextChunk.tests, nextChunk.files) > this.maxChunkBytes ||
+            nextChunkFilesCount > this.maxChunkFiles ||
+            nextChunkTestsCount > this.maxChunkTests)
+        ) {
+          chunks.push(currentChunk);
+          currentChunk = groupChunk;
+          continue;
+        }
+
+        currentChunk = nextChunk;
+      }
+    }
+
+    if (currentChunk.tests.length > 0 || Object.keys(currentChunk.files).length > 0 || chunks.length === 0) {
+      chunks.push(currentChunk);
+    }
+
+    return chunks;
+  }
+
+  groupTestsByFile() {
+    const groups = [];
+    const fileGroups = new Map();
+
+    this.tests.forEach((test, index) => {
+      const key = test.file || `__no_file__${index}`;
+
+      if (!fileGroups.has(key)) {
+        const group = {
+          tests: [],
+          files: test.file && this.files[test.file] !== undefined ? { [test.file]: this.files[test.file] } : {},
+        };
+        fileGroups.set(key, group);
+        groups.push(group);
+      }
+
+      fileGroups.get(key).tests.push(test);
+    });
+
+    return groups;
+  }
+
+  splitOversizedGroup(group, opts = {}) {
+    if (
+      (this.getPayloadSize(opts, group.tests, group.files) <= this.maxChunkBytes &&
+        group.tests.length <= this.maxChunkTests) ||
+      group.tests.length <= 1
+    ) {
+      return [group];
+    }
+
+    const splitGroups = [];
+    let currentGroup = { tests: [], files: group.files };
+
+    for (const test of group.tests) {
+      const nextGroup = {
+        tests: currentGroup.tests.concat(test),
+        files: group.files,
+      };
+
+      if (
+        currentGroup.tests.length > 0 &&
+        (this.getPayloadSize(opts, nextGroup.tests, nextGroup.files) > this.maxChunkBytes ||
+          nextGroup.tests.length > this.maxChunkTests)
+      ) {
+        splitGroups.push(currentGroup);
+        currentGroup = {
+          tests: [test],
+          files: group.files,
+        };
+        continue;
+      }
+
+      currentGroup = nextGroup;
+    }
+
+    if (currentGroup.tests.length > 0) {
+      splitGroups.push(currentGroup);
+    }
+
+    return splitGroups;
+  }
+
+  getPayloadSize(opts = {}, tests = this.tests, files = this.files, extra = {}) {
+    return Buffer.byteLength(this.buildPayload(opts, tests, files, extra));
+  }
+
+  async sendInChunks(opts, chunks) {
+    let importId;
+
+    for (let index = 0; index < chunks.length; index += 1) {
+      const chunk = chunks[index];
+      const extra = {
+        chunk_upload: true,
+        finish: index === chunks.length - 1,
+      };
+
+      if (importId) extra.import_id = importId;
+
+      const response = await this.sendRequest(this.buildPayload(opts, chunk.tests, chunk.files, extra));
+
+      if (response.statusCode >= 400) {
+        throw new Error(response.body || `Chunk upload failed (${response.statusCode}: ${response.statusMessage})`);
+      }
+
+      if (index === 0) {
+        importId = this.extractImportId(response.body);
+        if (!importId && chunks.length > 1) {
+          throw new Error('Chunk upload failed: import_id was not returned after the first chunk');
+        }
+      }
+    }
+  }
+
+  extractImportId(message) {
+    if (!message) return null;
+
+    try {
+      const parsed = JSON.parse(message);
+      return parsed.import_id || null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  sendRequest(data) {
+    debug('Sending test data to Testomat.io', data);
+
     return new Promise((resolve, reject) => {
-      console.log('\n 🚀 Sending data to testomat.io\n');
-
-      // Parse labels from environment variable (supports both TESTOMATIO_LABELS and TESTOMATIO_SYNC_LABELS)
-      const labelsFromEnv = this.parseLabels(process.env.TESTOMATIO_LABELS || process.env.TESTOMATIO_SYNC_LABELS);
-
-      const tests = this.tests.map(test => {
-        // make file path relative to TESTOMATIO_WORKDIR if provided
-        if (process.env.TESTOMATIO_WORKDIR && test.file) {
-          const workdir = path.resolve(process.env.TESTOMATIO_WORKDIR);
-          const absoluteTestPath = path.resolve(test.file);
-          test.file = path.relative(workdir, absoluteTestPath);
-        }
-
-        // unify path to use slashes (prevent backslashes on windows)
-        test.file = test.file?.replace(/\\/g, '/');
-
-        // Apply labels to each test
-        if (labelsFromEnv.length > 0) {
-          test.labels = labelsFromEnv;
-        }
-
-        return test;
-      });
-      this.tests = tests;
-
-      if (process.env.TESTOMATIO_PREPEND_DIR) opts.dir = process.env.TESTOMATIO_PREPEND_DIR;
-      if (process.env.TESTOMATIO_SUITE) opts.suite = process.env.TESTOMATIO_SUITE;
-
-      this.attachFiles();
-
-      const data = JSON.stringify({ ...opts, tests: this.tests, framework: this.framework, files: this.files });
-
-      debug('Sending test data to Testomat.io', data);
       const req = request(
         `${URL.trim()}/api/load?api_key=${this.apiKey}`,
         {
@@ -176,7 +347,12 @@ class Reporter {
             } else {
               console.log(' 🎉 Data received at Testomat.io');
             }
-            resolve();
+
+            resolve({
+              statusCode: resp.statusCode,
+              statusMessage: resp.statusMessage,
+              body: message,
+            });
           });
 
           resp.on('data', chunk => {
