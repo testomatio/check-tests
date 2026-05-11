@@ -209,6 +209,7 @@ program
   .option('--dry-run', 'show what files would be created without actually creating them')
   .option('--force', 'skip git checks and force pull files')
   .option('--export-automated', 'include automated tests to markdown')
+  .option('--suite-ids <suite-ids>', 'comma-separated list of suite IDs to pull')
   .description('Pull test files from Testomat.io')
   .action(async opts => {
     const Reporter = require('../src/reporter');
@@ -226,6 +227,7 @@ program
         dryRun: opts.dryRun,
         force: opts.force,
         exportAutomated: opts.exportAutomated,
+        suiteIds: opts.suiteIds,
       });
       const files = await pull.pullFiles();
 
