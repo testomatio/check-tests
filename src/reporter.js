@@ -38,11 +38,14 @@ class Reporter {
     }
   }
 
-  getFilesFromServer(exportAutomated) {
+  getFilesFromServer(exportAutomated, suiteIds) {
     return new Promise((res, rej) => {
       debug('Getting files from Testomat.io...');
+      const suiteIdsParam = suiteIds ? `&suite_ids=${encodeURIComponent(suiteIds)}` : '';
       const req = request(
-        `${URL.trim()}/api/test_data?with_files=true&api_key=${this.apiKey}&export_automated=${exportAutomated}`,
+        `${URL.trim()}/api/test_data?with_files=true&api_key=${
+          this.apiKey
+        }&export_automated=${exportAutomated}${suiteIdsParam}`,
         { method: 'GET' },
         resp => {
           // The whole response has been received. Print out the result.
