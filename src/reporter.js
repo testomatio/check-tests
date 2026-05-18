@@ -20,7 +20,7 @@ class Reporter {
     this.files = {};
     this.maxChunkBytes = 1 * 1024 * 1024;
     this.maxChunkFiles = 100;
-    this.maxChunkTests = 500;
+    this.maxChunkTests = 100;
   }
 
   addTests(tests) {
@@ -137,6 +137,7 @@ class Reporter {
 
     const chunks = this.createUploadChunks(payloadOpts);
     if (chunks.length > 1) {
+      this.logChunkedUploadStart(chunks.length);
       await this.sendInChunks(payloadOpts, chunks);
       return;
     }
@@ -289,11 +290,41 @@ class Reporter {
     return Buffer.byteLength(this.buildPayload(opts, tests, files, extra));
   }
 
+  logChunkedUploadStart(totalChunks) {
+    console.log(`Chunked upload enabled: ${totalChunks} chunks`);
+    console.log(
+      `Chunk limits: ${this.formatChunkBytes(this.maxChunkBytes)}, ${this.maxChunkFiles} files, ${
+        this.maxChunkTests
+      } tests per chunk`,
+    );
+  }
+
+  logChunkedUploadProgress(index, totalChunks) {
+    console.log(`Uploading chunk ${index}/${totalChunks}...`);
+  }
+
+  logChunkedUploadComplete(totalChunks) {
+    console.log(`🎉 Chunked upload completed: ${totalChunks}/${totalChunks} chunks sent`);
+  }
+
+  formatChunkBytes(bytes) {
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    if (bytes % (1024 * 1024) === 0) {
+      return `${bytes / (1024 * 1024)}.0 MB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   async sendInChunks(opts, chunks) {
     let importId;
 
     for (let index = 0; index < chunks.length; index += 1) {
       const chunk = chunks[index];
+      this.logChunkedUploadProgress(index + 1, chunks.length);
       const extra = {
         chunk_upload: true,
         finish: index === chunks.length - 1,
@@ -301,7 +332,9 @@ class Reporter {
 
       if (importId) extra.import_id = importId;
 
-      const response = await this.sendRequest(this.buildPayload(opts, chunk.tests, chunk.files, extra));
+      const response = await this.sendRequest(this.buildPayload(opts, chunk.tests, chunk.files, extra), {
+        quietSuccessLog: true,
+      });
 
       if (response.statusCode >= 400) {
         throw new Error(response.body || `Chunk upload failed (${response.statusCode}: ${response.statusMessage})`);
@@ -314,6 +347,8 @@ class Reporter {
         }
       }
     }
+
+    this.logChunkedUploadComplete(chunks.length);
   }
 
   extractImportId(message) {
@@ -327,7 +362,7 @@ class Reporter {
     }
   }
 
-  sendRequest(data) {
+  sendRequest(data, requestOpts = {}) {
     debug('Sending test data to Testomat.io', data);
 
     return new Promise((resolve, reject) => {
@@ -348,7 +383,7 @@ class Reporter {
             if (resp.statusCode >= 400) {
               console.log(' ✖️ ', message, `(${resp.statusCode}: ${resp.statusMessage})`);
               process.exitCode = 1;
-            } else {
+            } else if (!requestOpts.quietSuccessLog) {
               console.log(' 🎉 Data received at Testomat.io');
             }
 

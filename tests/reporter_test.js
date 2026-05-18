@@ -669,6 +669,11 @@ describe('Reporter', () => {
           });
           expect(requests[1].tests).to.have.length(1);
           expect(Object.keys(requests[1].files)).to.deep.equal(['second.js']);
+          expect(consoleLogMessages).to.include('Chunked upload enabled: 2 chunks');
+          expect(consoleLogMessages).to.include('Chunk limits: 0.2 KB, 100 files, 100 tests per chunk');
+          expect(consoleLogMessages).to.include('Uploading chunk 1/2...');
+          expect(consoleLogMessages).to.include('Uploading chunk 2/2...');
+          expect(consoleLogMessages).to.include('🎉 Chunked upload completed: 2/2 chunks sent');
         });
       });
 
