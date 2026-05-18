@@ -99,7 +99,7 @@ Check that your project uses one of the following testing frameworks (this list 
 - qunit
 - testcafe
 - vitest
-- manual (Markdown-based manual tests)
+- manual (Markdown-based manual tests) — [see documentation](docs/frameworks/markdown.md)
 
 Add this action to your workflow file `.github/workflow/main.yml` and configure.
 
@@ -538,6 +538,8 @@ npx check-tests gauge "tests/**/*.spec"
 ```
 
 #### Manual Tests (Markdown)
+
+See [Markdown manual tests documentation](docs/frameworks/markdown.md) for full format reference, `push`/`pull` commands, and available options.
 
 ```bash
 # Markdown-based manual test documentation

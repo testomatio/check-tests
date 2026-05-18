@@ -41,11 +41,14 @@ class Reporter {
     }
   }
 
-  getFilesFromServer(exportAutomated) {
+  getFilesFromServer(exportAutomated, suiteIds) {
     return new Promise((res, rej) => {
       debug('Getting files from Testomat.io...');
+      const suiteIdsParam = suiteIds ? `&suite_ids=${encodeURIComponent(suiteIds)}` : '';
       const req = request(
-        `${URL.trim()}/api/test_data?with_files=true&api_key=${this.apiKey}&export_automated=${exportAutomated}`,
+        `${URL.trim()}/api/test_data?with_files=true&api_key=${
+          this.apiKey
+        }&export_automated=${exportAutomated}${suiteIdsParam}`,
         { method: 'GET' },
         resp => {
           // The whole response has been received. Print out the result.
@@ -344,6 +347,7 @@ class Reporter {
           resp.on('end', () => {
             if (resp.statusCode >= 400) {
               console.log(' ✖️ ', message, `(${resp.statusCode}: ${resp.statusMessage})`);
+              process.exitCode = 1;
             } else {
               console.log(' 🎉 Data received at Testomat.io');
             }

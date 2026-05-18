@@ -10,6 +10,7 @@ class Pull {
     this.dryRun = options.dryRun || false;
     this.force = options.force || false;
     this.exportAutomated = options.exportAutomated || false;
+    this.suiteIds = options.suiteIds || null;
   }
 
   async pullFiles() {
@@ -21,7 +22,7 @@ class Pull {
     }
 
     try {
-      const data = await this.reporter.getFilesFromServer(this.exportAutomated);
+      const data = await this.reporter.getFilesFromServer(this.exportAutomated, this.suiteIds);
 
       if (!data.files) {
         console.log('No files received from server');
