@@ -4,6 +4,7 @@ const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
 const path = require('path');
 const fs = require('fs');
+const { TEST_ID_REGEX } = require('./updateIds/constants');
 
 class Reporter {
   constructor(apiKey, framework, workDir) {
@@ -27,18 +28,20 @@ class Reporter {
     this.tests = this.tests.concat(tests);
   }
 
-  attachFiles() {
-    this.files = {};
-
-    const uniqueFiles = [...new Set(this.tests.map(test => test.file).filter(f => !!f))];
+  attachFiles(tests = this.tests) {
+    const files = {};
+    const uniqueFiles = [...new Set(tests.map(test => test.file).filter(f => !!f))];
 
     for (const fileName of uniqueFiles) {
       try {
-        this.files[fileName] = fs.readFileSync(path.resolve(this.workDir, fileName), 'utf8');
+        files[fileName] = fs.readFileSync(path.resolve(this.workDir, fileName), 'utf8');
       } catch (err) {
         debug(`Error reading file ${fileName}: ${err.message}`);
       }
     }
+
+    this.files = files;
+    return files;
   }
 
   getFilesFromServer(exportAutomated, suiteIds) {
@@ -133,6 +136,13 @@ class Reporter {
 
     this.tests = this.prepareTests();
     const payloadOpts = this.buildUploadOptions(opts);
+    const { newTests, existingTests } = this.splitTestsById(this.tests);
+
+    if (newTests.length > 0 && existingTests.length > 0) {
+      await this.sendInPhases(payloadOpts, newTests, existingTests);
+      return;
+    }
+
     this.attachFiles();
 
     const chunks = this.createUploadChunks(payloadOpts);
@@ -181,12 +191,33 @@ class Reporter {
     return JSON.stringify({ ...opts, ...extra, tests, framework: this.framework, files });
   }
 
-  createUploadChunks(opts = {}) {
-    if (this.tests.length === 0) {
-      return [{ tests: this.tests, files: this.files }];
+  splitTestsById(tests = this.tests) {
+    return tests.reduce(
+      (groups, test) => {
+        if (this.hasTestId(test)) {
+          groups.existingTests.push(test);
+        } else {
+          groups.newTests.push(test);
+        }
+
+        return groups;
+      },
+      { newTests: [], existingTests: [] },
+    );
+  }
+
+  hasTestId(test) {
+    if (typeof test.id === 'string' && test.id.trim()) return true;
+    if (typeof test.name === 'string' && TEST_ID_REGEX.test(test.name)) return true;
+    return false;
+  }
+
+  createUploadChunks(opts = {}, tests = this.tests, files = this.files) {
+    if (tests.length === 0) {
+      return [{ tests, files }];
     }
 
-    const groups = this.groupTestsByFile();
+    const groups = this.groupTestsByFile(tests, files);
     const chunks = [];
     let currentChunk = { tests: [], files: {} };
 
@@ -223,17 +254,17 @@ class Reporter {
     return chunks;
   }
 
-  groupTestsByFile() {
+  groupTestsByFile(tests = this.tests, files = this.files) {
     const groups = [];
     const fileGroups = new Map();
 
-    this.tests.forEach((test, index) => {
+    tests.forEach((test, index) => {
       const key = test.file || `__no_file__${index}`;
 
       if (!fileGroups.has(key)) {
         const group = {
           tests: [],
-          files: test.file && this.files[test.file] !== undefined ? { [test.file]: this.files[test.file] } : {},
+          files: test.file && files[test.file] !== undefined ? { [test.file]: files[test.file] } : {},
         };
         fileGroups.set(key, group);
         groups.push(group);
@@ -319,15 +350,39 @@ class Reporter {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  async sendInChunks(opts, chunks) {
-    let importId;
+  async sendInPhases(opts, newTests, existingTests) {
+    console.log(`Two-phase import enabled: ${newTests.length} new tests, ${existingTests.length} existing tests`);
+
+    const newFiles = this.attachFiles(newTests);
+    const newChunks = this.createUploadChunks(opts, newTests, newFiles);
+    console.log('Phase 1/2: uploading new tests without ids');
+    this.logChunkedUploadStart(newChunks.length);
+    const importId = await this.sendInChunks(opts, newChunks, {
+      finishLast: false,
+      requireImportId: true,
+    });
+
+    const existingFiles = this.attachFiles(existingTests);
+    const existingChunks = [{ tests: existingTests, files: existingFiles }];
+    console.log('Phase 2/2: uploading existing tests with ids');
+    this.logChunkedUploadStart(existingChunks.length);
+    await this.sendInChunks(opts, existingChunks, {
+      startImportId: importId,
+      finishLast: true,
+      requireImportId: false,
+    });
+  }
+
+  async sendInChunks(opts, chunks, sendOpts = {}) {
+    const { startImportId = null, finishLast = true, requireImportId = chunks.length > 1 } = sendOpts;
+    let importId = startImportId;
 
     for (let index = 0; index < chunks.length; index += 1) {
       const chunk = chunks[index];
       this.logChunkedUploadProgress(index + 1, chunks.length);
       const extra = {
         chunk_upload: true,
-        finish: index === chunks.length - 1,
+        finish: finishLast && index === chunks.length - 1,
       };
 
       if (importId) extra.import_id = importId;
@@ -340,15 +395,16 @@ class Reporter {
         throw new Error(response.body || `Chunk upload failed (${response.statusCode}: ${response.statusMessage})`);
       }
 
-      if (index === 0) {
+      if (!importId) {
         importId = this.extractImportId(response.body);
-        if (!importId && chunks.length > 1) {
+        if (!importId && requireImportId) {
           throw new Error('Chunk upload failed: import_id was not returned after the first chunk');
         }
       }
     }
 
     this.logChunkedUploadComplete(chunks.length);
+    return importId;
   }
 
   extractImportId(message) {

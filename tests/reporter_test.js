@@ -677,6 +677,58 @@ describe('Reporter', () => {
         });
       });
 
+      it('should upload new tests first and existing tests second in the same import', () => {
+        reporter.maxChunkBytes = 10000;
+
+        reporter.addTests([
+          { name: 'new test', file: 'new.js', suites: ['suite'] },
+          { name: 'existing test @T1a2b3c4d', file: 'existing.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function (tests = this.tests) {
+          const files = {};
+
+          for (const test of tests) {
+            files[test.file] = `${test.file} body`;
+          }
+
+          this.files = files;
+          return files;
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          const payload = JSON.parse(data);
+          requests.push(payload);
+
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body:
+              requests.length === 1 ? JSON.stringify({ import_id: 'import-two-phase' }) : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(requests[0].chunk_upload).to.equal(true);
+          expect(requests[0].finish).to.equal(false);
+          expect(requests[0]).to.not.have.property('import_id');
+          expect(requests[0].tests.map(test => test.name)).to.deep.equal(['new test']);
+
+          expect(requests[1].chunk_upload).to.equal(true);
+          expect(requests[1].finish).to.equal(true);
+          expect(requests[1].import_id).to.equal('import-two-phase');
+          expect(requests[1].tests.map(test => test.name)).to.deep.equal(['existing test @T1a2b3c4d']);
+
+          expect(consoleLogMessages).to.include('Two-phase import enabled: 1 new tests, 1 existing tests');
+          expect(consoleLogMessages).to.include('Phase 1/2: uploading new tests without ids');
+          expect(consoleLogMessages).to.include('Phase 2/2: uploading existing tests with ids');
+        });
+      });
+
       it('should keep small uploads as a single request without chunk metadata', () => {
         reporter.maxChunkBytes = 10000;
 
