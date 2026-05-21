@@ -268,7 +268,7 @@ program
   )
   .action(async opts => {
     const globalOpts = program.opts();
-    const mergedOpts = { ...globalOpts, ...opts, updateIds: true };
+    const mergedOpts = { ...opts, ...globalOpts, updateIds: true };
     const files =
       opts.files && opts.files.length ? (opts.files.length === 1 ? opts.files[0] : opts.files) : '**/*.test.md';
     await mainAction('manual', files, mergedOpts);
