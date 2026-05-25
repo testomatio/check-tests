@@ -138,7 +138,7 @@ class Reporter {
     const payloadOpts = this.buildUploadOptions(opts);
     const { newTests, existingTests } = this.splitTestsById(this.tests);
 
-    if (newTests.length > 0 && existingTests.length > 0) {
+    if (this.framework !== 'manual' && newTests.length > 0 && existingTests.length > 0) {
       await this.sendInPhases(payloadOpts, newTests, existingTests);
       return;
     }

@@ -729,6 +729,43 @@ describe('Reporter', () => {
         });
       });
 
+      it('should not use two-phase import for manual framework markdown uploads', () => {
+        reporter = new Reporter(mockApiKey, 'manual');
+        reporter.maxChunkBytes = 10000;
+
+        reporter.addTests([
+          { name: 'new manual test', file: 'manual.md', suites: ['suite'], manual: true },
+          { name: 'existing manual test @T1a2b3c4d', file: 'manual.md', suites: ['suite'], manual: true },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'manual.md': '# manual suite body',
+          };
+          return this.files;
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: JSON.stringify({ ok: true }) };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(1);
+          expect(requests[0].framework).to.equal('manual');
+          expect(requests[0].tests).to.have.length(2);
+          expect(requests[0]).to.not.have.property('chunk_upload');
+          expect(requests[0]).to.not.have.property('finish');
+          expect(requests[0]).to.not.have.property('import_id');
+          expect(consoleLogMessages).to.not.include('Two-phase import enabled: 1 new tests, 1 existing tests');
+          expect(consoleLogMessages).to.not.include('Phase 1/2: uploading new tests without ids');
+          expect(consoleLogMessages).to.not.include('Phase 2/2: uploading existing tests with ids');
+        });
+      });
+
       it('should keep small uploads as a single request without chunk metadata', () => {
         reporter.maxChunkBytes = 10000;
 
