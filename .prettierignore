@@ -1,0 +1,4 @@
+dist
+node_modules
+# ES2023 ERM syntax not supported by current prettier version
+example/jest/erm.spec.ts
