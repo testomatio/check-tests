@@ -9,6 +9,11 @@ test.fail('expected to fail test', async () => {
   await expect(true).toBe(false);
 });
 
+// .slow triples the timeout, but the test still runs => not skipped
+test.slow('slow test', async () => {
+  await expect(true).toBe(true);
+});
+
 // .todo => skipped test
 test.todo('todo test');
 
@@ -16,6 +21,7 @@ test.todo('todo test');
 test('runtime annotations have no title', async () => {
   test.fail();
   test.skip();
+  test.slow();
   await expect(true).toBe(true);
 });
 

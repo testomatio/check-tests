@@ -537,7 +537,7 @@ test.describe.only('my test', () => {
     expect(tests.length).to.equal(0);
   });
 
-  describe('annotations status (.skip/.fixme/.fail/.todo)', () => {
+  describe('annotations status (.skip/.fixme/.fail/.slow/.todo)', () => {
     let tests;
 
     beforeEach(() => {
@@ -549,11 +549,12 @@ test.describe.only('my test', () => {
     const byName = name => tests.find(t => t.name === name);
 
     it('registers every named test exactly once (runtime no-title forms excluded)', () => {
-      // 5 named tests; inline `test.fail()` / `test.skip()` without a title add nothing
-      expect(tests.length).to.equal(5);
+      // 6 named tests; inline `test.fail()` / `test.skip()` / `test.slow()` without a title add nothing
+      expect(tests.length).to.equal(6);
       expect(tests.map(t => t.name)).to.deep.equal([
         'plain test',
         'expected to fail test',
+        'slow test',
         'todo test',
         'runtime annotations have no title',
         'fail inside skipped suite',
@@ -568,13 +569,17 @@ test.describe.only('my test', () => {
       expect(byName('expected to fail test').skipped).to.be.false;
     });
 
+    it('keeps .slow tests runnable (not skipped)', () => {
+      expect(byName('slow test').skipped).to.be.false;
+    });
+
     it('treats .fail inside a skipped suite as skipped', () => {
       const test = byName('fail inside skipped suite');
       expect(test.skipped).to.be.true;
       expect(test.suites).to.deep.equal(['skipped suite']);
     });
 
-    it('ignores runtime `test.fail()` / `test.skip()` calls without a title', () => {
+    it('ignores runtime `test.fail()` / `test.skip()` / `test.slow()` calls without a title', () => {
       const test = byName('runtime annotations have no title');
       expect(test).to.not.be.undefined;
       expect(test.skipped).to.be.false;

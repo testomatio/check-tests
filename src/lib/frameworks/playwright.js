@@ -39,7 +39,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     return currentSuite.filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path));
   }
 
-  // resolve the name of the test object an annotation (`.skip`, `.fixme`, `.fail`, `.todo`)
+  // resolve the name of the test object an annotation (`.skip`, `.fixme`, `.fail`, `.slow`)
   // is called on, e.g. `test`, `it`, `describe` or a custom test alias / fixture name
   function getTestObjectName(path) {
     if (!path.parent || !path.parent.object) return null;
@@ -150,8 +150,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         // todo: handle "context"
       }
 
-      // `.fail` marks a test as expected to fail; it still runs, so it is not skipped
-      if (path.isIdentifier({ name: 'fail' })) {
+      // `.fail` (expected to fail) and `.slow` (extended timeout) still run, so they are not
+      // skipped on their own — only inherited skip from an enclosing suite applies
+      if (path.isIdentifier({ name: 'fail' }) || path.isIdentifier({ name: 'slow' })) {
         const name = getTestObjectName(path);
         if (!name) return;
 
