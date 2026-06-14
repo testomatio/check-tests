@@ -632,6 +632,18 @@ TESTOMATIO=11111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-de
 This option could also be set via environment variable `TESTOMATIO_NO_DETACHED=1`.
 If you don't want to pass it each time, create .env file in the root dir of your project with this variable set.
 
+## Partial Import
+
+If your project is large and you want to import (or re-sync) only a subset of tests from a specific directory, without affecting the rest of the tests already imported into Testomat.io, use the `--partial` option together with `-d`:
+
+```
+TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" -d ./tests/api --partial
+```
+
+This is equivalent to combining `-d ./tests/api` with `TESTOMATIO_PREPEND_DIR=./tests/api`: only tests found inside `./tests/api` are scanned and imported into the matching folder in Testomat.io, while tests outside that directory are left untouched and are not marked as detached.
+
+`--partial` requires the `-d` option; without it the command will fail.
+
 ## Synchronous Import
 
 By default `check-tests` doesn't wait for all tests to be processed. It sends request to Testomatio and exits. To wait for processing to finish use `--sync` option.
