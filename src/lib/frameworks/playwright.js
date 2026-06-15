@@ -22,11 +22,35 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
   let beforeCode = '';
   let beforeEachCode = '';
   let afterCode = '';
+  const testNames = ['test', 'it', ...(opts?.testAlias || [])];
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
     path.tags = playwright.getTestProps({ parent: { expression: path } }).tags;
     currentSuite.push(path);
+  }
+
+  function getSuites(path) {
+    return currentSuite.filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path));
+  }
+
+  function getAnnotatedObjectName(path) {
+    if (!path.parent || !path.parent.object) return null;
+    return path.parent.object.name || path.parent.object.property?.name || path.parent.object.callee?.object?.name;
+  }
+
+  function addAnnotatedTest(path, skipped) {
+    if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
+
+    const suites = getSuites(path);
+    tests.push({
+      name: getStringValue(path.parentPath.container),
+      suites: suites.map(s => getStringValue(s)),
+      line: getLineNumber(path),
+      code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
+      file,
+      skipped: skipped || suites.some(s => s.skipped),
+    });
   }
 
   traverse(ast, {
@@ -90,101 +114,25 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         }
       }
 
-      if (path.isIdentifier({ name: 'skip' })) {
-        if (!path.parent || !path.parent.object) {
-          return;
-        }
-        const name =
-          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
+      if (['skip', 'fixme', 'fail', 'slow'].includes(path.node.name)) {
+        const name = getAnnotatedObjectName(path);
+        if (!name) return;
 
-        if (name === 'test' || name === 'it') {
-          // test or it
-          if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
-
-          const testName = getStringValue(path.parentPath.container);
-          tests.push({
-            name: testName,
-            suites: currentSuite
-              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
-              .map(s => getStringValue(s)),
-            line: getLineNumber(path),
-            code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
-            file,
-            skipped: true,
-          });
-        }
-
-        if (name === 'describe') {
-          // suite
+        if (testNames.includes(name)) {
+          addAnnotatedTest(path, path.node.name === 'skip' || path.node.name === 'fixme');
+        } else if ((path.node.name === 'skip' || path.node.name === 'fixme') && name === 'describe') {
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
           const suite = path.parentPath.container;
           suite.skipped = true;
           addSuite(suite);
         }
-
-        // todo: handle "context"
-      }
-
-      if (path.isIdentifier({ name: 'fixme' })) {
-        if (!path.parent || !path.parent.object) {
-          return;
-        }
-        const name =
-          path.parent.object.name || path.parent.object.property.name || path.parent.object.callee.object.name;
-
-        if (name === 'test' || name === 'it') {
-          // test or it
-          if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
-
-          const testName = getStringValue(path.parentPath.container);
-          tests.push({
-            name: testName,
-            suites: currentSuite
-              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
-              .map(s => getStringValue(s)),
-            line: getLineNumber(path),
-            code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
-            file,
-            skipped: true,
-          });
-        }
-
-        if (name === 'describe') {
-          // suite
-          if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
-          const suite = path.parentPath.container;
-          suite.skipped = true;
-          addSuite(suite);
-        }
-
-        // todo: handle "context"
       }
 
       if (path.isIdentifier({ name: 'todo' })) {
-        if (!path.parent || !path.parent.object) {
-          return;
-        }
-        // todo tests => skipped tests
-        if (path.parent.object.name === 'test') {
-          // test
-          if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
-
-          const testName = getStringValue(path.parentPath.container);
-          tests.push({
-            name: testName,
-            suites: currentSuite
-              .filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path))
-              .map(s => getStringValue(s)),
-            line: getLineNumber(path),
-            code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
-            file,
-            skipped: true,
-          });
-        }
+        if (testNames.includes(getAnnotatedObjectName(path))) addAnnotatedTest(path, true);
       }
 
-      const fixtureNames = [...['test', 'it'], ...(opts?.testAlias || [])];
-      for (const fiixtureName of fixtureNames || []) {
+      for (const fiixtureName of testNames || []) {
         if (path.isIdentifier({ name: fiixtureName })) {
           if (!hasStringOrTemplateArgument(path.parent)) return;
 

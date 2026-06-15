@@ -505,6 +505,32 @@ test.describe.only('my test', () => {
     expect(tests.length).to.equal(1);
   });
 
+  it('should parse annotations on a custom test alias', () => {
+    source = fs.readFileSync('./example/playwright/custom-fixture-annotations.ts').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+    const tests = playwrightParser(ast, '', source, { testAlias: ['testFixture'] });
+
+    const byName = name => tests.find(t => t.name === name);
+
+    expect(tests.length).to.equal(7);
+    expect(byName('plain alias test').skipped).to.be.false;
+    expect(byName('skipped alias test').skipped).to.be.true;
+    expect(byName('fixme alias test').skipped).to.be.true;
+    expect(byName('failing alias test').skipped).to.be.false;
+    expect(byName('slow alias test').skipped).to.be.false;
+    expect(byName('todo alias test').skipped).to.be.true;
+    expect(byName('fixme test inside alias suite').skipped).to.be.true;
+    expect(byName('fixme test inside alias suite').suites).to.deep.equal(['alias suite']);
+  });
+
+  it('should ignore custom alias annotations unless the alias is configured', () => {
+    source = fs.readFileSync('./example/playwright/custom-fixture-annotations.ts').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+    const tests = playwrightParser(ast, '', source);
+
+    expect(tests.length).to.equal(0);
+  });
+
   it('should not crash when test is assigned to a variable or inside an array (regression for issue #1)', () => {
     const source = `
       // This works normally
