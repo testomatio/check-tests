@@ -99,6 +99,11 @@ async function mainAction(framework, files, opts) {
           .catch(err => console.log('Error in creating test document', err));
       }
       if (apiKey) {
+        if (opts.partial && !opts.dir) {
+          console.log(' ⚠️  --partial requires -d option to specify directory');
+          return;
+        }
+
         const reporter = new Reporter(apiKey.trim(), framework, workDir);
         reporter.addTests(decorator.getTests());
         const resp = reporter.send({
@@ -106,9 +111,10 @@ async function mainAction(framework, files, opts) {
           create: opts.create || false,
           noempty: !opts.empty,
           branch,
-          'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached,
+          'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached || opts.partial,
           structure: opts.keepStructure,
           force: opts.force || false,
+          ...(opts.partial && { dir: workDir }),
         }); // async call
 
         if (opts.sync) {
@@ -200,6 +206,10 @@ program
   .option('--test-alias <test-alias>', 'Specify custom alias for test/it etc (separated by commas if multiple)')
   .option('--exclude <pattern>', 'Glob pattern to exclude files from analysis')
   .option('--require-ids', 'Fail build if tests are missing Testomat.io IDs')
+  .option(
+    '--partial',
+    'Upload tests from -d directory without marking other tests as detached (sets TESTOMATIO_PREPEND_DIR to -d value)',
+  )
   .action(mainAction);
 
 // Pull command
