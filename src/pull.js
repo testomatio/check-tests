@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const debug = require('debug')('testomatio:pull');
+const { formatErrorMessage } = require('./lib/errorMessage');
 
 class Pull {
   constructor(reporter, workDir = '.', options = {}) {
@@ -81,7 +82,7 @@ class Pull {
         return createdFiles;
       }
     } catch (error) {
-      console.error('Error pulling files:', error.message);
+      console.error('Error pulling files:', formatErrorMessage(error));
       throw error;
     }
   }

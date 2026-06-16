@@ -11,6 +11,7 @@ const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
 const { TEST_ID_REGEX } = require('../src/updateIds/constants');
+const { formatErrorMessage } = require('../src/lib/errorMessage');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
 process.env.isTestomatioCli = true;
@@ -245,7 +246,7 @@ program
         console.log('\n✨ Pull completed successfully!');
       }
     } catch (error) {
-      console.error(' ✖️  Failed to pull files:', error.message);
+      console.error(' ✖️  Failed to pull files:', formatErrorMessage(error));
       process.exit(1);
     }
   });

@@ -4,6 +4,7 @@ const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
 const path = require('path');
 const fs = require('fs');
+const { formatErrorMessage } = require('./lib/errorMessage');
 
 class Reporter {
   constructor(apiKey, framework, workDir) {
@@ -55,7 +56,17 @@ class Reporter {
             debug('Files fetched from Testomat.io', message);
             if (resp.statusCode !== 200) {
               debug('Files fetch failed', resp.statusCode, resp.statusMessage, message);
-              rej(message);
+              const error = new Error(
+                formatErrorMessage({
+                  statusCode: resp.statusCode,
+                  statusMessage: resp.statusMessage,
+                  body: message,
+                }),
+              );
+              error.statusCode = resp.statusCode;
+              error.statusMessage = resp.statusMessage;
+              error.body = message;
+              rej(error);
             } else {
               res(JSON.parse(message));
             }
