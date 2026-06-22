@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { formatErrorMessage } = require('../src/lib/errorMessage');
+const { formatErrorMessage } = require('../src/lib/utils');
 
 describe('formatErrorMessage', () => {
   it('should format 504 responses without a body', () => {

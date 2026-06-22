@@ -11,7 +11,7 @@ const branch = process.env.TESTOMATIO_BRANCH;
 const debug = require('debug')('testomatio:check');
 const { version } = require('../package.json');
 const { TEST_ID_REGEX } = require('../src/updateIds/constants');
-const { formatErrorMessage } = require('../src/lib/errorMessage');
+const { formatErrorMessage } = require('../src/lib/utils');
 console.log(chalk.cyan.bold(` 🤩 Tests checker by Testomat.io v${version}`));
 
 process.env.isTestomatioCli = true;

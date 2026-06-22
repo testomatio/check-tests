@@ -260,6 +260,30 @@ function getAllSuiteTags(currentSuite) {
   return tags;
 }
 
+function parseErrorBody(body) {
+  try {
+    return typeof body === 'string' ? JSON.parse(body.trim()) : body;
+  } catch {
+    return body;
+  }
+}
+
+function formatErrorMessage(error) {
+  if (!error) return 'Unknown error';
+  if (typeof error === 'string') return error.trim() || 'Unknown error';
+  const response = error.response || error.res || {};
+  const status = error.statusCode || error.status || response.statusCode || response.status;
+  const statusText = error.statusMessage || error.statusText || response.statusMessage || response.statusText;
+  const body = parseErrorBody(error.body || error.data || response.body || response.data);
+  const bodyMessage = typeof body === 'string' ? body.trim() : body?.message || body?.error || body?.errors;
+  const message =
+    status &&
+    `Request ${Number(status) === 504 ? 'timed out' : 'failed'} (${status}${statusText ? ` ${statusText}` : ''})`;
+  if (message)
+    return bodyMessage ? `${message}: ${Array.isArray(bodyMessage) ? bodyMessage.join(', ') : bodyMessage}` : message;
+  return error.message || JSON.stringify(error) || String(error);
+}
+
 module.exports = {
   hasStringArgument,
   hasTemplateQuasi,
@@ -278,4 +302,5 @@ module.exports = {
   playwright,
   arrayCompare,
   getAllSuiteTags,
+  formatErrorMessage,
 };

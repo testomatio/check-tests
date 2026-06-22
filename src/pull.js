@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const debug = require('debug')('testomatio:pull');
-const { formatErrorMessage } = require('./lib/errorMessage');
+const { formatErrorMessage } = require('./lib/utils');
 
 class Pull {
   constructor(reporter, workDir = '.', options = {}) {

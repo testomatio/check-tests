@@ -4,7 +4,7 @@ const debug = require('debug')('testomatio:ids');
 const { request } = isHttps ? require('https') : require('http');
 const path = require('path');
 const fs = require('fs');
-const { formatErrorMessage } = require('./lib/errorMessage');
+const { formatErrorMessage } = require('./lib/utils');
 
 class Reporter {
   constructor(apiKey, framework, workDir) {
