@@ -42,6 +42,33 @@ describe('analyzer', () => {
     expect(decorator.getSuiteNames()).to.include('Login - Global Header: Institutional Sign In Modal');
   });
 
+  it('should also scan TypeScript files when given a JS-only glob and TypeScript is enabled', () => {
+    analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
+    analyzer.withTypeScript();
+    // a `.js` pattern would match nothing in this TS-only dir; buildPatterns adds the `.ts` variant
+    analyzer.analyze('./example/protractor/**.js');
+    const decorator = analyzer.getDecorator();
+    expect(decorator.getSuiteNames()).to.include('Login - Global Header: Institutional Sign In Modal');
+  });
+
+  it('buildPatterns expands a trailing .js extension to TS variants only when TypeScript is enabled', () => {
+    analyzer = new Analyzer('mocha', path.join(__dirname, '..'));
+
+    // without TypeScript the pattern is left untouched
+    expect(analyzer.buildPatterns('./example/foo/**.js')).to.deep.equal(['./example/foo/**.js']);
+    // non-.js patterns are never expanded, even with TypeScript on
+    analyzer.withTypeScript();
+    expect(analyzer.buildPatterns('./example/foo/**.ts')).to.deep.equal(['./example/foo/**.ts']);
+    // .js patterns gain the TS equivalents
+    expect(analyzer.buildPatterns('./example/foo/**.js')).to.deep.equal([
+      './example/foo/**.js',
+      './example/foo/**.ts',
+      './example/foo/**.tsx',
+      './example/foo/**.mts',
+      './example/foo/**.cts',
+    ]);
+  });
+
   it('should exclude dir in file name if dir specified', () => {
     analyzer = new Analyzer('mocha', 'example');
     analyzer.analyze('mocha/**_test.js');

@@ -248,9 +248,11 @@ test.describe.only('my test', () => {
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
 
-    expect(tests[1].code.trim()).to.equal("test.skip('my skip test @first', async ({ page }) => {".trim());
     expect(tests[1].name).to.equal('my skip test @first');
     expect(tests[1].suites.length).to.eql(1);
+    // code captures the full test body (signature + assertions), not just the signature line
+    expect(tests[1].code).to.include("test.skip('my skip test @first', async ({ page }) => {");
+    expect(tests[1].code).to.include("await expect(page).toHaveURL('https://my.start.url/');");
   });
 
   it('should parse playwright-js tests with annotation including fixme', () => {
@@ -258,9 +260,11 @@ test.describe.only('my test', () => {
     ast = jsParser.parse(source, { sourceType: 'unambiguous' });
     const tests = playwrightParser(ast, '', source);
 
-    expect(tests[2].code.trim()).to.equal("test.fixme('my fixme test @third', async ({ page }) => {".trim());
     expect(tests[2].name).to.equal('my fixme test @third');
     expect(tests[2].suites.length).to.eql(1);
+    // code captures the full test body (signature + assertions), not just the signature line
+    expect(tests[2].code).to.include("test.fixme('my fixme test @third', async ({ page }) => {");
+    expect(tests[2].code).to.include("await expect(page).toHaveURL('https://my.start.url/');");
   });
 
   it('should parse playwright-ts tests with annotations', () => {
@@ -503,6 +507,100 @@ test.describe.only('my test', () => {
     const tests = playwrightParser(ast, '', source, { testAlias: ['customTestName'] });
 
     expect(tests.length).to.equal(1);
+  });
+
+  it('should parse annotations (.skip/.fixme/.fail) on a custom test alias', () => {
+    source = fs.readFileSync('./example/playwright/custom-fixture-annotations.ts').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+    const tests = playwrightParser(ast, '', source, { testAlias: ['testFixture'] });
+
+    const byName = name => tests.find(t => t.name === name);
+
+    expect(tests.length).to.equal(5);
+
+    expect(byName('plain alias test').skipped).to.be.false;
+    // .skip and .fixme on the alias mark the test as skipped
+    expect(byName('skipped alias test').skipped).to.be.true;
+    expect(byName('fixme alias test').skipped).to.be.true;
+    // .fail still runs, so it is not skipped
+    expect(byName('failing alias test').skipped).to.be.false;
+    // annotations work for aliases nested inside an alias suite
+    expect(byName('fixme test inside alias suite').skipped).to.be.true;
+    expect(byName('fixme test inside alias suite').suites).to.deep.equal(['alias suite']);
+  });
+
+  it('should not parse custom alias annotations when the alias is not configured', () => {
+    source = fs.readFileSync('./example/playwright/custom-fixture-annotations.ts').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+    const tests = playwrightParser(ast, '', source);
+
+    expect(tests.length).to.equal(0);
+  });
+
+  describe('annotations status (.skip/.fixme/.fail/.slow/.todo)', () => {
+    let tests;
+
+    beforeEach(() => {
+      source = fs.readFileSync('./example/playwright/annotations-status.ts').toString();
+      ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+      tests = playwrightParser(ast, '', source);
+    });
+
+    const byName = name => tests.find(t => t.name === name);
+
+    it('registers every named test exactly once (runtime no-title forms excluded)', () => {
+      // 6 named tests; inline `test.fail()` / `test.skip()` / `test.slow()` without a title add nothing
+      expect(tests.length).to.equal(6);
+      expect(tests.map(t => t.name)).to.deep.equal([
+        'plain test',
+        'expected to fail test',
+        'slow test',
+        'todo test',
+        'runtime annotations have no title',
+        'fail inside skipped suite',
+      ]);
+    });
+
+    it('marks .todo as skipped', () => {
+      expect(byName('todo test').skipped).to.be.true;
+    });
+
+    it('keeps .fail tests runnable (not skipped)', () => {
+      expect(byName('expected to fail test').skipped).to.be.false;
+    });
+
+    it('keeps .slow tests runnable (not skipped)', () => {
+      expect(byName('slow test').skipped).to.be.false;
+    });
+
+    it('treats .fail inside a skipped suite as skipped', () => {
+      const test = byName('fail inside skipped suite');
+      expect(test.skipped).to.be.true;
+      expect(test.suites).to.deep.equal(['skipped suite']);
+    });
+
+    it('ignores runtime `test.fail()` / `test.skip()` / `test.slow()` calls without a title', () => {
+      const test = byName('runtime annotations have no title');
+      expect(test).to.not.be.undefined;
+      expect(test.skipped).to.be.false;
+    });
+  });
+
+  it('should not leak a skipped suite onto sibling tests declared after it', () => {
+    source = fs.readFileSync('./example/playwright/sibling-after-skipped-suite.ts').toString();
+    ast = jsParser.parse(source, { sourceType: 'unambiguous', plugins: ['typescript'] });
+    const tests = playwrightParser(ast, '', source);
+
+    const byName = name => tests.find(t => t.name === name);
+
+    // nested test inherits the skipped suite
+    expect(byName('inside skipped suite').skipped).to.be.true;
+    expect(byName('inside skipped suite').suites).to.deep.equal(['skipped suite']);
+    // siblings declared after the suite closed must not inherit it (skipped or suite name)
+    expect(byName('sibling after skipped suite').skipped).to.be.false;
+    expect(byName('sibling after skipped suite').suites).to.deep.equal([]);
+    expect(byName('failing sibling after skipped suite').skipped).to.be.false;
+    expect(byName('failing sibling after skipped suite').suites).to.deep.equal([]);
   });
 
   it('should not crash when test is assigned to a variable or inside an array (regression for issue #1)', () => {

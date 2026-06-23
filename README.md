@@ -867,6 +867,29 @@ Test aliases are used to map tests in source code to tests in Testomat.io. By de
 TESTOMATIO=11111111 npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myCustomFunction
 ```
 
+For Playwright, aliases are also recognized on test annotations, so `myTest.skip(...)`, `myTest.fixme(...)`, `myTest.fail(...)`, `myTest.slow(...)` and `myTest.todo(...)` are parsed the same way as the built-in `test`/`it`:
+
+```js
+import { test as base } from '@playwright/test';
+
+const myTest = base.extend({
+  /* ... */
+});
+
+myTest.skip('skipped alias test', async () => {
+  /* ... */
+});
+myTest.fixme('fixme alias test', async () => {
+  /* ... */
+});
+```
+
+> **Important:** annotated tests declared on a custom object (e.g. `myTest.skip(...)`, `myTest.fail(...)`, `myTest.fixme(...)`, `myTest.slow(...)`) are **only** parsed when that object is passed via `--test-alias`. Without it, only the built-in `test`/`it` annotations are detected and these tests are silently skipped:
+>
+> ```
+> TESTOMATIO={token} npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myTest2
+> ```
+
 ## Programmatic API
 
 Import Analyzer from module:

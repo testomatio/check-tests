@@ -83,6 +83,20 @@ class Analyzer {
     // this.addPlugin('@babel/plugin-transform-typescript');
   }
 
+  // Build the list of glob patterns to scan. When TypeScript support is enabled, a JS-only
+  // glob (e.g. "**/*.test.js") would silently match nothing in a TS project, so we also scan
+  // the TypeScript equivalents by swapping the trailing `.js` extension for `.ts`/`.tsx`/etc.
+  buildPatterns(pattern) {
+    const patterns = [pattern];
+    if (this.typeScript && /\.js$/.test(pattern)) {
+      const base = pattern.replace(/\.js$/, '');
+      for (const ext of ['ts', 'tsx', 'mts', 'cts']) {
+        patterns.push(`${base}.${ext}`);
+      }
+    }
+    return patterns;
+  }
+
   analyze(pattern) {
     if (!this.frameworkParser) throw new Error("No test framework specified. Can't analyze");
 
@@ -93,7 +107,9 @@ class Analyzer {
     const originalCwd = process.cwd();
     process.chdir(this.workDir);
 
-    let files = glob.sync(pattern, { windowsPathsNoEscape: true });
+    const patterns = this.buildPatterns(pattern);
+    debug('Patterns:', patterns);
+    let files = [...new Set(patterns.flatMap(p => glob.sync(p, { windowsPathsNoEscape: true })))];
 
     // Exclude files matching the exclude pattern if provided
     if (this.opts.exclude) {
