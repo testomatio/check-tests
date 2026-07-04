@@ -250,7 +250,7 @@ test.describe.only('my test', () => {
 
     expect(tests[1].name).to.equal('my skip test @first');
     expect(tests[1].suites.length).to.eql(1);
-    // code captures the full test body (signature + assertions), not just the signature line
+    // code captures the full test body, not just the signature line
     expect(tests[1].code).to.include("test.skip('my skip test @first', async ({ page }) => {");
     expect(tests[1].code).to.include("await expect(page).toHaveURL('https://my.start.url/');");
   });
@@ -262,7 +262,7 @@ test.describe.only('my test', () => {
 
     expect(tests[2].name).to.equal('my fixme test @third');
     expect(tests[2].suites.length).to.eql(1);
-    // code captures the full test body (signature + assertions), not just the signature line
+    // code captures the full test body, not just the signature line
     expect(tests[2].code).to.include("test.fixme('my fixme test @third', async ({ page }) => {");
     expect(tests[2].code).to.include("await expect(page).toHaveURL('https://my.start.url/');");
   });
@@ -517,14 +517,10 @@ test.describe.only('my test', () => {
     const byName = name => tests.find(t => t.name === name);
 
     expect(tests.length).to.equal(5);
-
     expect(byName('plain alias test').skipped).to.be.false;
-    // .skip and .fixme on the alias mark the test as skipped
     expect(byName('skipped alias test').skipped).to.be.true;
     expect(byName('fixme alias test').skipped).to.be.true;
-    // .fail still runs, so it is not skipped
-    expect(byName('failing alias test').skipped).to.be.false;
-    // annotations work for aliases nested inside an alias suite
+    expect(byName('failing alias test').skipped).to.be.false; // .fail still runs
     expect(byName('fixme test inside alias suite').skipped).to.be.true;
     expect(byName('fixme test inside alias suite').suites).to.deep.equal(['alias suite']);
   });
@@ -593,10 +589,9 @@ test.describe.only('my test', () => {
 
     const byName = name => tests.find(t => t.name === name);
 
-    // nested test inherits the skipped suite
     expect(byName('inside skipped suite').skipped).to.be.true;
     expect(byName('inside skipped suite').suites).to.deep.equal(['skipped suite']);
-    // siblings declared after the suite closed must not inherit it (skipped or suite name)
+    // siblings declared after the suite closed must not inherit it
     expect(byName('sibling after skipped suite').skipped).to.be.false;
     expect(byName('sibling after skipped suite').suites).to.deep.equal([]);
     expect(byName('failing sibling after skipped suite').skipped).to.be.false;

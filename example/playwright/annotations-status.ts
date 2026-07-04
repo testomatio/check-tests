@@ -14,9 +14,6 @@ test.slow('slow test', async () => {
   await expect(true).toBe(true);
 });
 
-// .todo => skipped test
-test.todo('todo test');
-
 // runtime forms without a title declare no separate test
 test('runtime annotations have no title', async () => {
   test.fail();

@@ -23,7 +23,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
   let beforeEachCode = '';
   let afterCode = '';
 
-  // valid test identifiers: built-in `test`/`it` plus any custom fixtures/aliases
+  // built-in `test`/`it` plus any custom fixtures/aliases passed via --test-alias
   const testNames = ['test', 'it', ...(opts?.testAlias || [])];
 
   function addSuite(path) {
@@ -32,40 +32,31 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     currentSuite.push(path);
   }
 
-  // suites that actually enclose the call at `path`. `currentSuite` is only pruned when a
-  // new suite is added, so it can still hold sibling suites that already closed above this
-  // line — those must not leak their name or `skipped` flag onto a test declared after them.
-  function getEnclosingSuites(path) {
+  // suites that enclose the call at `path` (ignoring sibling suites already closed above it)
+  function getSuites(path) {
     return currentSuite.filter(s => getEndLineNumber({ container: s }) >= getLineNumber(path));
   }
 
-  // resolve the name of the test object an annotation (`.skip`, `.fixme`, `.fail`, `.slow`)
-  // is called on, e.g. `test`, `it`, `describe` or a custom test alias / fixture name
-  function getTestObjectName(path) {
+  // name of the object an annotation is called on, e.g. `test`/`it`/`describe` or a custom alias
+  function getAnnotatedObjectName(path) {
     if (!path.parent || !path.parent.object) return null;
-    return (
-      path.parent.object.name || path.parent.object.property?.name || path.parent.object.callee?.object?.name || null
-    );
+    return path.parent.object.name || path.parent.object.property?.name || path.parent.object.callee?.object?.name;
   }
 
-  // Register a single named test declared with an annotation call
-  // (`test.skip` / `test.fixme` / `test.fail` / `test.todo`, or the alias equivalents).
-  // `path` is the annotation identifier node; its enclosing call holds the test title.
-  // Calls without a string title (the runtime form `test.skip()` used inside a test body)
-  // declare no test and are ignored. The caller decides `skipped`.
-  function registerAnnotatedTest(path, { skipped }) {
+  // register a test declared with an annotation (`.skip`/`.fixme`/`.fail`/`.slow`/`.todo`);
+  // runtime forms without a title (`test.skip()` inside a body) declare no test and are ignored
+  function addAnnotatedTest(path, skipped) {
     if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
 
+    const suites = getSuites(path);
     tests.push({
       name: getStringValue(path.parentPath.container),
-      suites: getEnclosingSuites(path).map(s => getStringValue(s)),
+      suites: suites.map(s => getStringValue(s)),
       line: getLineNumber(path),
-      // `path` is the annotation identifier (`fixme`/`skip`/...); its container ends on the
-      // member-expression line only. The full call (and its body) is `path.parentPath.container`,
-      // so take the end line from there to capture the complete test code.
+      // end line comes from the enclosing call (`path` is just the annotation identifier) to capture the full body
       code: getCode(source, getLineNumber(path), getEndLineNumber(path.parentPath), isLineNumber),
       file,
-      skipped,
+      skipped: skipped || suites.some(s => s.skipped),
     });
   }
 
@@ -130,49 +121,28 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         }
       }
 
-      // `.skip` / `.fixme` mark a test (or every test in a suite) as skipped,
-      // supporting `test`, `it`, `describe` and any custom test alias / fixture
-      if (path.isIdentifier({ name: 'skip' }) || path.isIdentifier({ name: 'fixme' })) {
-        const name = getTestObjectName(path);
+      // `.skip`/`.fixme` skip the test (or whole suite); `.fail`/`.slow` still run but inherit
+      // a skip from an enclosing suite
+      if (['skip', 'fixme', 'fail', 'slow'].includes(path.node.name)) {
+        const name = getAnnotatedObjectName(path);
         if (!name) return;
 
         if (testNames.includes(name)) {
-          // test or it (or alias), e.g. `myFixture.fixme('...', ...)`
-          registerAnnotatedTest(path, { skipped: true });
-        } else if (name === 'describe') {
-          // suite
+          addAnnotatedTest(path, path.node.name === 'skip' || path.node.name === 'fixme');
+        } else if ((path.node.name === 'skip' || path.node.name === 'fixme') && name === 'describe') {
           if (!hasStringOrTemplateArgument(path.parentPath.container)) return;
           const suite = path.parentPath.container;
           suite.skipped = true;
           addSuite(suite);
         }
-
-        // todo: handle "context"
       }
 
-      // `.fail` (expected to fail) and `.slow` (extended timeout) still run, so they are not
-      // skipped on their own — only inherited skip from an enclosing suite applies
-      if (path.isIdentifier({ name: 'fail' }) || path.isIdentifier({ name: 'slow' })) {
-        const name = getTestObjectName(path);
-        if (!name) return;
-
-        if (testNames.includes(name)) {
-          registerAnnotatedTest(path, { skipped: getEnclosingSuites(path).some(s => s.skipped) });
-        }
-      }
-
+      // `.todo` tests are always skipped
       if (path.isIdentifier({ name: 'todo' })) {
-        const name = getTestObjectName(path);
-        if (!name) return;
-
-        // todo tests => skipped tests
-        if (testNames.includes(name)) {
-          registerAnnotatedTest(path, { skipped: true });
-        }
+        if (testNames.includes(getAnnotatedObjectName(path))) addAnnotatedTest(path, true);
       }
 
-      const fixtureNames = [...['test', 'it'], ...(opts?.testAlias || [])];
-      for (const fiixtureName of fixtureNames || []) {
+      for (const fiixtureName of testNames) {
         if (path.isIdentifier({ name: fiixtureName })) {
           if (!hasStringOrTemplateArgument(path.parent)) return;
 
@@ -189,19 +159,18 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
               getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber) +
               afterCode;
 
-          const testName = getStringValue(path.parent);
-          const enclosingSuites = getEnclosingSuites(path);
+          const suites = getSuites(path);
 
           tests.push({
-            name: testName,
-            suites: enclosingSuites.map(s => getStringValue(s)),
+            name: getStringValue(path.parent),
+            suites: suites.map(s => getStringValue(s)),
             updatePoint: getUpdatePoint(path.parent),
             line: getLineNumber(path),
             code,
             file,
             tags: [...getAllSuiteTags(currentSuite), ...playwright.getTestProps(path.parentPath).tags],
             annotations: playwright.getTestProps(path.parentPath).annotations,
-            skipped: enclosingSuites.some(s => s.skipped),
+            skipped: suites.some(s => s.skipped),
           });
 
           // stop the loop if the test is found
@@ -213,16 +182,15 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         const currentPath = path.parentPath.parentPath;
 
         if (!hasStringOrTemplateArgument(currentPath.parent)) return;
-        const testName = getStringValue(currentPath.parent);
-        const enclosingSuites = getEnclosingSuites(path);
+        const suites = getSuites(path);
         tests.push({
-          name: testName,
-          suites: enclosingSuites.map(s => getStringValue(s)),
+          name: getStringValue(currentPath.parent),
+          suites: suites.map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(currentPath),
           code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath), isLineNumber),
           file,
-          skipped: enclosingSuites.some(s => s.skipped),
+          skipped: suites.some(s => s.skipped),
         });
       }
     },

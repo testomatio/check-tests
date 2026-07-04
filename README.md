@@ -855,28 +855,31 @@ Test aliases are used to map tests in source code to tests in Testomat.io. By de
 TESTOMATIO=11111111 npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myCustomFunction
 ```
 
-For Playwright, aliases are also recognized on test annotations, so `myTest.skip(...)`, `myTest.fixme(...)`, `myTest.fail(...)`, `myTest.slow(...)` and `myTest.todo(...)` are parsed the same way as the built-in `test`/`it`:
+For Playwright, aliases are also recognized on test annotations: `myTest.skip()`, `myTest.fixme()`, `myTest.fail()` and `myTest.slow()` are parsed the same way as annotations on the built-in `test` / `it`. Annotated tests defined on a custom test object (fixture) are only detected when its name is passed via `--test-alias`.
 
-```js
-import { test as base } from '@playwright/test';
+Example of what you may have in your code:
 
-const myTest = base.extend({
-  /* ... */
+```ts
+import { myFixture } from './fixtures';
+
+myFixture('regular test', async () => {
+  // ...
 });
 
-myTest.skip('skipped alias test', async () => {
-  /* ... */
+myFixture.skip('skipped test', async () => {
+  // ...
 });
-myTest.fixme('fixme alias test', async () => {
-  /* ... */
+
+myFixture.fixme('broken test', async () => {
+  // ...
 });
 ```
 
-> **Important:** annotated tests declared on a custom object (e.g. `myTest.skip(...)`, `myTest.fail(...)`, `myTest.fixme(...)`, `myTest.slow(...)`) are **only** parsed when that object is passed via `--test-alias`. Without it, only the built-in `test`/`it` annotations are detected and these tests are silently skipped:
->
-> ```
-> TESTOMATIO={token} npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myTest2
-> ```
+To import tests defined on a custom test object (fixture), pass its name via `--test-alias` option:
+
+```
+TESTOMATIO={API_KEY} npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myFixture
+```
 
 ## Programmatic API
 
