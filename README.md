@@ -849,36 +849,10 @@ test('resource management', () => {
 
 ## Test aliases
 
-Test aliases are used to map tests in source code to tests in Testomat.io. By default `test` and `it` are parsed. But if you rename them or use another function to define tests (e.g. created/extended test object in Playwright), you can add alias (or multiple aliases, separated by comma) via `--test-alias` option:
+Test aliases (`test.skip()`, `test.fixme()`, `test.fail()`, `test.slow()`) are used to map tests in source code to tests in Testomat.io. By default `test` and `it` are parsed. But if you rename them or use another function to define tests (e.g. created/extended test object in Playwright), you can add alias (or multiple aliases, separated by comma) via `--test-alias` option:
 
 ```
-TESTOMATIO=11111111 npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myCustomFunction
-```
-
-For Playwright, aliases are also recognized on test annotations: `myTest.skip()`, `myTest.fixme()`, `myTest.fail()` and `myTest.slow()` are parsed the same way as annotations on the built-in `test` / `it`. Annotated tests defined on a custom test object (fixture) are only detected when its name is passed via `--test-alias`.
-
-Example of what you may have in your code:
-
-```ts
-import { myFixture } from './fixtures';
-
-myFixture('regular test', async () => {
-  // ...
-});
-
-myFixture.skip('skipped test', async () => {
-  // ...
-});
-
-myFixture.fixme('broken test', async () => {
-  // ...
-});
-```
-
-To import tests defined on a custom test object (fixture), pass its name via `--test-alias` option:
-
-```
-TESTOMATIO={API_KEY} npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myFixture
+TESTOMATIO={API_KEY} npx check-tests Playwright "**/*{.,_}{test,spec}.ts" --test-alias myTest,myFixture
 ```
 
 ## Programmatic API
