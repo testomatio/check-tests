@@ -533,7 +533,7 @@ test.describe.only('my test', () => {
     expect(tests.length).to.equal(0);
   });
 
-  describe('annotations status (.skip/.fixme/.fail/.slow/.todo)', () => {
+  describe('annotations status (.skip/.fixme/.fail/.slow)', () => {
     let tests;
 
     beforeEach(() => {
@@ -545,20 +545,15 @@ test.describe.only('my test', () => {
     const byName = name => tests.find(t => t.name === name);
 
     it('registers every named test exactly once (runtime no-title forms excluded)', () => {
-      // 6 named tests; inline `test.fail()` / `test.skip()` / `test.slow()` without a title add nothing
-      expect(tests.length).to.equal(6);
+      // 5 named tests; inline `test.fail()` / `test.skip()` / `test.slow()` without a title add nothing
+      expect(tests.length).to.equal(5);
       expect(tests.map(t => t.name)).to.deep.equal([
         'plain test',
         'expected to fail test',
         'slow test',
-        'todo test',
         'runtime annotations have no title',
         'fail inside skipped suite',
       ]);
-    });
-
-    it('marks .todo as skipped', () => {
-      expect(byName('todo test').skipped).to.be.true;
     });
 
     it('keeps .fail tests runnable (not skipped)', () => {

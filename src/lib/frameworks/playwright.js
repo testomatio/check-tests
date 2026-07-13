@@ -93,9 +93,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         }
       }
 
-      // `.skip`/`.fixme`/`.todo` tests are skipped; `.fail`/`.slow` tests still run;
+      // `.skip`/`.fixme` tests are skipped; `.fail`/`.slow` tests still run;
       // runtime forms without a title (e.g. `test.skip()` inside a body) declare no test
-      if (path.isIdentifier() && ['skip', 'fixme', 'fail', 'slow', 'todo'].includes(path.node.name)) {
+      if (path.isIdentifier() && ['skip', 'fixme', 'fail', 'slow'].includes(path.node.name)) {
         if (!path.parent || !path.parent.object) {
           return;
         }
@@ -115,7 +115,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             // end line comes from the enclosing call to capture the full test body
             code: getCode(source, getLineNumber(path), getEndLineNumber(path.parentPath), isLineNumber),
             file,
-            skipped: ['skip', 'fixme', 'todo'].includes(path.node.name) || suites.some(s => s.skipped),
+            skipped: ['skip', 'fixme'].includes(path.node.name) || suites.some(s => s.skipped),
           });
         }
 
