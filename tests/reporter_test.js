@@ -620,6 +620,367 @@ describe('Reporter', () => {
       });
     });
 
+    describe('chunked upload', () => {
+      it('should split upload by payload size and pass import metadata', () => {
+        reporter.maxChunkBytes = 200;
+
+        reporter.addTests([
+          { name: 'test 1', file: 'first.js', suites: ['suite'] },
+          { name: 'test 2', file: 'second.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'first.js': 'first file body',
+            'second.js': 'second file body',
+          };
+        };
+        reporter.getPayloadSize = function (opts, tests, files) {
+          return Object.keys(files).length * 150 + tests.length * 10;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          const payload = JSON.parse(data);
+          requests.push(payload);
+
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body: requests.length === 1 ? JSON.stringify({ import_id: 'import-123' }) : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(requests[0]).to.include({
+            chunk_upload: true,
+            finish: false,
+            framework: 'mocha',
+          });
+          expect(requests[0]).to.not.have.property('import_id');
+          expect(requests[0].tests).to.have.length(1);
+          expect(Object.keys(requests[0].files)).to.deep.equal(['first.js']);
+
+          expect(requests[1]).to.include({
+            chunk_upload: true,
+            finish: true,
+            import_id: 'import-123',
+            framework: 'mocha',
+          });
+          expect(requests[1].tests).to.have.length(1);
+          expect(Object.keys(requests[1].files)).to.deep.equal(['second.js']);
+          expect(consoleLogMessages).to.include('Chunked upload enabled: 2 chunks');
+          expect(consoleLogMessages).to.include('Chunk limits: 0.2 KB, 100 files, 100 tests per chunk');
+          expect(consoleLogMessages).to.include('Uploading chunk 1/2...');
+          expect(consoleLogMessages).to.include('Uploading chunk 2/2...');
+          expect(consoleLogMessages).to.include('🎉 Chunked upload completed: 2/2 chunks sent');
+        });
+      });
+
+      it('should upload new tests first and existing tests second in the same import', () => {
+        reporter.maxChunkBytes = 10000;
+
+        reporter.addTests([
+          { name: 'new test', file: 'new.js', suites: ['suite'] },
+          { name: 'existing test @T1a2b3c4d', file: 'existing.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function (tests = this.tests) {
+          const files = {};
+
+          for (const test of tests) {
+            files[test.file] = `${test.file} body`;
+          }
+
+          this.files = files;
+          return files;
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          const payload = JSON.parse(data);
+          requests.push(payload);
+
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body:
+              requests.length === 1 ? JSON.stringify({ import_id: 'import-two-phase' }) : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(requests[0].chunk_upload).to.equal(true);
+          expect(requests[0].finish).to.equal(false);
+          expect(requests[0]).to.not.have.property('import_id');
+          expect(requests[0].tests.map(test => test.name)).to.deep.equal(['new test']);
+
+          expect(requests[1].chunk_upload).to.equal(true);
+          expect(requests[1].finish).to.equal(true);
+          expect(requests[1].import_id).to.equal('import-two-phase');
+          expect(requests[1].tests.map(test => test.name)).to.deep.equal(['existing test @T1a2b3c4d']);
+
+          expect(consoleLogMessages).to.include('Two-phase import enabled: 1 new tests, 1 existing tests');
+          expect(consoleLogMessages).to.include('Phase 1/2: uploading new tests without ids');
+          expect(consoleLogMessages).to.include('Phase 2/2: uploading existing tests with ids');
+        });
+      });
+
+      it('should not use two-phase import for manual framework markdown uploads', () => {
+        reporter = new Reporter(mockApiKey, 'manual');
+        reporter.maxChunkBytes = 10000;
+
+        reporter.addTests([
+          { name: 'new manual test', file: 'manual.md', suites: ['suite'], manual: true },
+          { name: 'existing manual test @T1a2b3c4d', file: 'manual.md', suites: ['suite'], manual: true },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'manual.md': '# manual suite body',
+          };
+          return this.files;
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: JSON.stringify({ ok: true }) };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(1);
+          expect(requests[0].framework).to.equal('manual');
+          expect(requests[0].tests).to.have.length(2);
+          expect(requests[0]).to.not.have.property('chunk_upload');
+          expect(requests[0]).to.not.have.property('finish');
+          expect(requests[0]).to.not.have.property('import_id');
+          expect(consoleLogMessages).to.not.include('Two-phase import enabled: 1 new tests, 1 existing tests');
+          expect(consoleLogMessages).to.not.include('Phase 1/2: uploading new tests without ids');
+          expect(consoleLogMessages).to.not.include('Phase 2/2: uploading existing tests with ids');
+        });
+      });
+
+      it('should keep small uploads as a single request without chunk metadata', () => {
+        reporter.maxChunkBytes = 10000;
+
+        reporter.addTests([{ name: 'test 1', file: 'single.js', suites: ['suite'] }]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'single.js': 'single file body',
+          };
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: JSON.stringify({ ok: true }) };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(1);
+          expect(requests[0]).to.not.have.property('chunk_upload');
+          expect(requests[0]).to.not.have.property('finish');
+          expect(requests[0]).to.not.have.property('import_id');
+        });
+      });
+
+      it('should split upload when file count limit is exceeded', () => {
+        reporter.maxChunkBytes = 10000;
+        reporter.maxChunkFiles = 1;
+
+        reporter.addTests([
+          { name: 'test 1', file: 'first.js', suites: ['suite'] },
+          { name: 'test 2', file: 'second.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'first.js': 'first file body',
+            'second.js': 'second file body',
+          };
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body:
+              requests.length === 1 ? JSON.stringify({ import_id: 'import-files-1' }) : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(Object.keys(requests[0].files)).to.deep.equal(['first.js']);
+          expect(Object.keys(requests[1].files)).to.deep.equal(['second.js']);
+          expect(requests[1].import_id).to.equal('import-files-1');
+        });
+      });
+
+      it('should split tests from the same file when a file group exceeds payload size', () => {
+        reporter.maxChunkBytes = 240;
+
+        reporter.addTests([
+          { name: 'test 1', file: 'shared.js', suites: ['suite'] },
+          { name: 'test 2', file: 'shared.js', suites: ['suite'] },
+          { name: 'test 3', file: 'shared.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'shared.js': 'shared file body that keeps payload above chunk threshold',
+          };
+        };
+        reporter.getPayloadSize = function (opts, tests) {
+          return tests.length * 120;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body: requests.length === 1 ? JSON.stringify({ import_id: 'import-456' }) : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(requests[0].tests).to.have.length(2);
+          expect(requests[1].tests).to.have.length(1);
+          expect(Object.keys(requests[0].files)).to.deep.equal(['shared.js']);
+          expect(Object.keys(requests[1].files)).to.deep.equal(['shared.js']);
+          expect(requests[1].import_id).to.equal('import-456');
+        });
+      });
+
+      it('should split tests from the same file when test count limit is exceeded', () => {
+        reporter.maxChunkBytes = 10000;
+        reporter.maxChunkTests = 2;
+
+        reporter.addTests([
+          { name: 'test 1', file: 'shared.js', suites: ['suite'] },
+          { name: 'test 2', file: 'shared.js', suites: ['suite'] },
+          { name: 'test 3', file: 'shared.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'shared.js': 'shared file body',
+          };
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body:
+              requests.length === 1
+                ? JSON.stringify({ import_id: 'import-shared-tests' })
+                : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(requests[0].tests).to.have.length(2);
+          expect(requests[1].tests).to.have.length(1);
+          expect(Object.keys(requests[0].files)).to.deep.equal(['shared.js']);
+          expect(Object.keys(requests[1].files)).to.deep.equal(['shared.js']);
+        });
+      });
+
+      it('should split upload when test count limit is exceeded', () => {
+        reporter.maxChunkBytes = 10000;
+        reporter.maxChunkFiles = 10;
+        reporter.maxChunkTests = 2;
+
+        reporter.addTests([
+          { name: 'test 1', file: 'first.js', suites: ['suite'] },
+          { name: 'test 2', file: 'second.js', suites: ['suite'] },
+          { name: 'test 3', file: 'third.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'first.js': 'first file body',
+            'second.js': 'second file body',
+            'third.js': 'third file body',
+          };
+        };
+        reporter.getPayloadSize = function () {
+          return 100;
+        };
+
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return {
+            statusCode: 200,
+            statusMessage: 'OK',
+            body:
+              requests.length === 1 ? JSON.stringify({ import_id: 'import-tests-1' }) : JSON.stringify({ ok: true }),
+          };
+        };
+
+        return reporter.send().then(() => {
+          expect(requests).to.have.length(2);
+          expect(requests[0].tests).to.have.length(2);
+          expect(requests[1].tests).to.have.length(1);
+          expect(requests[1].import_id).to.equal('import-tests-1');
+        });
+      });
+
+      it('should fail chunk upload when first response does not return import_id', () => {
+        reporter.maxChunkBytes = 200;
+
+        reporter.addTests([
+          { name: 'test 1', file: 'first.js', suites: ['suite'] },
+          { name: 'test 2', file: 'second.js', suites: ['suite'] },
+        ]);
+        reporter.attachFiles = function () {
+          this.files = {
+            'first.js': 'first file body',
+            'second.js': 'second file body',
+          };
+        };
+        reporter.getPayloadSize = function (opts, tests, files) {
+          return Object.keys(files).length * 150 + tests.length * 10;
+        };
+
+        reporter.sendRequest = async () => ({
+          statusCode: 200,
+          statusMessage: 'OK',
+          body: JSON.stringify({ ok: true }),
+        });
+
+        return reporter.send().then(
+          () => {
+            throw new Error('Expected send to fail when import_id is missing');
+          },
+          err => {
+            expect(String(err)).to.include('import_id');
+          },
+        );
+      });
+    });
+
     describe('labels functionality', () => {
       it('should not add labels property when TESTOMATIO_LABELS is not set', () => {
         delete process.env.TESTOMATIO_LABELS;

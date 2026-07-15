@@ -76,16 +76,17 @@ TESTOMATIO=your-api-key npx check-tests push -d ./tests --files "**/*.md"
 
 ### Testomat.io Integration
 
-| Option                        | Description                                                   | Default |
-| ----------------------------- | ------------------------------------------------------------- | ------- |
-| `--sync`                      | Import tests to Testomat.io and wait for completion           | false   |
-| `--no-detached`               | Don't mark all unmatched tests as detached                    | false   |
-| `--update-ids`                | Update test and suite with Testomat.io IDs                    | false   |
-| `--create`                    | Create tests and suites for missing IDs                       | false   |
-| `--keep-structure`            | Prefer structure of source code over structure in Testomat.io | false   |
-| `--no-empty`                  | Remove empty suites after import                              | false   |
-| `--clean-ids`                 | Remove Testomat.io IDs from test and suite                    | false   |
-| `--purge, --unsafe-clean-ids` | Remove Testomat.io IDs without server verification            | false   |
+| Option                        | Description                                                                                                                                                                             | Default |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `--sync`                      | Import tests to Testomat.io and wait for completion                                                                                                                                     | false   |
+| `--no-detached`               | Don't mark all unmatched tests as detached                                                                                                                                              | false   |
+| `--update-ids`                | Update test and suite with Testomat.io IDs                                                                                                                                              | false   |
+| `--create`                    | Create tests and suites for missing IDs                                                                                                                                                 | false   |
+| `--keep-structure`            | Prefer structure of source code over structure in Testomat.io                                                                                                                           | false   |
+| `--no-empty`                  | Remove empty suites after import                                                                                                                                                        | false   |
+| `--clean-ids`                 | Remove Testomat.io IDs from test and suite                                                                                                                                              | false   |
+| `--purge, --unsafe-clean-ids` | Remove Testomat.io IDs without server verification                                                                                                                                      | false   |
+| `--partial`                   | Import only tests from `-d` directory into the matching folder, without marking tests outside it as detached (requires `-d`; equivalent to `-d <dir>` + `TESTOMATIO_PREPEND_DIR=<dir>`) | false   |
 
 ### Test Analysis Options
 
