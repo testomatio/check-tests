@@ -196,6 +196,38 @@ const playwright = {
   },
 };
 
+const cypress = {
+  // extracts tags from Cypress test config object: describe('title', { tags: [...] }, fn) or it('title', { tags: '@smoke' }, fn)
+  getTags: node => {
+    const args = node?.arguments;
+    if (!args?.length) return [];
+    const configArg = args.find(arg => arg.type === 'ObjectExpression');
+    if (!configArg) return [];
+
+    const tagsProp = configArg.properties.find(prop => prop.key?.name === 'tags' || prop.key?.value === 'tags');
+    if (!tagsProp || !tagsProp.value) return [];
+
+    // tags value could be a single tag or an array of tags
+    const elements = tagsProp.value.type === 'ArrayExpression' ? tagsProp.value.elements : [tagsProp.value];
+
+    const getTagName = el => {
+      if (!el) return;
+      if (el.type === 'StringLiteral' || el.type === 'Literal') return el.value;
+      if (el.type === 'TemplateLiteral' && !el.expressions.length && el.quasis.length === 1) {
+        return el.quasis[0].value.cooked;
+      }
+      // enum-style tags like TestTypes.regression can't be resolved statically; use the property name
+      if (el.type === 'MemberExpression' && el.property?.type === 'Identifier') return el.property.name;
+      if (el.type === 'Identifier') return el.name;
+    };
+
+    return elements
+      .map(getTagName)
+      .filter(tag => typeof tag === 'string' && tag.length)
+      .map(tag => (tag.startsWith('@') ? tag.substring(1) : tag));
+  },
+};
+
 const arrayCompare = function (a, b, id) {
   const missing = [];
   const found = [];
@@ -276,6 +308,7 @@ module.exports = {
   replaceAtPoint,
   cleanAtPoint,
   playwright,
+  cypress,
   arrayCompare,
   getAllSuiteTags,
 };

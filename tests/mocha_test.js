@@ -51,6 +51,42 @@ describe('mocha parser', () => {
     });
   });
 
+  context('cypress tags', () => {
+    let tests;
+
+    before(() => {
+      source = fs.readFileSync('./example/mocha/cypress_tags_spec.js').toString();
+      ast = parser.parse(source);
+      tests = mochaParser(ast, '', source);
+    });
+
+    it('should sync tags from describe config to tests', () => {
+      const test = tests.find(t => t.name === 'edits an asset');
+      expect(test.tags).to.eql(['regression', 'integrations', 'multiTenant', 'v8']);
+    });
+
+    it('should combine suite tags with test tags', () => {
+      const test = tests.find(t => t.name === 'deletes an asset');
+      expect(test.tags).to.eql(['regression', 'integrations', 'multiTenant', 'v8', 'slow', 'nightly']);
+    });
+
+    it('should inherit tags from all parent suites', () => {
+      const test = tests.find(t => t.name === 'inherits tags from all parent suites');
+      expect(test.tags).to.eql(['regression', 'integrations', 'multiTenant', 'v8', 'wip']);
+    });
+
+    it('should not add tags to tests without them', () => {
+      const test = tests.find(t => t.name === 'has no tags');
+      expect(test.tags).to.eql([]);
+    });
+
+    it('should parse tags of skipped tests', () => {
+      const test = tests.find(t => t.name === 'skipped test with own tags');
+      expect(test.skipped).to.eql(true);
+      expect(test.tags).to.eql(['quarantine']);
+    });
+  });
+
   context('graphql tests', () => {
     before(() => {
       source = fs.readFileSync('./example/mocha/graphql_test.js').toString();

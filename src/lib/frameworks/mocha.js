@@ -7,6 +7,8 @@ const {
   getLineNumber,
   getEndLineNumber,
   getCode,
+  cypress,
+  getAllSuiteTags,
 } = require('../utils');
 
 module.exports = (ast, file = '', source = '', opts = {}) => {
@@ -23,6 +25,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
   function addSuite(path) {
     currentSuite = currentSuite.filter(s => s.loc.end.line > path.loc.start.line);
+    path.tags = cypress.getTags(path);
     currentSuite.push(path);
   }
 
@@ -94,6 +97,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
+            tags: [...getAllSuiteTags(currentSuite), ...cypress.getTags(path.parentPath.container)],
             skipped: true,
           });
         }
@@ -117,6 +121,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
+          tags: [...getAllSuiteTags(currentSuite), ...cypress.getTags(path.parent)],
           skipped: true,
           file,
         });
@@ -147,6 +152,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           line: getLineNumber(path),
           code,
           file,
+          tags: [...getAllSuiteTags(currentSuite), ...cypress.getTags(path.parent)],
           skipped: !!currentSuite.filter(s => s.skipped).length,
         });
       }
