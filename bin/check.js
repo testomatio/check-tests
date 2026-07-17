@@ -115,6 +115,7 @@ async function mainAction(framework, files, opts) {
           'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached || opts.partial,
           structure: opts.keepStructure,
           force: opts.force || false,
+          disable_suite_cleanup: opts.disableCleanup || false,
           ...(opts.partial && { dir: workDir }),
         }); // async call
 
@@ -199,7 +200,8 @@ program
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--create', 'Create tests and suites for missing IDs')
   .option('--keep-structure', 'Prefer structure of source code over structure in Testomat.io')
-  .option('--no-empty', 'Remove empty suites after import')
+  .option('--no-empty', 'Remove empty suites across the entire project after import')
+  .option('--disable-cleanup', 'Disable auto-cleanup after import')
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
@@ -266,7 +268,8 @@ program
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--create', 'Create tests and suites for missing IDs')
   .option('--keep-structure', 'Prefer structure of source code over structure in Testomat.io')
-  .option('--no-empty', 'Remove empty suites after import')
+  .option('--no-empty', 'Remove empty suites across the entire project after import')
+  .option('--disable-cleanup', 'Disable auto-cleanup after import')
   .option('--purge, --unsafe-clean-ids', 'Remove testomatio ids from test and suite without server verification')
   .option('--clean-ids', 'Remove testomatio ids from test and suite')
   .option('--no-hooks', 'Exclude test hooks code from the code on the client')
