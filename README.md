@@ -732,10 +732,10 @@ TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --keep-s
 
 After import, Testomat.io automatically removes newly imported suites that remain empty. This cleanup happens by default within the imported scope.
 
-To disable this behavior, use `--no-cleanup`:
+To disable this behavior, use `--disable-cleanup`:
 
 ```
-TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --no-cleanup
+TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" --disable-cleanup
 ```
 
 To remove empty suites across the **entire project** (not just the imported scope), use `--no-empty`:
