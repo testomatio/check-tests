@@ -125,6 +125,19 @@ function parseMetadataBlock(lines, startIndex) {
     if (match) {
       const key = match[1].trim();
       const value = match[2].trim();
+
+      // YAML-like list: `key:` on its own line followed by `- item` lines
+      if (!value && lines[i + 1] && lines[i + 1].trim().startsWith('- ')) {
+        const list = [];
+        i++;
+        while (i < lines.length && lines[i].trim().startsWith('- ')) {
+          list.push(lines[i].trim().slice(2).trim());
+          i++;
+        }
+        metadata[key] = list;
+        continue;
+      }
+
       metadata[key] = COMMA_SEPARATED_LIST_KEYS.has(key) ? parseCommaSeparatedList(value) : value;
     }
 

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { expect } = require('chai');
 const Reporter = require('../src/reporter');
@@ -343,6 +344,133 @@ describe('Reporter', () => {
       reporter.attachFiles();
 
       expect(reporter.files).to.not.have.property('checkout.test.md');
+    });
+  });
+
+  describe('attachments (manual/markdown push)', () => {
+    // Minimal valid 1x1 PNG, generated on the fly so no binary fixture needs to live in the repo.
+    const TEST_PNG_BASE64 =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    let screenshotPath;
+    let screenshotKey;
+
+    beforeEach(() => {
+      screenshotPath = path.join(os.tmpdir(), `screenshot-${Date.now()}-${Math.random().toString(36).slice(2)}.png`);
+      fs.writeFileSync(screenshotPath, Buffer.from(TEST_PNG_BASE64, 'base64'));
+      screenshotKey = path.relative(process.cwd(), screenshotPath).replace(/\\/g, '/');
+    });
+
+    afterEach(() => {
+      fs.unlinkSync(screenshotPath);
+    });
+
+    it('should resolve attachment paths relative to the test file, base64-encode them, and remove them from the test object', () => {
+      const tests = [
+        {
+          name: 'Test 1',
+          file: 'example/checkout.test.md',
+          suites: ['Suite 1'],
+          attachments: [screenshotPath],
+        },
+      ];
+
+      reporter.addTests(tests);
+      const prepared = reporter.prepareTests();
+
+      expect(prepared[0]).to.not.have.property('attachments');
+      expect(reporter.attachments).to.have.property(screenshotKey);
+      expect(reporter.attachments[screenshotKey]).to.equal(fs.readFileSync(screenshotPath).toString('base64'));
+    });
+
+    it('should skip attachments that cannot be read from disk', () => {
+      const tests = [
+        {
+          name: 'Test 1',
+          file: 'example/checkout.test.md',
+          suites: ['Suite 1'],
+          attachments: ['does-not-exist.png'],
+        },
+      ];
+
+      reporter.addTests(tests);
+      const prepared = reporter.prepareTests();
+
+      expect(prepared[0]).to.not.have.property('attachments');
+      expect(reporter.attachments).to.deep.equal({});
+    });
+
+    it('should leave tests without attachments untouched', () => {
+      const tests = [{ name: 'Test 1', file: 'example/checkout.test.md', suites: ['Suite 1'] }];
+
+      reporter.addTests(tests);
+      const prepared = reporter.prepareTests();
+
+      expect(prepared[0]).to.not.have.property('attachments');
+      expect(reporter.attachments).to.deep.equal({});
+    });
+
+    it('should send attachments as a top-level "attachments" field, separate from "files" and from each test', () => {
+      reporter.addTests([
+        {
+          name: 'Test 1',
+          file: 'example/checkout.test.md',
+          suites: ['Suite 1'],
+          attachments: [screenshotPath],
+        },
+      ]);
+
+      const requests = [];
+      reporter.sendRequest = async data => {
+        requests.push(JSON.parse(data));
+        return { statusCode: 200, statusMessage: 'OK', body: JSON.stringify({ ok: true }) };
+      };
+
+      return reporter.send().then(() => {
+        expect(requests).to.have.length(1);
+        expect(requests[0]).to.have.property('attachments');
+        expect(requests[0].attachments).to.have.property(screenshotKey);
+        expect(requests[0].tests[0]).to.not.have.property('attachments');
+        expect(requests[0].files).to.not.have.property(screenshotKey);
+      });
+    });
+
+    it('should skip attachments with disallowed extensions and log a warning', () => {
+      reporter.addTests([
+        {
+          name: 'Test 1',
+          file: 'example/checkout.test.md',
+          suites: ['Suite 1'],
+          attachments: ['checkout.test.md'],
+        },
+      ]);
+
+      reporter.prepareTests();
+
+      expect(reporter.attachments).to.deep.equal({});
+      expect(consoleLogMessages.some(msg => msg.includes('unsupported file type'))).to.be.true;
+    });
+
+    it('should skip attachments larger than the size limit and log a warning', () => {
+      const oversizedFile = path.join(os.tmpdir(), `oversized-attachment-${Date.now()}.png`);
+      fs.writeFileSync(oversizedFile, Buffer.alloc(6 * 1024 * 1024));
+
+      try {
+        reporter.addTests([
+          {
+            name: 'Test 1',
+            file: 'example/checkout.test.md',
+            suites: ['Suite 1'],
+            attachments: [oversizedFile],
+          },
+        ]);
+
+        reporter.prepareTests();
+
+        expect(reporter.attachments).to.deep.equal({});
+        expect(consoleLogMessages.some(msg => msg.includes('exceeds the'))).to.be.true;
+      } finally {
+        fs.unlinkSync(oversizedFile);
+      }
     });
   });
 

@@ -7,6 +7,9 @@ const fs = require('fs');
 const { formatErrorMessage } = require('./lib/utils');
 const { TEST_ID_REGEX } = require('./updateIds/constants');
 
+const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp']);
+const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
+
 class Reporter {
   constructor(apiKey, framework, workDir) {
     if (!framework) {
@@ -20,6 +23,8 @@ class Reporter {
     this.workDir = workDir || process.cwd();
     this.tests = [];
     this.files = {};
+    this.attachments = {};
+    this.attachmentKeysByTestFile = {};
     this.maxChunkBytes = 1 * 1024 * 1024;
     this.maxChunkFiles = 100;
     this.maxChunkTests = 100;
@@ -169,9 +174,13 @@ class Reporter {
 
   prepareTests() {
     const labelsFromEnv = this.parseLabels(process.env.TESTOMATIO_LABELS || process.env.TESTOMATIO_SYNC_LABELS);
+    this.attachments = {};
+    this.attachmentKeysByTestFile = {};
 
     return this.tests.map(test => {
       const nextTest = { ...test };
+      const attachmentPaths = nextTest.attachments;
+      delete nextTest.attachments;
 
       if (process.env.TESTOMATIO_WORKDIR && nextTest.file) {
         const workdir = path.resolve(process.env.TESTOMATIO_WORKDIR);
@@ -181,12 +190,69 @@ class Reporter {
 
       nextTest.file = nextTest.file?.replace(/\\/g, '/');
 
+      if (attachmentPaths && attachmentPaths.length) {
+        const encoded = this.readAttachments(attachmentPaths, test.file);
+        Object.assign(this.attachments, encoded);
+
+        if (nextTest.file) {
+          this.attachmentKeysByTestFile[nextTest.file] = (this.attachmentKeysByTestFile[nextTest.file] || []).concat(
+            Object.keys(encoded),
+          );
+        }
+      }
+
       if (labelsFromEnv.length > 0) {
         nextTest.labels = labelsFromEnv;
       }
 
       return nextTest;
     });
+  }
+
+  /**
+   * Resolve attachment paths (relative to the test's own file) from disk,
+   * base64-encode their contents, and key them by path relative to workDir.
+   */
+  readAttachments(attachmentPaths, testFile) {
+    const encoded = {};
+    const baseDir = testFile ? path.dirname(path.resolve(this.workDir, testFile)) : this.workDir;
+
+    for (const attachmentPath of attachmentPaths) {
+      if (!attachmentPath) continue;
+
+      const absolutePath = path.resolve(baseDir, attachmentPath);
+      const extension = path.extname(absolutePath).toLowerCase();
+
+      if (!ALLOWED_ATTACHMENT_EXTENSIONS.has(extension)) {
+        console.log(
+          ` ⚠️  Skipping attachment "${attachmentPath}": unsupported file type (allowed: ${[
+            ...ALLOWED_ATTACHMENT_EXTENSIONS,
+          ].join(', ')})`,
+        );
+        continue;
+      }
+
+      try {
+        const { size } = fs.statSync(absolutePath);
+
+        if (size > MAX_ATTACHMENT_SIZE_BYTES) {
+          console.log(
+            ` ⚠️  Skipping attachment "${attachmentPath}": file is ${this.formatChunkBytes(
+              size,
+            )}, exceeds the ${this.formatChunkBytes(MAX_ATTACHMENT_SIZE_BYTES)} limit`,
+          );
+          continue;
+        }
+
+        const content = fs.readFileSync(absolutePath);
+        const key = path.relative(this.workDir, absolutePath).replace(/\\/g, '/');
+        encoded[key] = content.toString('base64');
+      } catch (err) {
+        debug(`Error reading attachment ${attachmentPath}: ${err.message}`);
+      }
+    }
+
+    return encoded;
   }
 
   buildUploadOptions(opts = {}) {
@@ -198,8 +264,8 @@ class Reporter {
     return nextOpts;
   }
 
-  buildPayload(opts = {}, tests = this.tests, files = this.files, extra = {}) {
-    return JSON.stringify({ ...opts, ...extra, tests, framework: this.framework, files });
+  buildPayload(opts = {}, tests = this.tests, files = this.files, extra = {}, attachments = this.attachments) {
+    return JSON.stringify({ ...opts, ...extra, tests, framework: this.framework, files, attachments });
   }
 
   splitTestsById(tests = this.tests) {
@@ -223,14 +289,14 @@ class Reporter {
     return false;
   }
 
-  createUploadChunks(opts = {}, tests = this.tests, files = this.files) {
+  createUploadChunks(opts = {}, tests = this.tests, files = this.files, attachments = this.attachments) {
     if (tests.length === 0) {
-      return [{ tests, files }];
+      return [{ tests, files, attachments }];
     }
 
-    const groups = this.groupTestsByFile(tests, files);
+    const groups = this.groupTestsByFile(tests, files, attachments);
     const chunks = [];
-    let currentChunk = { tests: [], files: {} };
+    let currentChunk = { tests: [], files: {}, attachments: {} };
 
     for (const group of groups) {
       const groupChunks = this.splitOversizedGroup(group, opts);
@@ -239,13 +305,15 @@ class Reporter {
         const nextChunk = {
           tests: currentChunk.tests.concat(groupChunk.tests),
           files: { ...currentChunk.files, ...groupChunk.files },
+          attachments: { ...currentChunk.attachments, ...groupChunk.attachments },
         };
         const nextChunkFilesCount = Object.keys(nextChunk.files).length;
         const nextChunkTestsCount = nextChunk.tests.length;
 
         if (
           currentChunk.tests.length > 0 &&
-          (this.getPayloadSize(opts, nextChunk.tests, nextChunk.files) > this.maxChunkBytes ||
+          (this.getPayloadSize(opts, nextChunk.tests, nextChunk.files, {}, nextChunk.attachments) >
+            this.maxChunkBytes ||
             nextChunkFilesCount > this.maxChunkFiles ||
             nextChunkTestsCount > this.maxChunkTests)
         ) {
@@ -265,7 +333,7 @@ class Reporter {
     return chunks;
   }
 
-  groupTestsByFile(tests = this.tests, files = this.files) {
+  groupTestsByFile(tests = this.tests, files = this.files, attachments = this.attachments) {
     const groups = [];
     const fileGroups = new Map();
 
@@ -276,7 +344,16 @@ class Reporter {
         const group = {
           tests: [],
           files: test.file && files[test.file] !== undefined ? { [test.file]: files[test.file] } : {},
+          attachments: {},
         };
+
+        const attachmentKeys = test.file ? this.attachmentKeysByTestFile[test.file] : null;
+        if (attachmentKeys) {
+          for (const attachmentKey of attachmentKeys) {
+            if (attachments[attachmentKey] !== undefined) group.attachments[attachmentKey] = attachments[attachmentKey];
+          }
+        }
+
         fileGroups.set(key, group);
         groups.push(group);
       }
@@ -289,7 +366,7 @@ class Reporter {
 
   splitOversizedGroup(group, opts = {}) {
     if (
-      (this.getPayloadSize(opts, group.tests, group.files) <= this.maxChunkBytes &&
+      (this.getPayloadSize(opts, group.tests, group.files, {}, group.attachments) <= this.maxChunkBytes &&
         group.tests.length <= this.maxChunkTests) ||
       group.tests.length <= 1
     ) {
@@ -297,23 +374,25 @@ class Reporter {
     }
 
     const splitGroups = [];
-    let currentGroup = { tests: [], files: group.files };
+    let currentGroup = { tests: [], files: group.files, attachments: group.attachments };
 
     for (const test of group.tests) {
       const nextGroup = {
         tests: currentGroup.tests.concat(test),
         files: group.files,
+        attachments: group.attachments,
       };
 
       if (
         currentGroup.tests.length > 0 &&
-        (this.getPayloadSize(opts, nextGroup.tests, nextGroup.files) > this.maxChunkBytes ||
+        (this.getPayloadSize(opts, nextGroup.tests, nextGroup.files, {}, nextGroup.attachments) > this.maxChunkBytes ||
           nextGroup.tests.length > this.maxChunkTests)
       ) {
         splitGroups.push(currentGroup);
         currentGroup = {
           tests: [test],
           files: group.files,
+          attachments: group.attachments,
         };
         continue;
       }
@@ -328,8 +407,8 @@ class Reporter {
     return splitGroups;
   }
 
-  getPayloadSize(opts = {}, tests = this.tests, files = this.files, extra = {}) {
-    return Buffer.byteLength(this.buildPayload(opts, tests, files, extra));
+  getPayloadSize(opts = {}, tests = this.tests, files = this.files, extra = {}, attachments = this.attachments) {
+    return Buffer.byteLength(this.buildPayload(opts, tests, files, extra, attachments));
   }
 
   logChunkedUploadStart(totalChunks) {
@@ -398,9 +477,12 @@ class Reporter {
 
       if (importId) extra.import_id = importId;
 
-      const response = await this.sendRequest(this.buildPayload(opts, chunk.tests, chunk.files, extra), {
-        quietSuccessLog: true,
-      });
+      const response = await this.sendRequest(
+        this.buildPayload(opts, chunk.tests, chunk.files, extra, chunk.attachments || {}),
+        {
+          quietSuccessLog: true,
+        },
+      );
 
       if (response.statusCode >= 400) {
         throw new Error(response.body || `Chunk upload failed (${response.statusCode}: ${response.statusMessage})`);
