@@ -346,6 +346,100 @@ describe('Reporter', () => {
     });
   });
 
+  describe('attachments (manual/markdown push)', () => {
+    describe('sendAttachments', () => {
+      it('should send a hash of { [testId]: [{ name, content }] } to the dedicated attachments endpoint', async () => {
+        const requests = [];
+        reporter.sendRequest = async (data, requestOpts) => {
+          requests.push({ body: JSON.parse(data), requestOpts });
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([
+          { testName: 'Test 1', id: '@T111', attachments: [{ name: 'a.png', content: 'base64content' }] },
+        ]);
+
+        expect(requests).to.have.length(1);
+        expect(requests[0].requestOpts).to.include({ path: '/api/load/attachments' });
+        expect(requests[0].body).to.deep.equal({
+          '@T111': [{ name: 'a.png', content: 'base64content' }],
+        });
+      });
+
+      it('should skip declarations without an id', async () => {
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([
+          { testName: 'Unresolved test', attachments: [{ name: 'a.png', content: 'base64content' }] },
+        ]);
+
+        expect(requests).to.have.length(0);
+      });
+
+      it('should group multiple attachments for the same test id into one array', async () => {
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([
+          {
+            testName: 'Test 1',
+            id: '@T111',
+            attachments: [
+              { name: 'a.png', content: 'content-a' },
+              { name: 'b.png', content: 'content-b' },
+            ],
+          },
+        ]);
+
+        expect(requests[0]['@T111']).to.have.length(2);
+      });
+
+      it('should not send a request at all when nothing has attachments', async () => {
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([{ testName: 'Test 1', id: '@T111' }]);
+
+        expect(requests).to.have.length(0);
+      });
+    });
+
+    describe('chunkAttachmentsById', () => {
+      it('should split into multiple chunks once the byte limit is exceeded', () => {
+        reporter.maxAttachmentChunkBytes = 50;
+
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [{ name: 'a.png', content: 'x'.repeat(40) }],
+          '@T222': [{ name: 'b.png', content: 'y'.repeat(40) }],
+        });
+
+        expect(chunks).to.have.length(2);
+        expect(chunks[0]).to.deep.equal({ '@T111': [{ name: 'a.png', content: 'x'.repeat(40) }] });
+        expect(chunks[1]).to.deep.equal({ '@T222': [{ name: 'b.png', content: 'y'.repeat(40) }] });
+      });
+
+      it('should keep everything in one chunk when it fits', () => {
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [{ name: 'a.png', content: 'small' }],
+          '@T222': [{ name: 'b.png', content: 'small' }],
+        });
+
+        expect(chunks).to.have.length(1);
+        expect(Object.keys(chunks[0])).to.deep.equal(['@T111', '@T222']);
+      });
+    });
+  });
+
   describe('send method integration', () => {
     it('should include files property in payload', done => {
       const tests = [

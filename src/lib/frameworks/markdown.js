@@ -1,3 +1,5 @@
+const { TAG_REGEX } = require('../../updateIds/constants');
+
 /**
  * Parse markdown files for manual tests
  * Expected format:
@@ -9,6 +11,7 @@
  */
 module.exports = (ast, file = '', source = '') => {
   const tests = [];
+  const attachmentDeclarations = [];
   const lines = source.split('\n');
   let currentSuite = null;
   let i = 0;
@@ -62,15 +65,27 @@ module.exports = (ast, file = '', source = '') => {
           i++;
         }
 
-        // Create test object
+        // Create test object — `attachments` is pulled out here so it never lands on the test itself
+        const { attachments, ...restMetadata } = testMetadata.data;
+
         const testData = {
           name: testName,
           suites: currentSuite ? [currentSuite.name] : [],
           line: testStartLine,
           file,
           manual: true,
-          ...testMetadata.data,
+          ...restMetadata,
         };
+
+        if (attachments && attachments.length) {
+          attachmentDeclarations.push({
+            testName: testData.name,
+            suiteName: currentSuite ? currentSuite.name.replace(TAG_REGEX, '').trim() : null,
+            file: testData.file,
+            id: testData.id,
+            attachments,
+          });
+        }
 
         tests.push(testData);
         continue;
@@ -80,6 +95,7 @@ module.exports = (ast, file = '', source = '') => {
     i++;
   }
 
+  tests.attachmentDeclarations = attachmentDeclarations;
   return tests;
 };
 

@@ -3,8 +3,13 @@ const glob = require('glob');
 const path = require('path');
 const debug = require('debug')('testomatio:analyze');
 const Decorator = require('./decorator');
+const { formatBytes } = require('./lib/utils');
+const { TAG_REGEX } = require('./updateIds/constants');
 
 let parser;
+
+const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp']);
+const MAX_ATTACHMENT_SIZE_BYTES = 2 * 1024 * 1024;
 
 /**
  * @typedef {import('../types').Analyzer} Analyzer
@@ -19,6 +24,7 @@ class Analyzer {
     this.plugins = [];
     this.presets = [];
     this.rawTests = [];
+    this.attachmentDeclarations = [];
     this.opts = opts || {};
 
     parser = require('@babel/parser');
@@ -88,6 +94,7 @@ class Analyzer {
 
     this.decorator = new Decorator([], { framework: this.framework });
     this.stats = this.getEmptyStats();
+    this.attachmentDeclarations = [];
 
     // Fix: Don't convert to absolute path, use relative path from workDir
     const originalCwd = process.cwd();
@@ -187,6 +194,10 @@ class Analyzer {
 
       const testsData = this.frameworkParser(ast, fileName, source, this.opts);
 
+      if (testsData.attachmentDeclarations?.length) {
+        this.attachmentDeclarations = this.attachmentDeclarations.concat(testsData.attachmentDeclarations);
+      }
+
       this.rawTests.push(testsData);
       const tests = new Decorator(testsData, { framework: this.framework });
       this.stats.tests = this.stats.tests.concat(tests.getFullNames());
@@ -203,6 +214,101 @@ class Analyzer {
 
   getDecorator() {
     return this.decorator;
+  }
+
+  /**
+   * Resolve the attachment declarations into { name, content } — base64-encoded
+   * validated against an extension allowlist and a size limit
+   * @returns {{ testName: string, suiteName: string|null, file: string, id: string|undefined, attachments: { name: string, content: string }[] }[]}
+   */
+  extractAttachments() {
+    return this.attachmentDeclarations
+      .map(declaration => ({
+        testName: declaration.testName,
+        suiteName: declaration.suiteName,
+        file: declaration.file,
+        id: declaration.id,
+        attachments: this.readAttachments(declaration.attachments, declaration.file),
+      }))
+      .filter(declaration => declaration.attachments.length > 0);
+  }
+
+  resolveAttachmentIds(declarations, idMap) {
+    return declarations.map(declaration => ({
+      ...declaration,
+      id:
+        declaration.id ||
+        this.resolveTestId(declaration.testName, idMap, {
+          suiteName: declaration.suiteName,
+          file: declaration.file,
+        }),
+    }));
+  }
+
+  resolveTestId(testName, idMap, { suiteName, file } = {}) {
+    if (!testName || !idMap?.tests) return null;
+
+    const cleanTestName = testName.replace(TAG_REGEX, '').trim();
+    const candidates = [];
+
+    if (file && suiteName) candidates.push(`${file}#${suiteName}#${cleanTestName}`);
+    if (suiteName) candidates.push(`${suiteName}#${cleanTestName}`);
+    candidates.push(testName, cleanTestName);
+
+    for (const key of candidates) {
+      if (idMap.tests[key] !== undefined) {
+        const id = idMap.tests[key];
+        delete idMap.tests[key];
+        return id;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Resolve attachment paths (relative to the test's own file) from disk and
+   * base64-encode their contents, keyed by filename only (not full path).
+   */
+  readAttachments(attachmentPaths, testFile) {
+    const results = [];
+    const baseDir = testFile ? path.dirname(path.resolve(this.workDir, testFile)) : path.resolve(this.workDir);
+
+    for (const attachmentPath of attachmentPaths) {
+      if (!attachmentPath) continue;
+
+      const absolutePath = path.resolve(baseDir, attachmentPath);
+      const extension = path.extname(absolutePath).toLowerCase();
+
+      if (!ALLOWED_ATTACHMENT_EXTENSIONS.has(extension)) {
+        console.log(
+          ` ⚠️  Skipping attachment "${attachmentPath}": unsupported file type (allowed: ${[
+            ...ALLOWED_ATTACHMENT_EXTENSIONS,
+          ].join(', ')})`,
+        );
+        continue;
+      }
+
+      try {
+        const { size } = fs.statSync(absolutePath);
+
+        if (size > MAX_ATTACHMENT_SIZE_BYTES) {
+          console.log(
+            ` ⚠️  Skipping attachment "${attachmentPath}": file is ${formatBytes(size)}, exceeds the ${formatBytes(
+              MAX_ATTACHMENT_SIZE_BYTES,
+            )} limit`,
+          );
+          continue;
+        }
+
+        const content = fs.readFileSync(absolutePath).toString('base64');
+        results.push({ name: path.basename(absolutePath), content });
+      } catch (err) {
+        debug(`Error reading attachment ${attachmentPath}: ${err.message}`);
+      }
+    }
+
+    return results;
   }
 
   getStats() {

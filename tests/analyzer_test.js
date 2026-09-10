@@ -1,4 +1,6 @@
 const { expect } = require('chai');
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const Analyzer = require('../src/analyzer');
 
@@ -217,5 +219,305 @@ describe('analyzer', () => {
     const files2 = analyzer2.getStats().files;
 
     expect(files1).to.deep.equal(files2);
+  });
+
+  describe('attachments (manual/markdown push)', () => {
+    // Minimal valid 1x1 PNG, generated on the fly so no binary fixture needs to live in the repo.
+    const TEST_PNG_BASE64 =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    let screenshotPath;
+
+    beforeEach(() => {
+      screenshotPath = path.join(
+        os.tmpdir(),
+        `analyzer-screenshot-${Date.now()}-${Math.random().toString(36).slice(2)}.png`,
+      );
+      fs.writeFileSync(screenshotPath, Buffer.from(TEST_PNG_BASE64, 'base64'));
+    });
+
+    afterEach(() => {
+      fs.unlinkSync(screenshotPath);
+    });
+
+    describe('readAttachments', () => {
+      it('should resolve, validate and base64-encode attachments, keyed by filename only', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        const result = testAnalyzer.readAttachments([screenshotPath], 'example/checkout.test.md');
+
+        expect(result).to.deep.equal([
+          { name: path.basename(screenshotPath), content: fs.readFileSync(screenshotPath).toString('base64') },
+        ]);
+      });
+
+      it('should silently skip attachments that cannot be read from disk', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        expect(testAnalyzer.readAttachments(['does-not-exist.png'], 'example/checkout.test.md')).to.deep.equal([]);
+      });
+
+      it('should skip attachments with disallowed extensions', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        expect(testAnalyzer.readAttachments(['checkout.test.md'], 'example/checkout.test.md')).to.deep.equal([]);
+      });
+
+      it('should skip attachments larger than the size limit', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const oversizedFile = path.join(os.tmpdir(), `analyzer-oversized-${Date.now()}.png`);
+        fs.writeFileSync(oversizedFile, Buffer.alloc(6 * 1024 * 1024));
+
+        try {
+          expect(testAnalyzer.readAttachments([oversizedFile], 'example/checkout.test.md')).to.deep.equal([]);
+        } finally {
+          fs.unlinkSync(oversizedFile);
+        }
+      });
+    });
+
+    describe('extractAttachments', () => {
+      it('should resolve declarations collected during the last analyze() pass into file content', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        testAnalyzer.attachmentDeclarations = [
+          {
+            testName: 'Test 1',
+            suiteName: 'Suite A',
+            file: 'example/checkout.test.md',
+            id: '@T111',
+            attachments: [screenshotPath],
+          },
+        ];
+
+        const declarations = testAnalyzer.extractAttachments();
+
+        expect(declarations).to.deep.equal([
+          {
+            testName: 'Test 1',
+            suiteName: 'Suite A',
+            file: 'example/checkout.test.md',
+            id: '@T111',
+            attachments: [
+              { name: path.basename(screenshotPath), content: fs.readFileSync(screenshotPath).toString('base64') },
+            ],
+          },
+        ]);
+      });
+
+      it('should drop a declaration entirely when every attachment fails validation', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        testAnalyzer.attachmentDeclarations = [
+          { testName: 'Test 1', file: 'example/checkout.test.md', attachments: ['does-not-exist.png'] },
+        ];
+
+        expect(testAnalyzer.extractAttachments()).to.deep.equal([]);
+      });
+
+      it('should return an empty list when nothing was collected during parsing', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        expect(testAnalyzer.extractAttachments()).to.deep.equal([]);
+      });
+    });
+
+    describe('resolveTestId', () => {
+      it('should look up a test id by exact name in the id map', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = { tests: { 'My test': '@T111' } };
+
+        expect(testAnalyzer.resolveTestId('My test', idMap)).to.equal('@T111');
+      });
+
+      it('should fall back to matching the tag-stripped name', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = { tests: { 'My test': '@T111' } };
+
+        expect(testAnalyzer.resolveTestId('My test @smoke', idMap)).to.equal('@T111');
+      });
+
+      it('should return null when there is no match', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        expect(testAnalyzer.resolveTestId('Unknown test', { tests: {} })).to.be.null;
+      });
+
+      it('should return null when idMap is missing', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        expect(testAnalyzer.resolveTestId('My test', null)).to.be.null;
+      });
+
+      it('should prefer the file#suite#test key when suite and file are known', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = {
+          tests: {
+            'a.test.md#Suite A#My test': '@T111',
+            'Suite A#My test': '@T222',
+            'My test': '@T333',
+          },
+        };
+
+        expect(testAnalyzer.resolveTestId('My test', idMap, { suiteName: 'Suite A', file: 'a.test.md' })).to.equal(
+          '@T111',
+        );
+      });
+
+      it('should disambiguate same-named tests in different suites via the suite#test key', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = {
+          tests: {
+            'Suite A#My test': '@T111',
+            'Suite B#My test': '@T222',
+          },
+        };
+
+        expect(testAnalyzer.resolveTestId('My test', idMap, { suiteName: 'Suite A' })).to.equal('@T111');
+        expect(testAnalyzer.resolveTestId('My test', idMap, { suiteName: 'Suite B' })).to.equal('@T222');
+      });
+
+      it('should fall back to the bare name key when no suite context is given', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = { tests: { 'My test': '@T111' } };
+
+        expect(testAnalyzer.resolveTestId('My test', idMap)).to.equal('@T111');
+      });
+
+      it('should consume a matched key so it cannot be handed out to a second test', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = { tests: { 'My test': '@T111' } };
+
+        expect(testAnalyzer.resolveTestId('My test', idMap)).to.equal('@T111');
+        expect(testAnalyzer.resolveTestId('My test', idMap)).to.be.null;
+      });
+    });
+
+    describe('resolveAttachmentIds', () => {
+      it('should leave an existing id untouched', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        const resolved = testAnalyzer.resolveAttachmentIds([{ testName: 'Test 1', id: '@T111', attachments: [] }], {
+          tests: { 'Test 1': '@T999' },
+        });
+
+        expect(resolved[0].id).to.equal('@T111');
+      });
+
+      it('should patch in the id from idMap when the declaration has none (new test)', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        const resolved = testAnalyzer.resolveAttachmentIds([{ testName: 'New test', attachments: [] }], {
+          tests: { 'New test': '@T999' },
+        });
+
+        expect(resolved[0].id).to.equal('@T999');
+      });
+
+      it('should leave id null when it cannot be resolved', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+
+        const resolved = testAnalyzer.resolveAttachmentIds([{ testName: 'Unknown test', attachments: [] }], {
+          tests: {},
+        });
+
+        expect(resolved[0].id).to.be.null;
+      });
+
+      it('should correctly disambiguate same-named tests across different suites', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const idMap = {
+          tests: {
+            'Suite A#Login': '@T111',
+            'Suite B#Login': '@T222',
+          },
+        };
+
+        const resolved = testAnalyzer.resolveAttachmentIds(
+          [
+            { testName: 'Login', suiteName: 'Suite A', attachments: [] },
+            { testName: 'Login', suiteName: 'Suite B', attachments: [] },
+          ],
+          idMap,
+        );
+
+        expect(resolved[0].id).to.equal('@T111');
+        expect(resolved[1].id).to.equal('@T222');
+      });
+
+      it('should disambiguate by suite end-to-end, through extractAttachments() output (regression: extractAttachments must not drop suiteName/file)', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        testAnalyzer.attachmentDeclarations = [
+          {
+            testName: 'Login',
+            suiteName: 'Suite A',
+            file: 'example/checkout.test.md',
+            attachments: [screenshotPath],
+          },
+          {
+            testName: 'Login',
+            suiteName: 'Suite B',
+            file: 'example/checkout.test.md',
+            attachments: [screenshotPath],
+          },
+        ];
+
+        const extracted = testAnalyzer.extractAttachments();
+        const idMap = {
+          tests: {
+            'Suite A#Login': '@T111',
+            'Suite B#Login': '@T222',
+          },
+        };
+
+        const resolved = testAnalyzer.resolveAttachmentIds(extracted, idMap);
+
+        expect(resolved[0].id).to.equal('@T111');
+        expect(resolved[1].id).to.equal('@T222');
+      });
+    });
+
+    describe('integration with the markdown parser', () => {
+      it('should populate attachmentDeclarations while analyzing, without putting attachments on the test object', () => {
+        const testAnalyzer = new Analyzer('manual', path.join(__dirname, '..'));
+        const relativeAttachmentPath = path.relative(path.join(__dirname, '..', 'example'), screenshotPath);
+        const fixtureDir = path.join(__dirname, '..', 'example');
+        const fixturePath = path.join(fixtureDir, 'attachments-analyzer.test.md');
+
+        fs.writeFileSync(
+          fixturePath,
+          [
+            '<!-- suite',
+            'id: @S1',
+            '-->',
+            '# S',
+            '',
+            '<!-- test',
+            'id: @T111',
+            'attachments:',
+            `- ${relativeAttachmentPath}`,
+            '-->',
+            '',
+            '## Case',
+            '',
+          ].join('\n'),
+        );
+
+        try {
+          testAnalyzer.analyze('./example/attachments-analyzer.test.md');
+
+          const tests = testAnalyzer.getDecorator().getTests();
+          expect(tests[0]).to.not.have.property('attachments');
+          expect(testAnalyzer.attachmentDeclarations).to.deep.equal([
+            {
+              testName: 'Case',
+              suiteName: 'S',
+              file: 'example/attachments-analyzer.test.md',
+              id: '@T111',
+              attachments: [relativeAttachmentPath],
+            },
+          ]);
+        } finally {
+          fs.unlinkSync(fixturePath);
+        }
+      });
+    });
   });
 });
