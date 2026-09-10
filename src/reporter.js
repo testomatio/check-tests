@@ -23,6 +23,8 @@ class Reporter {
     this.maxChunkBytes = 1 * 1024 * 1024;
     this.maxChunkFiles = 100;
     this.maxChunkTests = 100;
+    this.maxAttachmentChunkBytes = 4 * 1024 * 1024;
+    this.maxAttachmentChunkFiles = 100;
   }
 
   addTests(tests) {
@@ -429,12 +431,100 @@ class Reporter {
     }
   }
 
+  async sendAttachments(declarations = []) {
+    const attachmentsByTestId = {};
+
+    for (const declaration of declarations) {
+      if (!declaration.id || !declaration.attachments || !declaration.attachments.length) continue;
+
+      attachmentsByTestId[declaration.id] = (attachmentsByTestId[declaration.id] || []).concat(declaration.attachments);
+    }
+
+    const testIds = Object.keys(attachmentsByTestId);
+    if (testIds.length === 0) return;
+
+    console.log(`\n 📎 Sending attachments for ${testIds.length} test(s) to Testomat.io\n`);
+
+    const chunks = this.chunkAttachmentsById(attachmentsByTestId);
+    for (const chunk of chunks) {
+      await this.sendRequest(JSON.stringify(chunk), { path: '/api/load/attachments', quietSuccessLog: true });
+    }
+
+    console.log(' 🎉 Attachments sent to Testomat.io');
+  }
+
+  chunkAttachmentsById(attachmentsByTestId) {
+    const chunks = [];
+    let currentChunk = {};
+    let currentSize = 0;
+    let currentFileCount = 0;
+
+    const addEntry = (testId, attachments) => {
+      const entrySize = Buffer.byteLength(JSON.stringify({ [testId]: attachments }));
+      const entryFileCount = attachments.length;
+
+      if (
+        currentSize > 0 &&
+        (currentSize + entrySize > this.maxAttachmentChunkBytes ||
+          currentFileCount + entryFileCount > this.maxAttachmentChunkFiles)
+      ) {
+        chunks.push(currentChunk);
+        currentChunk = {};
+        currentSize = 0;
+        currentFileCount = 0;
+      }
+
+      // a previous piece of the same test id may already be in this chunk
+      currentChunk[testId] = (currentChunk[testId] || []).concat(attachments);
+      currentSize += entrySize;
+      currentFileCount += entryFileCount;
+    };
+
+    for (const [testId, attachments] of Object.entries(attachmentsByTestId)) {
+      for (const piece of this.splitAttachmentsForOneTest(testId, attachments)) {
+        addEntry(testId, piece);
+      }
+    }
+
+    if (Object.keys(currentChunk).length > 0 || chunks.length === 0) {
+      chunks.push(currentChunk);
+    }
+
+    return chunks;
+  }
+
+  splitAttachmentsForOneTest(testId, attachments) {
+    const pieces = [];
+    let piece = [];
+
+    for (const attachment of attachments) {
+      const nextPiece = piece.concat(attachment);
+      const nextSize = Buffer.byteLength(JSON.stringify({ [testId]: nextPiece }));
+
+      if (
+        piece.length > 0 &&
+        (nextPiece.length > this.maxAttachmentChunkFiles || nextSize > this.maxAttachmentChunkBytes)
+      ) {
+        pieces.push(piece);
+        piece = [attachment];
+        continue;
+      }
+
+      piece = nextPiece;
+    }
+
+    if (piece.length > 0) pieces.push(piece);
+
+    return pieces;
+  }
+
   sendRequest(data, requestOpts = {}) {
     debug('Sending test data to Testomat.io', data);
+    const endpoint = requestOpts.path || '/api/load';
 
     return new Promise((resolve, reject) => {
       const req = request(
-        `${URL.trim()}/api/load?api_key=${this.apiKey}`,
+        `${URL.trim()}${endpoint}?api_key=${this.apiKey}`,
         {
           method: 'POST',
           headers: {

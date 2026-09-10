@@ -216,7 +216,7 @@ labels:
   });
 
   context('attachments YAML-list metadata', () => {
-    it('should parse attachments as an array of paths', () => {
+    it('should collect attachments as a separate declaration, not on the test object', () => {
       const md = `<!-- suite
 id: @S1
 -->
@@ -233,7 +233,16 @@ attachments:
 `;
       const tests = markdownParser(null, 'attachments.test.md', md);
       expect(tests).to.have.length(1);
-      expect(tests[0].attachments).to.deep.equal(['./screenshots/fail.png', './video.mp4']);
+      expect(tests[0]).to.not.have.property('attachments');
+      expect(tests.attachmentDeclarations).to.deep.equal([
+        {
+          testName: 'Case',
+          suiteName: 'S',
+          file: 'attachments.test.md',
+          id: '@T1',
+          attachments: ['./screenshots/fail.png', './video.mp4'],
+        },
+      ]);
     });
 
     it('should support a single attachment item', () => {
@@ -250,7 +259,8 @@ attachments:
 ## Case
 `;
       const tests = markdownParser(null, 'single-attachment.test.md', md);
-      expect(tests[0].attachments).to.deep.equal(['./screenshots/fail.png']);
+      expect(tests[0]).to.not.have.property('attachments');
+      expect(tests.attachmentDeclarations[0].attachments).to.deep.equal(['./screenshots/fail.png']);
     });
 
     it('should not treat attachments as a list when the key has no following "- " lines', () => {
@@ -266,7 +276,8 @@ attachments:
 ## Case
 `;
       const tests = markdownParser(null, 'empty-attachments.test.md', md);
-      expect(tests[0].attachments).to.equal('');
+      expect(tests[0]).to.not.have.property('attachments');
+      expect(tests.attachmentDeclarations).to.deep.equal([]);
     });
 
     it('should not confuse other keys after the list with list items', () => {
@@ -285,7 +296,8 @@ priority: high
 ## Case
 `;
       const tests = markdownParser(null, 'attachments-then-key.test.md', md);
-      expect(tests[0].attachments).to.deep.equal(['./screenshots/fail.png']);
+      expect(tests[0]).to.not.have.property('attachments');
+      expect(tests.attachmentDeclarations[0].attachments).to.deep.equal(['./screenshots/fail.png']);
       expect(tests[0].priority).to.equal('high');
     });
   });
