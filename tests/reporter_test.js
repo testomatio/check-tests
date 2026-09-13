@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const { expect } = require('chai');
 const Reporter = require('../src/reporter');
@@ -411,6 +410,49 @@ describe('Reporter', () => {
         await reporter.sendAttachments([{ testName: 'Test 1', id: '@T111' }]);
 
         expect(requests).to.have.length(0);
+      });
+
+      it('should throw when the server responds with an error status, instead of silently reporting success', async () => {
+        reporter.sendRequest = async () => ({
+          statusCode: 422,
+          statusMessage: 'Unprocessable Content',
+          body: 'Cannot upload more than 100 files at once',
+        });
+
+        let thrown = null;
+        try {
+          await reporter.sendAttachments([
+            { testName: 'Test 1', id: '@T111', attachments: [{ name: 'a.png', content: 'base64content' }] },
+          ]);
+        } catch (err) {
+          thrown = err;
+        }
+
+        expect(thrown).to.not.be.null;
+        expect(thrown.message).to.equal('Cannot upload more than 100 files at once');
+      });
+
+      it('should stop sending further chunks once one chunk fails', async () => {
+        reporter.maxAttachmentChunkFiles = 1;
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return requests.length === 1
+            ? { statusCode: 500, statusMessage: 'Server Error', body: 'boom' }
+            : { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        try {
+          await reporter.sendAttachments([
+            { testName: 'Test 1', id: '@T111', attachments: [{ name: 'a.png', content: 'x' }] },
+            { testName: 'Test 2', id: '@T222', attachments: [{ name: 'b.png', content: 'y' }] },
+          ]);
+          expect.fail('expected sendAttachments to throw');
+        } catch (err) {
+          expect(err.message).to.equal('boom');
+        }
+
+        expect(requests).to.have.length(1);
       });
     });
 

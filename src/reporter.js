@@ -447,7 +447,16 @@ class Reporter {
 
     const chunks = this.chunkAttachmentsById(attachmentsByTestId);
     for (const chunk of chunks) {
-      await this.sendRequest(JSON.stringify(chunk), { path: '/api/load/attachments', quietSuccessLog: true });
+      const response = await this.sendRequest(JSON.stringify(chunk), {
+        path: '/api/load/attachments',
+        quietSuccessLog: true,
+      });
+
+      if (response.statusCode >= 400) {
+        throw new Error(
+          response.body || `Attachment upload failed (${response.statusCode}: ${response.statusMessage})`,
+        );
+      }
     }
 
     console.log(' 🎉 Attachments sent to Testomat.io');
