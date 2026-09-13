@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const { expect } = require('chai');
 const Reporter = require('../src/reporter');
@@ -343,6 +342,230 @@ describe('Reporter', () => {
       reporter.attachFiles();
 
       expect(reporter.files).to.not.have.property('checkout.test.md');
+    });
+  });
+
+  describe('attachments (manual/markdown push)', () => {
+    describe('sendAttachments', () => {
+      it('should send a hash of { [testId]: [{ name, content }] } to the dedicated attachments endpoint', async () => {
+        const requests = [];
+        reporter.sendRequest = async (data, requestOpts) => {
+          requests.push({ body: JSON.parse(data), requestOpts });
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([
+          { testName: 'Test 1', id: '@T111', attachments: [{ name: 'a.png', content: 'base64content' }] },
+        ]);
+
+        expect(requests).to.have.length(1);
+        expect(requests[0].requestOpts).to.include({ path: '/api/load/attachments' });
+        expect(requests[0].body).to.deep.equal({
+          '@T111': [{ name: 'a.png', content: 'base64content' }],
+        });
+      });
+
+      it('should skip declarations without an id', async () => {
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([
+          { testName: 'Unresolved test', attachments: [{ name: 'a.png', content: 'base64content' }] },
+        ]);
+
+        expect(requests).to.have.length(0);
+      });
+
+      it('should group multiple attachments for the same test id into one array', async () => {
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([
+          {
+            testName: 'Test 1',
+            id: '@T111',
+            attachments: [
+              { name: 'a.png', content: 'content-a' },
+              { name: 'b.png', content: 'content-b' },
+            ],
+          },
+        ]);
+
+        expect(requests[0]['@T111']).to.have.length(2);
+      });
+
+      it('should not send a request at all when nothing has attachments', async () => {
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        await reporter.sendAttachments([{ testName: 'Test 1', id: '@T111' }]);
+
+        expect(requests).to.have.length(0);
+      });
+
+      it('should throw when the server responds with an error status, instead of silently reporting success', async () => {
+        reporter.sendRequest = async () => ({
+          statusCode: 422,
+          statusMessage: 'Unprocessable Content',
+          body: 'Cannot upload more than 100 files at once',
+        });
+
+        let thrown = null;
+        try {
+          await reporter.sendAttachments([
+            { testName: 'Test 1', id: '@T111', attachments: [{ name: 'a.png', content: 'base64content' }] },
+          ]);
+        } catch (err) {
+          thrown = err;
+        }
+
+        expect(thrown).to.not.be.null;
+        expect(thrown.message).to.equal('Cannot upload more than 100 files at once');
+      });
+
+      it('should stop sending further chunks once one chunk fails', async () => {
+        reporter.maxAttachmentChunkFiles = 1;
+        const requests = [];
+        reporter.sendRequest = async data => {
+          requests.push(JSON.parse(data));
+          return requests.length === 1
+            ? { statusCode: 500, statusMessage: 'Server Error', body: 'boom' }
+            : { statusCode: 200, statusMessage: 'OK', body: '{}' };
+        };
+
+        try {
+          await reporter.sendAttachments([
+            { testName: 'Test 1', id: '@T111', attachments: [{ name: 'a.png', content: 'x' }] },
+            { testName: 'Test 2', id: '@T222', attachments: [{ name: 'b.png', content: 'y' }] },
+          ]);
+          expect.fail('expected sendAttachments to throw');
+        } catch (err) {
+          expect(err.message).to.equal('boom');
+        }
+
+        expect(requests).to.have.length(1);
+      });
+    });
+
+    describe('chunkAttachmentsById', () => {
+      it('should split into multiple chunks once the byte limit is exceeded', () => {
+        reporter.maxAttachmentChunkBytes = 50;
+
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [{ name: 'a.png', content: 'x'.repeat(40) }],
+          '@T222': [{ name: 'b.png', content: 'y'.repeat(40) }],
+        });
+
+        expect(chunks).to.have.length(2);
+        expect(chunks[0]).to.deep.equal({ '@T111': [{ name: 'a.png', content: 'x'.repeat(40) }] });
+        expect(chunks[1]).to.deep.equal({ '@T222': [{ name: 'b.png', content: 'y'.repeat(40) }] });
+      });
+
+      it('should keep everything in one chunk when it fits', () => {
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [{ name: 'a.png', content: 'small' }],
+          '@T222': [{ name: 'b.png', content: 'small' }],
+        });
+
+        expect(chunks).to.have.length(1);
+        expect(Object.keys(chunks[0])).to.deep.equal(['@T111', '@T222']);
+      });
+
+      it('should split into multiple chunks once the file count limit is exceeded, even when well under the byte limit', () => {
+        reporter.maxAttachmentChunkFiles = 2;
+
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [{ name: 'a.png', content: 'x' }],
+          '@T222': [{ name: 'b.png', content: 'y' }],
+          '@T333': [{ name: 'c.png', content: 'z' }],
+        });
+
+        expect(chunks).to.have.length(2);
+        expect(Object.keys(chunks[0])).to.deep.equal(['@T111', '@T222']);
+        expect(Object.keys(chunks[1])).to.deep.equal(['@T333']);
+      });
+
+      it('should count multiple attachments on the same test toward the file count limit', () => {
+        reporter.maxAttachmentChunkFiles = 2;
+
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [
+            { name: 'a.png', content: 'x' },
+            { name: 'b.png', content: 'y' },
+          ],
+          '@T222': [{ name: 'c.png', content: 'z' }],
+        });
+
+        expect(chunks).to.have.length(2);
+        expect(Object.keys(chunks[0])).to.deep.equal(['@T111']);
+        expect(Object.keys(chunks[1])).to.deep.equal(['@T222']);
+      });
+
+      it("should split a single test's own attachments across multiple chunks when it alone exceeds the file limit", () => {
+        reporter.maxAttachmentChunkFiles = 2;
+
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [
+            { name: 'a.png', content: 'x' },
+            { name: 'b.png', content: 'y' },
+            { name: 'c.png', content: 'z' },
+          ],
+        });
+
+        expect(chunks).to.have.length(2);
+        expect(chunks[0]).to.deep.equal({
+          '@T111': [
+            { name: 'a.png', content: 'x' },
+            { name: 'b.png', content: 'y' },
+          ],
+        });
+        expect(chunks[1]).to.deep.equal({ '@T111': [{ name: 'c.png', content: 'z' }] });
+      });
+
+      it("should split a single test's own attachments across multiple chunks when it alone exceeds the byte limit", () => {
+        reporter.maxAttachmentChunkBytes = 60;
+
+        const chunks = reporter.chunkAttachmentsById({
+          '@T111': [
+            { name: 'a.png', content: 'x'.repeat(20) },
+            { name: 'b.png', content: 'y'.repeat(20) },
+          ],
+        });
+
+        expect(chunks).to.have.length(2);
+        expect(chunks[0]).to.deep.equal({ '@T111': [{ name: 'a.png', content: 'x'.repeat(20) }] });
+        expect(chunks[1]).to.deep.equal({ '@T111': [{ name: 'b.png', content: 'y'.repeat(20) }] });
+      });
+    });
+
+    describe('splitAttachmentsForOneTest', () => {
+      it('should keep everything in one piece when it already fits', () => {
+        const pieces = reporter.splitAttachmentsForOneTest('@T111', [
+          { name: 'a.png', content: 'x' },
+          { name: 'b.png', content: 'y' },
+        ]);
+
+        expect(pieces).to.have.length(1);
+        expect(pieces[0]).to.have.length(2);
+      });
+
+      it('should never leave an oversized single attachment unsplit-off (atomic unit still gets its own piece)', () => {
+        reporter.maxAttachmentChunkBytes = 10;
+
+        const pieces = reporter.splitAttachmentsForOneTest('@T111', [{ name: 'a.png', content: 'x'.repeat(50) }]);
+
+        expect(pieces).to.have.length(1);
+        expect(pieces[0]).to.deep.equal([{ name: 'a.png', content: 'x'.repeat(50) }]);
+      });
     });
   });
 
