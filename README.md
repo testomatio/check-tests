@@ -640,7 +640,9 @@ If your project is large and you want to import (or re-sync) only a subset of te
 TESTOMATIO=1111111 npx check-tests CodeceptJS "**/*{.,_}{test,spec}.js" -d ./tests/api --partial
 ```
 
-This is equivalent to combining `-d ./tests/api` with `TESTOMATIO_PREPEND_DIR=./tests/api`: only tests found inside `./tests/api` are scanned and imported into the matching folder in Testomat.io, while tests outside that directory are left untouched and are not marked as detached.
+This is equivalent to combining `-d ./tests/api` with `TESTOMATIO_PREPEND_DIR=./tests/api`: only tests found inside `./tests/api` are scanned and imported into the matching folder in Testomat.io, while tests outside that directory are left untouched.
+
+`--partial` scopes detaching to the imported directory: tests inside `./tests/api` that are no longer found locally are marked as detached, but tests elsewhere in the project are never affected by this import. To disable detaching entirely, even within the imported directory, combine `--partial` with `--no-detached`.
 
 `--partial` requires the `-d` option; without it the command will fail.
 
