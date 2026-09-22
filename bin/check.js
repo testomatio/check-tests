@@ -112,7 +112,7 @@ async function mainAction(framework, files, opts) {
           create: opts.create || false,
           noempty: !opts.empty,
           branch,
-          'no-detach': process.env.TESTOMATIO_NO_DETACHED || !opts.detached || opts.partial,
+          'no-detach': framework === 'manual' || process.env.TESTOMATIO_NO_DETACHED || !opts.detached || opts.partial,
           structure: opts.keepStructure,
           force: opts.force || false,
           'no-cleanup': opts.disableCleanup || false,
