@@ -105,6 +105,8 @@ async function mainAction(framework, files, opts) {
           return;
         }
 
+        // manual tests are not detached unless --detached is passed explicitly
+        const detached = opts.detached ?? framework !== 'manual';
         const reporter = new Reporter(apiKey.trim(), framework, workDir);
         reporter.addTests(decorator.getTests());
         const resp = reporter.send({
@@ -112,7 +114,7 @@ async function mainAction(framework, files, opts) {
           create: opts.create || false,
           noempty: !opts.empty,
           branch,
-          'no-detach': framework === 'manual' || process.env.TESTOMATIO_NO_DETACHED || !opts.detached || opts.partial,
+          'no-detach': process.env.TESTOMATIO_NO_DETACHED || !detached || opts.partial,
           structure: opts.keepStructure,
           force: opts.force || false,
           'no-cleanup': opts.disableCleanup || false,
@@ -196,6 +198,7 @@ program
   .option('-g, --generate-file <fileName>', 'Export test details to a document')
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
   .option('-p, --plugins [plugins...]', 'additional babel plugins')
+  .option('--detached', 'Mark all unmatched tests as detached (default for automated tests, off for manual)')
   .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--create', 'Create tests and suites for missing IDs')
@@ -264,6 +267,7 @@ program
   .option('-g, --generate-file <fileName>', 'Export test details to a document')
   .option('-u, --url <url>', 'Github URL to get files (URL/tree/master)')
   .option('-p, --plugins [plugins...]', 'additional babel plugins')
+  .option('--detached', 'Mark all unmatched tests as detached (default for automated tests, off for manual)')
   .option('--no-detached', 'Don\t mark all unmatched tests as detached')
   .option('--update-ids', 'Update test and suite with testomatio ids')
   .option('--create', 'Create tests and suites for missing IDs')
@@ -282,7 +286,7 @@ program
   )
   .action(async opts => {
     const globalOpts = program.opts();
-    const mergedOpts = { ...opts, ...globalOpts, updateIds: true };
+    const mergedOpts = { ...opts, ...globalOpts, detached: opts.detached ?? globalOpts.detached, updateIds: true };
     const files =
       opts.files && opts.files.length ? (opts.files.length === 1 ? opts.files[0] : opts.files) : '**/*.test.md';
     await mainAction('manual', files, mergedOpts);
