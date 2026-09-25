@@ -41,23 +41,45 @@ Metadata is placed inside the HTML comment block before the heading. Available f
 
 **Test metadata:**
 
-| Field      | Description                                             |
-| ---------- | ------------------------------------------------------- |
-| `id`       | Test ID assigned by Testomat.io (e.g. `@T12345678`)     |
-| `type`     | `manual` or `automated`                                 |
-| `priority` | `normal`, `high`, or `low`                              |
-| `assignee` | Email of the assigned user                              |
-| `creator`  | Email of the test creator                               |
-| `tags`     | Comma-separated tags (not already present in the title) |
-| `labels`   | Comma-separated labels                                  |
-| `issues`   | Linked issues                                           |
-| `shared`   | `true` if the test is shared across suites              |
+| Field         | Description                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| `id`          | Test ID assigned by Testomat.io (e.g. `@T12345678`)                                       |
+| `type`        | `manual` or `automated`                                                                   |
+| `priority`    | `normal`, `high`, or `low`                                                                |
+| `assignee`    | Email of the assigned user                                                                |
+| `creator`     | Email of the test creator                                                                 |
+| `tags`        | Comma-separated tags (not already present in the title)                                   |
+| `labels`      | Comma-separated labels                                                                    |
+| `issues`      | Linked issues                                                                             |
+| `shared`      | `true` if the test is shared across suites                                                |
+| `attachments` | Paths to local files to upload alongside the test (see [Attachments](#attachments) below) |
 
 > **Note:** Suite-level `issues` (Jira) are inherited by all tests inside that suite on push. Suite-level `assignee` is inherited only by tests that don't have their own `assignee` set.
 
 > **Note:** `type` and `shared` are read-only fields exported from Testomat.io. Changing them locally has no effect on the test in Testomat.io after push.
 
 > **Note:** The `id` field is used to match a local test with an existing test in Testomat.io. If you change the `id`, the test will be treated as a new test on next push and a new record will be created.
+
+### Attachments
+
+Attach local files (e.g. screenshots) to a test by listing their paths under `attachments` in the test's metadata block, as a YAML-style list:
+
+```markdown
+<!-- test
+id: @T12345678
+attachments:
+- ./screenshots/fail.png
+- ./screenshots/before.png
+-->
+
+## Test Title
+```
+
+- Paths are resolved relative to the Markdown file they're declared in.
+- Supported file types: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`.
+- Each file must be 2MB or smaller.
+- Files with an unsupported extension or over the size limit are skipped, with a warning printed during `push`; a path that doesn't resolve to a file is skipped silently.
+- Attachments are uploaded automatically as part of `push` — no extra flag needed. `attachments` is only supported on tests, not on suites.
 
 ### Single-line comments
 

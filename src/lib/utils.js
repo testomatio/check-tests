@@ -300,6 +300,18 @@ function parseErrorBody(body) {
   }
 }
 
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  if (bytes % (1024 * 1024) === 0) {
+    return `${bytes / (1024 * 1024)}.0 MB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function formatErrorMessage(error) {
   if (!error) return 'Unknown error';
   if (typeof error === 'string') return error.trim() || 'Unknown error';
@@ -336,4 +348,5 @@ module.exports = {
   arrayCompare,
   getAllSuiteTags,
   formatErrorMessage,
+  formatBytes,
 };
