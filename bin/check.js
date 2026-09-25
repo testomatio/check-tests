@@ -115,11 +115,11 @@ async function mainAction(framework, files, opts) {
           create: opts.create || false,
           noempty: !opts.empty,
           branch,
-          'no-detach': process.env.TESTOMATIO_NO_DETACHED || !detached || opts.partial,
+          'no-detach': process.env.TESTOMATIO_NO_DETACHED || !detached,
           structure: opts.keepStructure,
           force: opts.force || false,
           'no-cleanup': opts.disableCleanup || false,
-          ...(opts.partial && { dir: workDir }),
+          ...(opts.partial && { dir: workDir, partial: true }),
         }); // async call
 
         if (opts.sync) {
