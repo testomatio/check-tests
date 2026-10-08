@@ -1,4 +1,7 @@
+const http = require('http');
+const https = require('https');
 const path = require('path');
+const { PassThrough } = require('stream');
 const { expect } = require('chai');
 const Reporter = require('../src/reporter');
 
@@ -1426,6 +1429,61 @@ describe('Reporter', () => {
       }
       delete require.cache[require.resolve('../src/reporter')];
       require('../src/reporter');
+    });
+  });
+
+  describe('multibyte characters split across response chunks', () => {
+    const title = 'ＴＩＴＬＥ－ａｂｃ';
+    const body = JSON.stringify({ files: { 'ＦＯＬＤＥＲ/ＴＥＳＴＳ.test.md': `# ${title}` }, title });
+    const originalRequests = { http: http.request, https: https.request };
+    let ChunkedReporter;
+
+    const requestWithSplitResponse = (url, opts, callback) => {
+      const bytes = Buffer.from(body);
+      const splitAt = bytes.indexOf(Buffer.from('Ｉ')) + 1;
+      const resp = new PassThrough();
+      resp.statusCode = 200;
+
+      setImmediate(() => {
+        callback(resp);
+        resp.write(bytes.subarray(0, splitAt));
+        setImmediate(() => resp.end(bytes.subarray(splitAt)));
+      });
+
+      return { on: () => {}, write: () => {}, end: () => {} };
+    };
+
+    before(() => {
+      http.request = requestWithSplitResponse;
+      https.request = requestWithSplitResponse;
+      delete require.cache[require.resolve('../src/reporter')];
+      ChunkedReporter = require('../src/reporter');
+    });
+
+    after(() => {
+      http.request = originalRequests.http;
+      https.request = originalRequests.https;
+      delete require.cache[require.resolve('../src/reporter')];
+      require('../src/reporter');
+    });
+
+    it('should preserve multibyte characters in pulled files', async () => {
+      const data = await new ChunkedReporter(mockApiKey, mockFramework).getFilesFromServer(false);
+
+      expect(data.files).to.deep.equal({ 'ＦＯＬＤＥＲ/ＴＥＳＴＳ.test.md': `# ${title}` });
+    });
+
+    it('should preserve multibyte characters in fetched ids', async () => {
+      const data = await new ChunkedReporter(mockApiKey, mockFramework).getIds();
+
+      expect(data.title).to.equal(title);
+    });
+
+    it('should preserve multibyte characters in send response body', async () => {
+      const response = await new ChunkedReporter(mockApiKey, mockFramework).sendRequest('{}');
+
+      expect(response.body).to.equal(body);
+      expect(response.body).to.not.include('�');
     });
   });
 

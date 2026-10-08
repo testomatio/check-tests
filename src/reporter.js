@@ -59,6 +59,7 @@ class Reporter {
         resp => {
           // The whole response has been received. Print out the result.
           let message = '';
+          resp.setEncoding('utf8');
 
           resp.on('end', () => {
             debug('Files fetched from Testomat.io', message);
@@ -115,6 +116,7 @@ class Reporter {
       const req = request(`${URL.trim()}/api/test_data?api_key=${this.apiKey}`, { method: 'GET' }, resp => {
         // The whole response has been received. Print out the result.
         let message = '';
+        resp.setEncoding('utf8');
 
         resp.on('end', () => {
           debug('Data fetched from Testomat.io', message);
@@ -544,6 +546,7 @@ class Reporter {
         resp => {
           // The whole response has been received. Print out the result.
           let message = '';
+          resp.setEncoding('utf8');
 
           resp.on('end', () => {
             if (resp.statusCode >= 400) {
