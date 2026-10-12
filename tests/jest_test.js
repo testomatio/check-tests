@@ -228,4 +228,25 @@ describe('jest parser', () => {
       expect(ermSource).to.include('[Symbol.dispose]');
     });
   });
+
+  context('sibling after skipped suite', () => {
+    before(() => {
+      source = fs.readFileSync('./example/jest/sibling-after-skipped-suite.js').toString();
+      ast = parser.parse(source);
+    });
+
+    it('should not leak a skipped suite onto sibling tests declared after it', () => {
+      const tests = jestParser(ast, '', source);
+
+      const byName = name => tests.find(t => t.name === name);
+
+      expect(byName('inside skipped suite').skipped).to.be.true;
+      expect(byName('inside skipped suite').suites).to.deep.equal(['skipped suite']);
+      // siblings declared after the suite closed must not inherit it
+      expect(byName('sibling after skipped suite').skipped).to.be.false;
+      expect(byName('sibling after skipped suite').suites).to.deep.equal([]);
+      expect(byName('skipped sibling after skipped suite').skipped).to.be.true;
+      expect(byName('skipped sibling after skipped suite').suites).to.deep.equal([]);
+    });
+  });
 });

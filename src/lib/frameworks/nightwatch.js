@@ -214,7 +214,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
                 + moduleAfterCode;
 
               // For export default pattern, if no explicit suites, use generated suite name
-              const explicitSuites = currentSuite.map(s => getStringValue(s));
+              // only suites still enclosing this test count (not closed siblings)
+              const enclosingSuites = currentSuite.filter(s => s.loc.end.line >= prop.loc.start.line);
+              const explicitSuites = enclosingSuites.map(s => getStringValue(s));
               const suiteNames =
                 explicitSuites.length > 0
                   ? explicitSuites.concat([file.split('/').pop()])
@@ -236,7 +238,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
                 line: prop.loc.start.line,
                 code,
                 file,
-                skipped: !!currentSuite.filter(s => s.skipped).length,
+                skipped: enclosingSuites.some(s => s.skipped),
               });
             }
           });
@@ -267,7 +269,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         const testName = getStringValue(path.parent);
         // For describe/it pattern, if there are explicit suites (describe blocks), use only those
         // If no explicit suites, generate from filename
-        const explicitSuites = currentSuite.map(s => getStringValue(s));
+        // only suites still enclosing this test count (not closed siblings)
+        const enclosingSuites = currentSuite.filter(s => s.loc.end.line >= getLineNumber(path));
+        const explicitSuites = enclosingSuites.map(s => getStringValue(s));
         const suiteNames = explicitSuites.length > 0 ? explicitSuites : [generateSuiteNameFromFile(file)];
 
         tests.push({
@@ -277,7 +281,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           line: getLineNumber(path),
           code,
           file,
-          skipped: !!currentSuite.filter(s => s.skipped).length,
+          skipped: enclosingSuites.some(s => s.skipped),
         });
       }
 
@@ -295,7 +299,9 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
           const testName = getStringValue(path.parentPath.container);
           // For skipped tests, use same suite logic as regular tests
-          const explicitSuites = currentSuite.map(s => getStringValue(s));
+          const explicitSuites = currentSuite
+            .filter(s => s.loc.end.line >= getLineNumber(path))
+            .map(s => getStringValue(s));
           const suiteNames = explicitSuites.length > 0 ? explicitSuites : [generateSuiteNameFromFile(file)];
 
           tests.push({

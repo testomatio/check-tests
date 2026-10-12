@@ -216,4 +216,25 @@ describe('mocha parser', () => {
       expect(tests[0].code).to.not.include('8:     before(() => {');
     });
   });
+
+  context('sibling after skipped suite', () => {
+    before(() => {
+      source = fs.readFileSync('./example/mocha/sibling-after-skipped-suite.js').toString();
+      ast = parser.parse(source);
+    });
+
+    it('should not leak a skipped suite onto sibling tests declared after it', () => {
+      const tests = mochaParser(ast, '', source);
+
+      const byName = name => tests.find(t => t.name === name);
+
+      expect(byName('inside skipped suite').skipped).to.be.true;
+      expect(byName('inside skipped suite').suites).to.deep.equal(['skipped suite']);
+      // siblings declared after the suite closed must not inherit it
+      expect(byName('sibling after skipped suite').skipped).to.be.false;
+      expect(byName('sibling after skipped suite').suites).to.deep.equal([]);
+      expect(byName('xit sibling after skipped suite').skipped).to.be.true;
+      expect(byName('xit sibling after skipped suite').suites).to.deep.equal([]);
+    });
+  });
 });

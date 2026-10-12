@@ -29,6 +29,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     currentSuite.push(path);
   }
 
+  // only suites whose body still encloses this line count (not closed siblings)
+  function getEnclosingSuites(path) {
+    const line = getLineNumber(path);
+    return currentSuite.filter(s => s.loc.end.line >= line);
+  }
+
   traverse(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'describe' })) {
@@ -92,12 +98,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           const testName = getStringValue(path.parentPath.container);
           tests.push({
             name: testName,
-            suites: currentSuite.map(s => getStringValue(s)),
+            suites: getEnclosingSuites(path).map(s => getStringValue(s)),
             updatePoint: getUpdatePoint(path.parent.container),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
-            tags: [...getAllSuiteTags(currentSuite), ...cypress.getTags(path.parentPath.container)],
+            tags: [...getAllSuiteTags(getEnclosingSuites(path)), ...cypress.getTags(path.parentPath.container)],
             skipped: true,
           });
         }
@@ -117,11 +123,11 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
         const testName = getStringValue(path.parent);
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: getEnclosingSuites(path).map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
-          tags: [...getAllSuiteTags(currentSuite), ...cypress.getTags(path.parent)],
+          tags: [...getAllSuiteTags(getEnclosingSuites(path)), ...cypress.getTags(path.parent)],
           skipped: true,
           file,
         });
@@ -145,15 +151,17 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           + getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber)
           + afterCode;
 
+        const suites = getEnclosingSuites(path);
+
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: suites.map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code,
           file,
-          tags: [...getAllSuiteTags(currentSuite), ...cypress.getTags(path.parent)],
-          skipped: !!currentSuite.filter(s => s.skipped).length,
+          tags: [...getAllSuiteTags(suites), ...cypress.getTags(path.parent)],
+          skipped: suites.some(s => s.skipped),
         });
       }
     },
