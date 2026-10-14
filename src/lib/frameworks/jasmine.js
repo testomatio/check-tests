@@ -19,6 +19,12 @@ module.exports = (ast, file = '', source = '') => {
     currentSuite.push(path);
   }
 
+  // only suites whose body still encloses this line count (not closed siblings)
+  function getEnclosingSuites(path) {
+    const line = getLineNumber(path);
+    return currentSuite.filter(s => s.loc.end.line >= line);
+  }
+
   traverse(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'describe' })) {
@@ -59,7 +65,7 @@ module.exports = (ast, file = '', source = '') => {
         const testName = getStringValue(path.parent);
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: getEnclosingSuites(path).map(s => getStringValue(s)),
           line: getLineNumber(path),
           updatePoint: getUpdatePoint(path.parent),
           skipped: true,
@@ -72,14 +78,15 @@ module.exports = (ast, file = '', source = '') => {
         if (!hasStringOrTemplateArgument(path.parent)) return;
 
         const testName = getStringValue(path.parent);
+        const suites = getEnclosingSuites(path);
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: suites.map(s => getStringValue(s)),
           line: getLineNumber(path),
           updatePoint: getUpdatePoint(path.parent),
           code: getCode(source, getLineNumber(path), getEndLineNumber(path)),
           file,
-          skipped: !!currentSuite.filter(s => s.skipped).length,
+          skipped: suites.some(s => s.skipped),
         });
       }
     },

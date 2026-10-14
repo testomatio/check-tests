@@ -27,6 +27,12 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
     currentSuite.push(path);
   }
 
+  // only suites whose body still encloses this line count (not closed siblings)
+  function getEnclosingSuites(path) {
+    const line = getLineNumber(path);
+    return currentSuite.filter(s => s.loc.end.line >= line);
+  }
+
   traverse(ast, {
     enter(path) {
       if (path.isIdentifier({ name: 'describe' })) {
@@ -91,7 +97,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           const testName = getStringValue(path.parentPath.container);
           tests.push({
             name: testName,
-            suites: currentSuite.map(s => getStringValue(s)),
+            suites: getEnclosingSuites(path).map(s => getStringValue(s)),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
@@ -119,7 +125,7 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           const testName = getStringValue(path.parentPath.container);
           tests.push({
             name: testName,
-            suites: currentSuite.map(s => getStringValue(s)),
+            suites: getEnclosingSuites(path).map(s => getStringValue(s)),
             line: getLineNumber(path),
             code: getCode(source, getLineNumber(path), getEndLineNumber(path), isLineNumber),
             file,
@@ -146,14 +152,15 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
           + afterCode;
 
         const testName = getStringValue(path.parent);
+        const suites = getEnclosingSuites(path);
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: suites.map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(path),
           code,
           file,
-          skipped: !!currentSuite.filter(s => s.skipped).length,
+          skipped: suites.some(s => s.skipped),
         });
       }
 
@@ -162,14 +169,15 @@ module.exports = (ast, file = '', source = '', opts = {}) => {
 
         if (!hasStringOrTemplateArgument(currentPath.parent)) return;
         const testName = getStringValue(currentPath.parent);
+        const suites = getEnclosingSuites(currentPath);
         tests.push({
           name: testName,
-          suites: currentSuite.map(s => getStringValue(s)),
+          suites: suites.map(s => getStringValue(s)),
           updatePoint: getUpdatePoint(path.parent),
           line: getLineNumber(currentPath),
           code: getCode(source, getLineNumber(currentPath), getEndLineNumber(currentPath), isLineNumber),
           file,
-          skipped: !!currentSuite.filter(s => s.skipped).length,
+          skipped: suites.some(s => s.skipped),
         });
       }
     },
