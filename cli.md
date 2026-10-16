@@ -55,7 +55,7 @@ TESTOMATIO=your-api-key npx check-tests push --files docs/login.test.md
 TESTOMATIO=your-api-key npx check-tests push -f docs/login.test.md docs/checkout.test.md
 
 # Push everything matching a custom glob (quote the pattern!)
-TESTOMATIO=your-api-key npx check-tests push --files "manual-tests/**/*.md"
+TESTOMATIO=your-api-key npx check-tests push --files "testcases/**/*.md"
 
 # Combine multiple globs (e.g. smoke + regression suites)
 TESTOMATIO=your-api-key npx check-tests push -f "smoke/**/*.test.md" "regression/**/*.test.md"
