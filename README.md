@@ -544,7 +544,7 @@ See [Markdown manual tests documentation](docs/frameworks/markdown.md) for full 
 ```bash
 # Markdown-based manual test documentation
 npx check-tests manual "docs/tests/**/*.md"
-npx check-tests manual "testcases/*.md"
+npx check-tests manual "test-cases/*.md"
 ```
 
 ### Sample Output
